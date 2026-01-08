@@ -19,12 +19,16 @@ import com.google.common.collect.{ArrayListMultimap, HashMultimap, Multimap}
 import gay.menkissing.spectrumstorage.util.registry.builder.{BlockBuilder, ItemBuilder, TagBuilder}
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.{LumoBlockStateGenerator, LumoItemModelProvider, LumoModelProvider, LumoTagsProvider}
 import LumoTagsProvider.ChildKind
+import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel
 import gay.menkissing.spectrumstorage.SpectrumStorage
+import gay.menkissing.spectrumstorage.util.registry.InfoCollector.EntryCreator
+import gay.menkissing.spectrumstorage.util.registry.book.{EntryLocation, FalseCategory}
 import gay.menkissing.spectrumstorage.util.registry.helper.{GuidebookLangHelper, LangHelper}
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator
 import net.fabricmc.fabric.api.datagen.v1.provider.{FabricBlockLootTableProvider, FabricLanguageProvider, FabricTagProvider}
 import net.minecraft.client.model.Model
 import net.minecraft.core.{HolderLookup, Registry}
+import net.minecraft.data.PackOutput.Target
 import net.minecraft.data.models.blockstates.BlockStateGenerator
 import net.minecraft.data.models.{BlockModelGenerators, ItemModelGenerators}
 import net.minecraft.data.{CachedOutput, DataProvider}
@@ -55,6 +59,8 @@ class InfoCollector(val modid: String):
   private[registry] val tags = ArrayListMultimap.create[ResourceKey[? <: Registry[?]], LumoTagsProvider[?] => Unit]()
 
   private[registry] val tagMembers = mutable.HashMap[ResourceKey[? <: Registry[?]], Multimap[TagKey[?], ChildKind[?]]]()
+
+  private [registry] val bookEntries = mutable.HashMap[EntryLocation, BookEntryModel]()
 
   private lazy val doDatagen = System.getProperty("fabric-api.datagen") != null
 
@@ -88,6 +94,24 @@ class InfoCollector(val modid: String):
     LangHelper(this, idGetter)
   def addGuidebookEntry(entryName: String): GuidebookLangHelper =
     GuidebookLangHelper(this, entryName)
+
+  
+  
+  def addGuidebookEntry(location: EntryLocation, category: ResourceLocation, transId: ResourceLocation)(creator: EntryCreator): InfoCollector =
+    if !doDatagen then
+      return this
+    var pageIndex = 0
+    def savePageText(txt: String): String =
+      val x = pageIndex
+      pageIndex += 1
+      val langKey = s"book.${transId.getNamespace}.${location.book.getPath}.${transId.getPath}.page${x}.text"
+      addRawLang(langKey, InfoCollector.escapeBody(txt))
+      langKey
+    val baseEntry =
+      BookEntryModel.create(location.id, "").withCategory(FalseCategory(category))
+    val resEntry = creator(savePageText, baseEntry)
+    bookEntries(location) = resEntry
+    this
 
   def addBlockLootTable(block: Block, table: FabricBlockLootTableProvider => LootTable.Builder): InfoCollector =
     if doDatagen then
@@ -138,8 +162,23 @@ class InfoCollector(val modid: String):
           
         override def getName: String = s"Item Model Provider for $modid"
       
-      
-      
+      val bookEntryProvider =
+        new DataProvider:
+          override def run(cachedOutput: CachedOutput): CompletableFuture[_] =
+            CompletableFuture.allOf(
+              bookEntries.map: (k, v) =>
+                val path =
+                  output.getOutputFolder(Target.DATA_PACK)
+                        .resolve(k.book.getNamespace)
+                        .resolve("modonomicon/books")
+                        .resolve(k.book.getPath)
+                        .resolve("entries")
+                DataProvider.saveStable(cachedOutput, v.toJson, path.resolve(v.getId.getPath + ".json"))
+              .toSeq*
+            )
+          override def getName: String = s"Book Entry Provider for $modid"
+
+
       val blockModelProvider = new LumoBlockStateGenerator(output):
         override def registerStates(): Unit =
           InfoCollector.this.blockStates.foreach { (k, v) =>
@@ -163,6 +202,7 @@ class InfoCollector(val modid: String):
               blockLootProvider.run(output),
               itemModelProvider.run(output),
               blockModelProvider.run(output),
+              bookEntryProvider.run(output),
               f150
           )
 
@@ -175,3 +215,8 @@ class InfoCollector(val modid: String):
 object InfoCollector:
   val instance: InfoCollector = InfoCollector(SpectrumStorage.ModId)
 
+  private def escapeBody(body: String): String =
+    body.trim.replace("\r", "").replace("\n", "\\\n")
+  
+  trait EntryCreator:
+    def apply(transGetter: String => String, baseEntry: BookEntryModel): BookEntryModel

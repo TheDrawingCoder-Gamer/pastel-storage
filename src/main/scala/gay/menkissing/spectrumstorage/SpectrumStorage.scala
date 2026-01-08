@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage
 
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
-import gay.menkissing.spectrumstorage.registries.{LumoLang, LumoScreens, LumoTags}
+import gay.menkissing.spectrumstorage.registries.{LumoLang, LumoScreens, LumoTags, SpectrumStorageBook}
 import net.fabricmc.api.ModInitializer
 import net.minecraft.resources.ResourceLocation
 import org.slf4j.{Logger, LoggerFactory}
@@ -18,3 +18,4 @@ object SpectrumStorage extends ModInitializer:
     LumoScreens.init()
     LumoTags.init()
     LumoLang.init()
+    SpectrumStorageBook.init()
