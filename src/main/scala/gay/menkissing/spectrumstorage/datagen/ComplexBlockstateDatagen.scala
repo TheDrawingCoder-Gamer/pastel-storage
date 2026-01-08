@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.state.properties.{BlockStateProperties, E
 
 import scala.collection.mutable
 
-object tComplexBlockstateDatagen:
+object ComplexBlockstateDatagen:
 
 
   object BottomlessShelf:
