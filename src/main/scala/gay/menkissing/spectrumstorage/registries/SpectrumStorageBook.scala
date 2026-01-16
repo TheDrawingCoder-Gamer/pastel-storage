@@ -3,6 +3,7 @@ package gay.menkissing.spectrumstorage.registries
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel
 import com.klikli_dev.modonomicon.api.datagen.book.condition.BookAdvancementConditionModel
 import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel, BookTextPageModel}
+import de.dafuqs.spectrum.registries.{SpectrumEnchantments, SpectrumItems}
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import gay.menkissing.spectrumstorage.util.registry.book.EntryLocation
@@ -66,6 +67,22 @@ object SpectrumStorageBook:
     val powerVStack =
       ItemStack(SpectrumStorageItems.bottomlessBottle)
     powerVStack.enchant(Enchantments.POWER_ARROWS, 5)
+    val voidingBundle =
+      ItemStack(SpectrumItems.BOTTOMLESS_BUNDLE)
+    voidingBundle.enchant(SpectrumEnchantments.VOIDING, 1)
+
+    val buildEnchanter = BookAdvancementConditionModel.builder().withAdvancementId("spectrum:midgame/build_enchanting_structure").build()
+
+    def voidingPage(text: String): BookNbtSpotlightPageModel =
+      BookNbtSpotlightPageModel
+        .Builder()
+        .withCondition(buildEnchanter)
+        .withItem(ItemVariant.of(voidingBundle))
+        .withTitle("enchantment.spectrum.voiding")
+        .withText(
+          text
+        )
+        .build()
 
     InfoCollector
       .instance
@@ -92,7 +109,7 @@ object SpectrumStorageBook:
               BookNbtSpotlightPageModel
                 .Builder()
                 .withTitle("enchantment.minecraft.power")
-                .withCondition(BookAdvancementConditionModel.builder().withAdvancementId("spectrum:midgame/build_enchanting_structure").build())
+                .withCondition(buildEnchanter)
                 .withItem(ItemVariant.of(powerVStack))
                 .withText(trans("Power increases its capacity eightfold each level."))
                 .build()
@@ -156,6 +173,16 @@ object SpectrumStorageBook:
                     |""".stripMargin
                 ))
                 .build()
+            ).withPage(
+              voidingPage(
+                trans(
+                  """
+                    |Like the bottomless shelf and bottomless barrel, if I insert a bottomless bundle that has the Curse of the Void into
+                    |my bottomless amphora, it will still keep its filter and won't accept any
+                    |arbitrary items. Any items inserted that overflow the bundle will be voided.
+                    |""".stripMargin.linesIterator.mkString(" ")
+                )
+              )
             )
       }
       .addGuidebookEntry(entryLoc("magical_blocks/bottomless_barrel"), magicalCategory, SpectrumStorageBlocks.bottomlessBarrel.location) {
@@ -193,6 +220,18 @@ object SpectrumStorageBook:
                 )
                 .build()
             )
+            .withPage(
+              voidingPage(
+                  trans(
+                    """
+                      |Like the bottomless shelf, if I insert a bottomless bundle that has the Curse of the Void into
+                      |my bottomless barrel, it will still keep its filter and won't accept any
+                      |arbitrary items. Any items inserted that overflow the bundle will be voided.
+                      |""".stripMargin.linesIterator.mkString(" ")
+                    // ^ im not having a 200 character long line
+                  )
+                )
+            )
       }
       .addGuidebookEntry(entryLoc("magical_blocks/bottomless_shelf"), magicalCategory, SpectrumStorageBlocks.bottomlessShelf.location) {
         (trans, entry) =>
@@ -224,6 +263,18 @@ object SpectrumStorageBook:
                   )
                 )
                 .build()
+            )
+            .withPage(
+              voidingPage(
+                trans(
+                  """
+                    |If I insert a bottomless bundle that has the Curse of the Void into
+                    |my bottomless shelf, it will still keep its filter and won't accept any
+                    |arbitrary items. Any items inserted that overflow the bundle will be voided.
+                    |""".stripMargin.linesIterator.mkString(" ")
+                    // ^ im not having a 200 character long line
+                )
+              )
             )
       }
       .addGuidebookEntry(entryLoc("magical_blocks/filter_chest"), magicalCategory, SpectrumStorageBlocks.filterChest.location) {
