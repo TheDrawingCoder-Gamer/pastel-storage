@@ -5,7 +5,6 @@ import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity}
 import net.minecraft.core.{BlockPos, Direction}
 import net.minecraft.util.StringRepresentable
-import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.{Containers, InteractionHand, InteractionResult}
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack

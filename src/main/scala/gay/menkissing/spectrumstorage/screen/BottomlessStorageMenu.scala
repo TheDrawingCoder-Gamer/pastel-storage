@@ -2,15 +2,11 @@ package gay.menkissing.spectrumstorage.screen
 
 import de.dafuqs.spectrum.registries.SpectrumItems
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
-import gay.menkissing.spectrumstorage.content.block.entity.BottomlessStorageBlockEntity
-import gay.menkissing.spectrumstorage.item.ItemBackedInventory
-import gay.menkissing.spectrumstorage.registries.{LumoScreens, LumoTags}
-import net.minecraft.network.FriendlyByteBuf
+import gay.menkissing.spectrumstorage.registries.LumoScreens
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, MenuType, Slot}
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.{Container, InteractionHand, SimpleContainer}
-import org.jetbrains.annotations.Nullable
+import net.minecraft.world.{Container, SimpleContainer}
 
 class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows: Int, windowId: Int, playerInv: Inventory, val container: Container) extends AbstractContainerMenu(menuType, windowId):
   locally:

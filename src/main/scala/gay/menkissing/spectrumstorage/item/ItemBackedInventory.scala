@@ -2,7 +2,7 @@ package gay.menkissing.spectrumstorage.item
 
 import net.minecraft.nbt.{CompoundTag, ListTag, Tag}
 import net.minecraft.world.entity.player.Player
-import net.minecraft.world.{Containers, SimpleContainer}
+import net.minecraft.world.SimpleContainer
 import net.minecraft.world.item.ItemStack
 
 class ItemBackedInventory(val stack: ItemStack, expectedSize: Int) extends SimpleContainer(expectedSize):

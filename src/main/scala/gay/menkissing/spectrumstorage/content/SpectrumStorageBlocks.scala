@@ -4,19 +4,16 @@ import de.dafuqs.fractal.api.ItemSubGroupEvents
 import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.block.BottomlessStorageBlock.{BottomlessAmphoraBlock, BottomlessBarrelBlock}
-import gay.menkissing.spectrumstorage.content.block.{BottomlessShelfBlock, BottomlessStorageBlock, FilterChestBlock}
+import gay.menkissing.spectrumstorage.content.block.{BottomlessShelfBlock, FilterChestBlock}
 import gay.menkissing.spectrumstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity, FilterChestBlockEntity}
 import gay.menkissing.spectrumstorage.datagen.ComplexBlockstateDatagen
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import gay.menkissing.spectrumstorage.util.registry.builder.{BlockBuilder, ItemBuilder}
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents
-import net.minecraft.Util
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.BlockTags
-import net.minecraft.util.datafix.fixes.References
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.{Block, SoundType}
 import net.minecraft.world.level.block.entity.{BlockEntity, BlockEntityType}

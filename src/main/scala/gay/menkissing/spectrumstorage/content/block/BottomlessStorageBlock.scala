@@ -1,22 +1,19 @@
 package gay.menkissing.spectrumstorage.content.block
 
-import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.block.entity.{BottomlessStorageBlockEntity, ContainerBottomlessStorageBlockEntity}
 import gay.menkissing.spectrumstorage.screen.BottomlessStorageMenu
 import net.minecraft.core.{BlockPos, Direction}
-import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.LivingEntity
 import net.minecraft.world.{InteractionHand, InteractionResult, MenuProvider}
-import net.minecraft.world.entity.player.{Inventory, Player}
-import net.minecraft.world.inventory.AbstractContainerMenu
+import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
-import net.minecraft.world.level.block.{BarrelBlock, BaseEntityBlock, Block, Mirror, Rotation}
-import net.minecraft.world.level.block.entity.{BlockEntity, BlockEntityType}
+import net.minecraft.world.level.block.BarrelBlock
+import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.properties.BlockStateProperties
-import net.minecraft.world.level.block.state.{BlockBehaviour, BlockState, StateDefinition}
+import net.minecraft.world.level.block.state.{BlockBehaviour, BlockState}
 import net.minecraft.world.phys.BlockHitResult
 
 abstract class BottomlessStorageBlock(val capacity: Int, props: BlockBehaviour.Properties) extends BarrelBlock(props):

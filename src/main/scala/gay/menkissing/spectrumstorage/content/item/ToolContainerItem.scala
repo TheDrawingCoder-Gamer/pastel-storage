@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage.content.item
 
 import gay.menkissing.spectrumstorage.item.ItemBackedInventory
-import gay.menkissing.spectrumstorage.registries.{LumoScreens, LumoTags}
+import gay.menkissing.spectrumstorage.registries.LumoTags
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory
 import net.minecraft.network.FriendlyByteBuf

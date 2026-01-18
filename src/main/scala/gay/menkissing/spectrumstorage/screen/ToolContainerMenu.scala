@@ -5,9 +5,8 @@ import gay.menkissing.spectrumstorage.registries.{LumoScreens, LumoTags}
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.{InteractionHand, SimpleContainer}
 import net.minecraft.world.entity.player.{Inventory, Player}
-import net.minecraft.world.inventory.{AbstractContainerMenu, MenuType, Slot}
+import net.minecraft.world.inventory.{AbstractContainerMenu, Slot}
 import net.minecraft.world.item.ItemStack
-import org.jetbrains.annotations.Nullable
 
 class ToolContainerMenu(windowId: Int, playerInv: Inventory, val box: ItemStack) extends AbstractContainerMenu(LumoScreens.toolContainer, windowId):
   locally:

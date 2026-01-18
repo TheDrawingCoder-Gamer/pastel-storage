@@ -2,12 +2,8 @@ package gay.menkissing.spectrumstorage.client.gui
 
 import de.dafuqs.spectrum.inventories.ScreenBackgroundVariant
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu
-import gay.menkissing.spectrumstorage.util.resources.ResourceLocationExt
 import net.fabricmc.api.{EnvType, Environment}
-import net.minecraft.client.gui.GuiGraphics
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
 import net.minecraft.network.chat.Component
-import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.entity.player.Inventory
 
 @Environment(EnvType.CLIENT)

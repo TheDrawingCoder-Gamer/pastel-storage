@@ -3,10 +3,7 @@ package gay.menkissing.spectrumstorage.content.block.entity
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage
 import net.minecraft.core.BlockPos
-import net.minecraft.world.level.block.entity.BlockEntity
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.gameevent.GameEvent
 

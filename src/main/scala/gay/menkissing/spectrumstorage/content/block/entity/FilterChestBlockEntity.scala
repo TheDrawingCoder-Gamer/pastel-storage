@@ -1,7 +1,6 @@
 package gay.menkissing.spectrumstorage.content.block.entity
 
 import de.dafuqs.spectrum.api.block.FilterConfigurable
-import de.dafuqs.spectrum.blocks.chests.SpectrumChestBlockEntity
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks
 import gay.menkissing.spectrumstorage.screen.FilterChestMenu
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory
@@ -18,7 +17,7 @@ import net.minecraft.world.inventory.AbstractContainerMenu
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.level.Level
 import net.minecraft.world.level.block.BarrelBlock
-import net.minecraft.world.level.block.entity.{BlockEntity, ContainerOpenersCounter, RandomizableContainerBlockEntity}
+import net.minecraft.world.level.block.entity.{ContainerOpenersCounter, RandomizableContainerBlockEntity}
 import net.minecraft.world.level.block.state.BlockState
 
 import java.util

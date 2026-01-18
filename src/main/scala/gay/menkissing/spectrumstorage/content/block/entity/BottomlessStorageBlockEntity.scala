@@ -44,7 +44,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   protected var lastInteractedSlot: Int = -1
 
 
-  val itemStorage: CombinedStorage[ItemVariant, BundleItemStorageWrapper] =
+  val itemStorage: CombinedSlottedStorage[ItemVariant, BundleItemStorageWrapper] =
     CombinedSlottedStorage((0 until capacity).map(BundleItemStorageWrapper(_)).toList.asJava)
   val fluidStorage: CombinedSlottedStorage[FluidVariant, BottleFluidStorageWrapper] =
     CombinedSlottedStorage((0 until capacity).map(BottleFluidStorageWrapper(_)).toList.asJava)

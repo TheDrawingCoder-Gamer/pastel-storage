@@ -1,14 +1,9 @@
 package gay.menkissing.spectrumstorage.content.item
 
-import com.mojang.blaze3d.vertex.PoseStack
-import com.mojang.serialization.Codec
-import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.world.item.{Item, ItemDisplayContext, ItemStack, TooltipFlag}
 import de.dafuqs.spectrum.api.item.ExtendedEnchantable
-import de.dafuqs.spectrum.api.render.DynamicItemRenderer
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
-import gay.menkissing.spectrumstorage.content.item.BottomlessBottleItem.BottomlessBottleContents
 import gay.menkissing.spectrumstorage.registries.LumoTranslationKeys
 import gay.menkissing.spectrumstorage.util.resources.ResourceLocationExt
 import net.fabricmc.api.{EnvType, Environment}
@@ -25,9 +20,7 @@ import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext
 import net.fabricmc.fabric.impl.client.indigo.renderer.helper.GeometryHelper
 import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.MultiBufferSource
 import net.minecraft.client.renderer.block.model.{BakedQuad, ItemOverrides, ItemTransforms}
-import net.minecraft.client.renderer.entity.ItemRenderer
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.resources.model.{BakedModel, Material, ModelBaker, ModelState, UnbakedModel}
 import net.minecraft.core.{BlockPos, Direction}

@@ -1,6 +1,5 @@
 package gay.menkissing.spectrumstorage.content.block
 
-import de.dafuqs.spectrum.blocks.chests.SpectrumChestBlock
 import gay.menkissing.spectrumstorage.content.block.entity.FilterChestBlockEntity
 import net.minecraft.core.{BlockPos, Direction}
 import net.minecraft.server.level.ServerLevel

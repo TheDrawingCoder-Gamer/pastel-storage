@@ -4,15 +4,11 @@ import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.item.{BottomlessBottleItem, ToolContainerItem}
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import gay.menkissing.spectrumstorage.util.registry.builder.ItemBuilder
-import net.fabricmc.fabric.api.itemgroup.v1.{FabricItemGroup, ItemGroupEvents}
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage
-import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.network.chat.Component
-import net.minecraft.resources.{ResourceKey, ResourceLocation}
-import net.minecraft.world.item.{CreativeModeTab, Item, ItemStack}
-import de.dafuqs.fractal.api.{ItemSubGroup, ItemSubGroupEvents}
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.{Item, ItemStack}
+import de.dafuqs.fractal.api.ItemSubGroupEvents
 import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
 
 import scala.collection.mutable
