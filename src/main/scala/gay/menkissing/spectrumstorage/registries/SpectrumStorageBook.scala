@@ -6,7 +6,7 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel,
 import de.dafuqs.spectrum.registries.{SpectrumEnchantments, SpectrumItems}
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
-import gay.menkissing.spectrumstorage.util.registry.book.EntryLocation
+import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation}
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.{BookNbtSpotlightPageModel, BookPedestalPageModel}
 import net.minecraft.resources.ResourceLocation
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
@@ -54,14 +54,14 @@ object SpectrumStorageBook:
         .withTitle("container.spectrum.rei.pedestal_recipe")
         .build()
 
-    def commonEntry(item: ItemLike, entry: BookEntryModel)(firstTxt: String): BookEntryModel =
+    def commonEntry(item: ItemLike, entry: BookEntry)(firstTxt: String): BookEntry =
       entry
         .withName(item.asItem().getDescriptionId)
         .withDescription(commonDesc)
         .withIcon(item)
-        .hideWhileLocked(true)
-        .withPage(
-          firstPage(item, firstTxt)
+        .withHideWhileLocked(true)
+        .addPage(
+          trans => firstPage(item, trans.text(firstTxt))
         )
 
     val powerVStack =
@@ -87,47 +87,45 @@ object SpectrumStorageBook:
     InfoCollector
       .instance
       .addGuidebookEntry(entryLoc("equipment/bottomless_bottle"), equipCategory, SpectrumStorageItems.bottomlessBottle.location) {
-        (trans, entry) =>
+        entry =>
           commonEntry(SpectrumStorageItems.bottomlessBottle, entry)(
-            trans(
-              """
-                |I find myself often carrying half a dozen buckets holding the same thing. It would be nice if I could just cram all that liquid in one item.
-                |
-                |The bottomless bottle does just that - it stores a large amount of liquid inside itself.
-                |""".stripMargin
-            )
+            """
+              |I find myself often carrying half a dozen buckets holding the same thing. It would be nice if I could just cram all that liquid in one item.
+              |
+              |The bottomless bottle does just that - it stores a large amount of liquid inside itself.
+              |""".stripMargin
           )
             .withLocation(3, 4)
             .withCondition(itemUnlock("bottomless_bottle"))
-            .withPage(
+            .addPage(trans =>
               pedestalPage(
                 "spectrumstorage:pedestal/tier2/bottomless_bottle",
-                trans("Right-click picks up liquid, while sneak right-click places it.")
+                trans.text("Right-click picks up liquid, while sneak right-click places it.")
               )
             )
-            .withPage(
+            .addPage(trans =>
               BookNbtSpotlightPageModel
                 .Builder()
                 .withTitle("enchantment.minecraft.power")
                 .withCondition(buildEnchanter)
                 .withItem(ItemVariant.of(powerVStack))
-                .withText(trans("Power increases its capacity eightfold each level."))
+                .withText(trans.text("Power increases its capacity eightfold each level."))
                 .build()
             )
       }
       .addGuidebookEntry(entryLoc("equipment/tool_container"), equipCategory, SpectrumStorageItems.toolContainer.location) {
-        (trans, entry) =>
+        entry =>
           entry
             .withName(SpectrumStorageItems.toolContainer.getDescriptionId)
             .withLocation(4, 4)
             .withDescription(commonDesc)
             .withCondition(itemUnlock("tool_container"))
             .withIcon(SpectrumStorageItems.toolContainer)
-            .hideWhileLocked(true)
-            .withPage(
+            .withHideWhileLocked(true)
+            .addPage(trans =>
               firstPage(
                 SpectrumStorageItems.toolContainer,
-                trans(
+                trans.text(
                   """
                     |On my travels I find myself carrying half a tool shed with me.
                     |
@@ -135,23 +133,23 @@ object SpectrumStorageBook:
                     |""".stripMargin
                 ))
             )
-            .withPage(
+            .addPage(trans =>
               pedestalPage("spectrumstorage:pedestal/tier2/tool_container",
-                trans("*Don't ask how they all fit*"))
+                trans.text("*Don't ask how they all fit*"))
             )
       }
       .addGuidebookEntry(entryLoc("magical_blocks/bottomless_amphora"), magicalCategory, SpectrumStorageBlocks.bottomlessAmphora.location) {
-        (trans, entry) =>
+        entry =>
           entry
             .withName(SpectrumStorageBlocks.bottomlessAmphora.getDescriptionId)
             .withLocation(1, 5)
             .withDescription(commonDesc)
             .withCondition(blockUnlock("bottomless_amphora"))
             .withIcon(SpectrumStorageBlocks.bottomlessAmphora)
-            .hideWhileLocked(true)
-            .withPage(
+            .withHideWhileLocked(true)
+            .addPage(trans =>
               firstPage(SpectrumStorageBlocks.bottomlessAmphora,
-                trans(
+                trans.text(
                   """
                     |I had thought that barrels could store a lot, but amphoras can store double that. So if I make a bottomless amphora...
                     |
@@ -159,23 +157,23 @@ object SpectrumStorageBook:
                     |""".stripMargin
                 ))
             )
-            .withPage(
+            .addPage(trans =>
               pedestalPage("spectrumstorage:pedestal/tier4/bottomless_amphora",
-                trans("*This is getting absurd*")
+                trans.text("*This is getting absurd*")
               )
             )
-            .withPage(
+            .addPage(trans =>
               BookTextPageModel
                 .builder()
-                .withText(trans(
+                .withText(trans.text(
                   """
                     |Just like the bottomless shelf and bottomless barrel before it, the bottomless amphora remembers what items and fluids were inside its items, meaning you can use it as a filter.
                     |""".stripMargin
                 ))
                 .build()
-            ).withPage(
+            ).addPage(trans =>
               voidingPage(
-                trans(
+                trans.text(
                   """
                     |Like the bottomless shelf and bottomless barrel, if I insert a bottomless bundle that has the Curse of the Void into
                     |my bottomless amphora, it will still keep its filter and won't accept any
@@ -186,17 +184,17 @@ object SpectrumStorageBook:
             )
       }
       .addGuidebookEntry(entryLoc("magical_blocks/bottomless_barrel"), magicalCategory, SpectrumStorageBlocks.bottomlessBarrel.location) {
-        (trans, entry) =>
+        entry =>
           entry
             .withName(SpectrumStorageBlocks.bottomlessBarrel.getDescriptionId)
             .withLocation(0, 5)
             .withDescription(commonDesc)
             .withCondition(blockUnlock("bottomless_barrel"))
             .withIcon(SpectrumStorageBlocks.bottomlessBarrel)
-            .hideWhileLocked(true)
-            .withPage(
+            .withHideWhileLocked(true)
+            .addPage(trans =>
               firstPage(SpectrumStorageBlocks.bottomlessBarrel,
-                trans(
+                trans.text(
                   """
                     |While bottomless shelves are great, I find myself making complicated systems to access many of them.
                     |It would be nice if I could compact them even more.
@@ -205,24 +203,24 @@ object SpectrumStorageBook:
                     |""".stripMargin
                 )
               )
-            ).withPage(
+            ).addPage(trans =>
               pedestalPage(
                 "spectrumstorage:pedestal/tier3/bottomless_barrel",
-                trans("*That's a lot of stuff*")
+                trans.text("*That's a lot of stuff*")
               )
-            ).withPage(
+            ).addPage(trans =>
               BookTextPageModel
                 .builder()
                 .withText(
-                  trans("""
+                  trans.text("""
                           |Just like the bottomless shelf, the bottomless barrel will remember what items and fluids were inside its items, meaning you can use it as a filter
                           |""".stripMargin)
                 )
                 .build()
             )
-            .withPage(
+            .addPage(trans =>
               voidingPage(
-                  trans(
+                  trans.text(
                     """
                       |Like the bottomless shelf, if I insert a bottomless bundle that has the Curse of the Void into
                       |my bottomless barrel, it will still keep its filter and won't accept any
@@ -234,29 +232,27 @@ object SpectrumStorageBook:
             )
       }
       .addGuidebookEntry(entryLoc("magical_blocks/bottomless_shelf"), magicalCategory, SpectrumStorageBlocks.bottomlessShelf.location) {
-        (trans, entry) =>
+        entry =>
           commonEntry(SpectrumStorageBlocks.bottomlessShelf, entry)(
-            trans(
               """
                 |My bottomless bottle seems to be too unstable to place down on its own - So why not put it on a shelf?
                 |
                 |The bottomless shelf can hold 6 bottomless bundles or 6 bottomless bundles, or a mix of them.
                 |""".stripMargin
-            )
           )
             .withLocation(1, 4)
             .withCondition(blockUnlock("bottomless_shelf"))
-            .withPage(
+            .addPage(trans =>
               pedestalPage(
                 "spectrumstorage:pedestal/tier2/bottomless_shelf",
-                trans("*Don't be shelfish!*")
+                trans.text("*Don't be shelfish!*")
               )
             )
-            .withPage(
+            .addPage(trans =>
               BookTextPageModel
                 .builder()
                 .withText(
-                  trans(
+                  trans.text(
                     """
                       |A bottomless shelf will remember what items and fluids were inside its items, meaning you can use it as a filter.
                       |""".stripMargin
@@ -264,9 +260,9 @@ object SpectrumStorageBook:
                 )
                 .build()
             )
-            .withPage(
+            .addPage(trans =>
               voidingPage(
-                trans(
+                trans.text(
                   """
                     |If I insert a bottomless bundle that has the Curse of the Void into
                     |my bottomless shelf, it will still keep its filter and won't accept any
@@ -278,22 +274,20 @@ object SpectrumStorageBook:
             )
       }
       .addGuidebookEntry(entryLoc("magical_blocks/filter_chest"), magicalCategory, SpectrumStorageBlocks.filterChest.location) {
-        (trans, entry) =>
+        entry =>
           commonEntry(SpectrumStorageBlocks.filterChest, entry)(
-            trans(
-              """
-                |The machines I build to sort my vast catalog of items tend to get quite large. It would be nice to have something that easily filters them.
-                |
-                |The filter barrel can filter up to 18 unique items, but it can only hold 9 stacks of items. It will only allow insertion of items if they are in its filter.
-                |""".stripMargin
+            """
+              |The machines I build to sort my vast catalog of items tend to get quite large. It would be nice to have something that easily filters them.
+              |
+              |The filter barrel can filter up to 18 unique items, but it can only hold 9 stacks of items. It will only allow insertion of items if they are in its filter.
+              |""".stripMargin
+          )
+          .withLocation(0, 4)
+          .withCondition(blockUnlock("filter_chest"))
+          .addPage(trans =>
+            pedestalPage(
+              "spectrumstorage:pedestal/tier3/filter_chest",
+              trans.text("*Filter? I hardly know her!*")
             )
           )
-            .withLocation(0, 4)
-            .withCondition(blockUnlock("filter_chest"))
-            .withPage(
-              pedestalPage(
-                "spectrumstorage:pedestal/tier3/filter_chest",
-                trans("*Filter? I hardly know her!*")
-              )
-            )
       }

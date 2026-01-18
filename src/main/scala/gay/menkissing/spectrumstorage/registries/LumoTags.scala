@@ -2,7 +2,6 @@ package gay.menkissing.spectrumstorage.registries
 
 import de.dafuqs.spectrum.registries.SpectrumItems
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
-import net.fabricmc.fabric.api.tag.convention.v1.ConventionalItemTags
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.{ItemTags, TagKey}

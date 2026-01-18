@@ -97,15 +97,17 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props), Extended
         level.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5f, 2.6f + (level.random.nextFloat() - level.random.nextFloat()) * 0.8f)
         (0 until 8).foreach: _ =>
           level.addParticle(ParticleTypes.LARGE_SMOKE, i.toDouble + math.random(), j.toDouble + math.random(), k.toDouble + math.random(), 0d, 0d, 0d)
-      else if blockState.getBlock.isInstanceOf[LiquidBlockContainer] && contents.variant.getFluid == Fluids.WATER then
-        if blockState.getBlock.asInstanceOf[LiquidBlockContainer].placeLiquid(level, pos, blockState, Fluids.WATER.getSource(false)) then
-          this.playEmptyingSound(player, level, pos, contents.variant)
       else
-        if !level.isClientSide && canPlace && !blockState.liquid() then
-          level.removeBlock(pos, true)
+        blockState.getBlock match
+          case liquidBlockContainer: LiquidBlockContainer if contents.variant.getFluid == Fluids.WATER =>
+            if liquidBlockContainer.placeLiquid(level, pos, blockState, Fluids.WATER.getSource(false)) then
+              this.playEmptyingSound(player, level, pos, contents.variant)
+          case _ =>
+            if !level.isClientSide && canPlace && !blockState.liquid() then
+              level.removeBlock(pos, true)
 
-        this.playEmptyingSound(player, level, pos, contents.variant)
-        level.setBlock(pos, contents.variant.getFluid.defaultFluidState().createLegacyBlock(), 11)
+            this.playEmptyingSound(player, level, pos, contents.variant)
+            level.setBlock(pos, contents.variant.getFluid.defaultFluidState().createLegacyBlock(), 11)
       true
 
   override def use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder[ItemStack] =
@@ -167,6 +169,7 @@ object BottomlessBottleItem:
 
   def maxAllowed(level: Int): Long =
     baseMax * math.pow(8, math.min(level, 5)).toLong
+  // Not really that expensive on 1.20, but 1.21 makes this expensive
   def getMaxStackExpensive(stack: ItemStack): Long =
     maxAllowed(EnchantmentHelper.getEnchantments(stack).getOrDefault(Enchantments.POWER_ARROWS, 0))
 
@@ -204,7 +207,7 @@ object BottomlessBottleItem:
 
     InteractionResult.PASS
 
-  case class BottomlessBottleContents(variant: FluidVariant, amount: Long):
+  final case class BottomlessBottleContents(variant: FluidVariant, amount: Long):
     def isEmpty: Boolean = variant.isBlank || amount == 0
 
     def toNbt: CompoundTag =

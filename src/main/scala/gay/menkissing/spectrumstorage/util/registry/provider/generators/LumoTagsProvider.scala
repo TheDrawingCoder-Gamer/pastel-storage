@@ -15,7 +15,6 @@
 
 package gay.menkissing.spectrumstorage.util.registry.provider.generators
 
-import com.google.common.collect.ArrayListMultimap
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider
@@ -26,7 +25,7 @@ import net.minecraft.tags.TagKey
 import java.util.concurrent.CompletableFuture
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
-import annotation.{nowarn, unchecked}
+import annotation.nowarn
 
 class LumoTagsProvider[T](val owner: InfoCollector, registry: ResourceKey[Registry[T]], output: FabricDataOutput, lookup: CompletableFuture[HolderLookup.Provider])
   extends FabricTagProvider[T](output, registry, lookup):

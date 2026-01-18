@@ -15,9 +15,9 @@
 
 package gay.menkissing.spectrumstorage.util.registry.builder
 
-import com.google.common.collect.{ArrayListMultimap, HashMultimap}
+import com.google.common.collect.ArrayListMultimap
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
-import net.minecraft.resources.{ResourceKey, ResourceLocation}
+import net.minecraft.resources.ResourceKey
 import net.minecraft.tags.TagKey
 import net.minecraft.core.Registry
 

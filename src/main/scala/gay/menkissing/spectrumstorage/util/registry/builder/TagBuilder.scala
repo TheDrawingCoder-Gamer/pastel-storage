@@ -15,7 +15,6 @@
 
 package gay.menkissing.spectrumstorage.util.registry.builder
 
-import com.google.common.collect.HashMultimap
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.LumoTagsProvider.ChildKind
 import net.minecraft.core.Registry

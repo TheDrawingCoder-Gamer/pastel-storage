@@ -21,8 +21,7 @@ import gay.menkissing.spectrumstorage.util.registry.provider.generators.{LumoBlo
 import LumoTagsProvider.ChildKind
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel
 import gay.menkissing.spectrumstorage.SpectrumStorage
-import gay.menkissing.spectrumstorage.util.registry.InfoCollector.EntryCreator
-import gay.menkissing.spectrumstorage.util.registry.book.{EntryLocation, FalseCategory}
+import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation, FalseCategory}
 import gay.menkissing.spectrumstorage.util.registry.helper.{GuidebookLangHelper, LangHelper}
 import net.fabricmc.fabric.api.datagen.v1.FabricDataGenerator
 import net.fabricmc.fabric.api.datagen.v1.provider.{FabricBlockLootTableProvider, FabricLanguageProvider, FabricTagProvider}
@@ -60,7 +59,7 @@ class InfoCollector(val modid: String):
 
   private[registry] val tagMembers = mutable.HashMap[ResourceKey[? <: Registry[?]], Multimap[TagKey[?], ChildKind[?]]]()
 
-  private [registry] val bookEntries = mutable.HashMap[EntryLocation, BookEntryModel]()
+  private [registry] val bookEntries = mutable.HashMap[EntryLocation, BookEntry]()
 
   private lazy val doDatagen = System.getProperty("fabric-api.datagen") != null
 
@@ -97,20 +96,13 @@ class InfoCollector(val modid: String):
 
   
   
-  def addGuidebookEntry(location: EntryLocation, category: ResourceLocation, transId: ResourceLocation)(creator: EntryCreator): InfoCollector =
+  def addGuidebookEntry(location: EntryLocation, category: ResourceLocation, transId: ResourceLocation)(creator: BookEntry => BookEntry): InfoCollector =
     if !doDatagen then
       return this
-    var pageIndex = 0
-    def savePageText(txt: String): String =
-      val x = pageIndex
-      pageIndex += 1
-      val langKey = s"book.${transId.getNamespace}.${location.book.getPath}.${transId.getPath}.page${x}.text"
-      addRawLang(langKey, InfoCollector.escapeBody(txt))
-      langKey
     val baseEntry =
-      BookEntryModel.create(location.id, "").withCategory(FalseCategory(category))
-    val resEntry = creator(savePageText, baseEntry)
-    bookEntries(location) = resEntry
+      BookEntry(location, "", transId).withCategory(FalseCategory(category))
+    val resEntry = creator(baseEntry)
+    resEntry.register(this)
     this
 
   def addBlockLootTable(block: Block, table: FabricBlockLootTableProvider => LootTable.Builder): InfoCollector =
@@ -164,7 +156,7 @@ class InfoCollector(val modid: String):
       
       val bookEntryProvider =
         new DataProvider:
-          override def run(cachedOutput: CachedOutput): CompletableFuture[_] =
+          override def run(cachedOutput: CachedOutput): CompletableFuture[?] =
             CompletableFuture.allOf(
               bookEntries.map: (k, v) =>
                 val path =
@@ -173,7 +165,7 @@ class InfoCollector(val modid: String):
                         .resolve("modonomicon/books")
                         .resolve(k.book.getPath)
                         .resolve("entries")
-                DataProvider.saveStable(cachedOutput, v.toJson, path.resolve(v.getId.getPath + ".json"))
+                DataProvider.saveStable(cachedOutput, v.toJson, path.resolve(v.location.id.getPath + ".json"))
               .toSeq*
             )
           override def getName: String = s"Book Entry Provider for $modid"
@@ -217,6 +209,3 @@ object InfoCollector:
 
   private def escapeBody(body: String): String =
     body.trim.replace("\r", "").replace("\n", "\\\n")
-  
-  trait EntryCreator:
-    def apply(transGetter: String => String, baseEntry: BookEntryModel): BookEntryModel

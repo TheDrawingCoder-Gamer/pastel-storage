@@ -1,31 +1,13 @@
 package gay.menkissing.spectrumstorage.datagen
 
-import com.klikli_dev.modonomicon.api.datagen.book.condition.{BookAdvancementConditionModel, BookConditionModel}
-import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel, BookTextPageModel}
-import com.klikli_dev.modonomicon.api.datagen.book.{BookCategoryModel, BookModel}
-import gay.menkissing.spectrumstorage.content.block.BottomlessShelfBlock
-import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
+import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
-import net.fabricmc.fabric.api.datagen.v1.provider.{FabricCodecDataProvider, FabricModelProvider}
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider
 import net.fabricmc.fabric.api.datagen.v1.{DataGeneratorEntrypoint, FabricDataGenerator, FabricDataOutput}
-import net.minecraft.core.Direction
-import net.minecraft.data.models.blockstates.{Condition, MultiPartGenerator, Variant, VariantProperties}
 import net.minecraft.data.models.{BlockModelGenerators, ItemModelGenerators}
-import net.minecraft.data.models.model.{ModelLocationUtils, ModelTemplate, ModelTemplates, TextureMapping, TextureSlot}
-import net.minecraft.resources.ResourceLocation
-import net.minecraft.world.level.block.state.properties.{BlockStateProperties, EnumProperty}
-import com.klikli_dev.modonomicon.api.datagen.{BookProvider, LanguageProviderCache}
-import gay.menkissing.spectrumstorage.SpectrumStorage
-import gay.menkissing.spectrumstorage.util.registry.provider.generators.LumoBookProvider
-import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.{BookNbtSpotlightPageModel, BookPedestalPageModel}
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.crafting.Ingredient
-import net.minecraft.world.item.enchantment.{EnchantmentHelper, Enchantments}
-import gay.menkissing.spectrumstorage.util.resources.{*, given}
-import net.minecraft.world.level.ItemLike
+import net.minecraft.data.models.model.{ModelLocationUtils, ModelTemplates, TextureMapping}
 
-import scala.collection.mutable
+
 
 
 object LumoDatagen extends DataGeneratorEntrypoint:

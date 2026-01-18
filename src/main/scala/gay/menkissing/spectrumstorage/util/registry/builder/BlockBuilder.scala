@@ -15,15 +15,12 @@
 
 package gay.menkissing.spectrumstorage.util.registry.builder
 
-import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.LumoBlockStateGenerator
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
-import net.minecraft.data.models.BlockModelGenerators
-import net.minecraft.data.models.blockstates.BlockStateGenerator
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.TagKey
 import net.minecraft.world.item.{BlockItem, Item}

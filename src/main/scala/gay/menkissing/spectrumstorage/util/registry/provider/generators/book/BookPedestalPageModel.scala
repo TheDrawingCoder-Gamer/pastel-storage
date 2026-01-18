@@ -3,7 +3,7 @@ package gay.menkissing.spectrumstorage.util.registry.provider.generators.book
 import com.google.gson.JsonObject
 import com.klikli_dev.modonomicon.api.datagen.book.BookTextHolderModel
 import com.klikli_dev.modonomicon.api.datagen.book.condition.{BookConditionModel, BookNoneConditionModel}
-import com.klikli_dev.modonomicon.api.datagen.book.page.{BookPageModel, BookRecipePageModel}
+import com.klikli_dev.modonomicon.api.datagen.book.page.BookPageModel
 import net.minecraft.resources.ResourceLocation
 
 class BookPedestalPageModel(anchor: String, condition: BookConditionModel) extends BookPageModel(BookPedestalPageModel.id, anchor, condition):

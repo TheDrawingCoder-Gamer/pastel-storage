@@ -19,7 +19,7 @@ abstract class LumoBookProvider(val output: FabricDataOutput) extends DataProvid
 
   def addEntries(): Unit
 
-  override def run(cachedOutput: CachedOutput): CompletableFuture[_] =
+  override def run(cachedOutput: CachedOutput): CompletableFuture[?] =
     addEntries()
     val appendeds = appendedCategories.map(_.generateAll(cachedOutput, output))
     CompletableFuture.allOf(appendeds.toSeq*)
