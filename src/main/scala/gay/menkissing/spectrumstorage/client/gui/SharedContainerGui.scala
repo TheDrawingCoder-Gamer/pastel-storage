@@ -17,7 +17,7 @@ class SharedContainerGui[T <: AbstractContainerMenu](val rows: Int, val tier: Sc
   private val backgroundTexture = getBackground(tier)
 
   override def render(gui: GuiGraphics, mouseX: Int, mouseY: Int, partialTicks: Float): Unit =
-    this.renderBackground(gui)
+    this.renderBackground(gui, mouseX, mouseY, partialTicks)
     super.render(gui, mouseX, mouseY, partialTicks)
     this.renderTooltip(gui, mouseX, mouseY)
 
@@ -34,6 +34,6 @@ class SharedContainerGui[T <: AbstractContainerMenu](val rows: Int, val tier: Sc
       case ScreenBackgroundVariant.LATEGAME => SharedContainerGui.tier3
 
 object SharedContainerGui:
-  val tier1 = ResourceLocation("spectrum", "textures/gui/container/generic_54_tier_1.png")
-  val tier2 = ResourceLocation("spectrum", "textures/gui/container/generic_54_tier_2.png")
-  val tier3 = ResourceLocation("spectrum", "textures/gui/container/generic_54_tier_3.png")
+  val tier1 = ResourceLocation.fromNamespaceAndPath("spectrum", "textures/gui/container/generic_54_tier_1.png")
+  val tier2 = ResourceLocation.fromNamespaceAndPath("spectrum", "textures/gui/container/generic_54_tier_2.png")
+  val tier3 = ResourceLocation.fromNamespaceAndPath("spectrum", "textures/gui/container/generic_54_tier_3.png")

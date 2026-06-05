@@ -6,6 +6,7 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.BookPageModel
 import com.klikli_dev.modonomicon.api.datagen.book.{BookCategoryModel, BookEntryParentModel, BookIconModel}
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
+import net.minecraft.core.HolderLookup
 import net.minecraft.data.CachedOutput
 import net.minecraft.data.PackOutput.Target
 import net.minecraft.resources.ResourceLocation
@@ -26,8 +27,8 @@ class BookEntry(val location: EntryLocation, var name: String, var translationId
 
   var hideWhileLocked: Boolean = false
   var showWhenAnyParentUnlocked: Boolean = false
-  private val pages: mutable.ListBuffer[BookPageModel] = mutable.ListBuffer.empty
-  var condition: Option[BookConditionModel] = None
+  private val pages: mutable.ListBuffer[BookPageModel[?]] = mutable.ListBuffer.empty
+  var condition: Option[BookConditionModel[?]] = None
   
   private val langEntries = mutable.HashMap[String, String]()
   
@@ -56,7 +57,7 @@ class BookEntry(val location: EntryLocation, var name: String, var translationId
   def withHideWhileLocked(hideWhileLocked: Boolean): this.type =
     this.hideWhileLocked = hideWhileLocked
     this
-  def withCondition(condition: BookConditionModel): this.type =
+  def withCondition(condition: BookConditionModel[?]): this.type =
     this.condition = Some(condition)
     this
   def noCondition: this.type =
@@ -76,13 +77,13 @@ class BookEntry(val location: EntryLocation, var name: String, var translationId
     pages += pageMaker(transGetter)
     this
   
-  def toJson: JsonObject =
+  def toJson(provider: HolderLookup.Provider): JsonObject =
     val json = new JsonObject()
     require(icon != null && category != null)
     json.addProperty("category", this.category.getId.toString)
     json.addProperty("name", this.name)
     json.addProperty("description", this.description)
-    json.add("icon", icon.toJson)
+    json.add("icon", icon.toJson(provider))
     json.addProperty("x", this.x)
     json.addProperty("y", this.y)
     json.addProperty("background_u_index", this.entryBackgroundUIndex)
@@ -93,11 +94,11 @@ class BookEntry(val location: EntryLocation, var name: String, var translationId
     if this.pages.nonEmpty then
       val pagesArray = new JsonArray()
       this.pages.foreach: page =>
-        pagesArray.add(page.toJson)
+        pagesArray.add(page.toJson(location.id, provider))
       json.add("pages", pagesArray)
     
     this.condition.foreach: cond =>
-      json.add("condition", cond.toJson)
+      json.add("condition", cond.toJson(location.id, provider))
     
     
     
@@ -118,7 +119,7 @@ object BookEntry:
     final def title(txt: String): String = apply("title", txt)
   
   trait PageMaker:
-    def apply(transGetter: TransGetter): BookPageModel
+    def apply(transGetter: TransGetter): BookPageModel[?]
     
   
     

@@ -9,21 +9,25 @@ import net.minecraft.world.item.{Item, Items}
 
 object LumoTags:
   def commonTag(path: String): ResourceLocation =
-    ResourceLocation("c", path)
+    ResourceLocation.fromNamespaceAndPath("c", path)
 
   object item:
     private def tag(namespace: String, path: String): TagKey[Item] =
-      TagKey.create(Registries.ITEM, ResourceLocation(namespace, path))
+      TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path))
     private def commonTag(path: String): TagKey[Item] =
       TagKey.create(Registries.ITEM, LumoTags.commonTag(path))
 
     val validToolTag: TagKey[Item] =
       InfoCollector.instance.tag(Registries.ITEM, "valid_tools")
-                   .addTag(ItemTags.TOOLS)
+                   .addTag(ItemTags.SWORDS)
+                   .addTag(ItemTags.PICKAXES)
+                   .addTag(ItemTags.SHOVELS)
+                   .addTag(ItemTags.AXES)
+                   .addTag(ItemTags.HOES)
                    .add(Items.SPYGLASS)
                    .add(Items.CLOCK)
                    .add(Items.FLINT_AND_STEEL)
-                   .add(SpectrumItems.TUNING_STAMP)
+                   // .add(SpectrumItems.TUNING_STAMP) // R.I.P. : (
                    .add(SpectrumItems.OMNI_ACCELERATOR)
                    .add(SpectrumItems.CRESCENT_CLOCK)
                    .add(SpectrumItems.RADIANCE_STAFF)
@@ -34,8 +38,8 @@ object LumoTags:
                    .add(SpectrumItems.BLOCK_FLOODER)
                    .add(SpectrumItems.CELESTIAL_POCKETWATCH)
                    .add(SpectrumItems.PAINTBRUSH)
-                   .addOptional(ResourceLocation("botania", "twig_wand"))
-                   .addOptional(ResourceLocation("botania", "dreamwood_wand"))
+                   .addOptional(ResourceLocation.fromNamespaceAndPath("botania", "twig_wand"))
+                   .addOptional(ResourceLocation.fromNamespaceAndPath("botania", "dreamwood_wand"))
                    .addTag(ItemTags.COMPASSES)
                    .addTag(commonTag("wrenches"))
                    .addTag(commonTag("shears"))

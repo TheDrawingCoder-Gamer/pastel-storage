@@ -35,11 +35,11 @@ class LumoModelProvider(val output: FabricDataOutput):
 
   def blockModelLoc(block: Block): ResourceLocation =
     val name = BuiltInRegistries.BLOCK.getKey(block)
-    new ResourceLocation(name.getNamespace, "block/" + name.getPath)
+    ResourceLocation.fromNamespaceAndPath(name.getNamespace, "block/" + name.getPath)
 
   def blockTexture(block: Block): ResourceLocation =
     val name = BuiltInRegistries.BLOCK.getKey(block)
-    new ResourceLocation(name.getNamespace, "block/" + name.getPath)
+    ResourceLocation.fromNamespaceAndPath(name.getNamespace, "block/" + name.getPath)
 
   def makeBuilder[T: ModelResourceLike](path: T): LumoModelBuilder =
     assert(!generatedModels.contains(path.modelLoc))
@@ -51,19 +51,19 @@ class LumoModelProvider(val output: FabricDataOutput):
   //  generatedModels.getOrElseUpdate(path.modelLoc, LumoModelBuilder(path.modelLoc))
 
   def flatItem[T: ModelResourceLike](name: T, texture: ResourceLocation): LumoModelBuilder =
-    withExistingParent(name, new ResourceLocation("minecraft", "item/generated")).texture("layer0", texture)
+    withExistingParent(name, ResourceLocation.withDefaultNamespace("item/generated")).texture("layer0", texture)
 
   def withExistingParent[T: ModelResourceLike](name: T, parent: ResourceLocation): LumoModelBuilder =
     makeBuilder(name).parent(parent)
 
   def withExistingParent[T: ModelResourceLike](name: T, parent: String): LumoModelBuilder =
-    withExistingParent(name, new ResourceLocation("minecraft", parent))
+    withExistingParent(name, ResourceLocation.withDefaultNamespace(parent))
 
   def singleTexture[T: ModelResourceLike](name: T, parent: String, texture: ResourceLocation): LumoModelBuilder =
-    singleTexture(name, new ResourceLocation("minecraft", parent), texture)
+    singleTexture(name, ResourceLocation.withDefaultNamespace(parent), texture)
 
   def singleTexture[T: ModelResourceLike](name: T, parent: String, textureKey: String, texture: ResourceLocation): LumoModelBuilder =
-    singleTexture(name, new ResourceLocation("minecraft", parent), textureKey, texture)
+    singleTexture(name, ResourceLocation.withDefaultNamespace(parent), textureKey, texture)
 
   def singleTexture[T: ModelResourceLike](name: T, parent: ResourceLocation, texture: ResourceLocation): LumoModelBuilder =
     singleTexture(name, parent, "texture", texture)
@@ -73,7 +73,7 @@ class LumoModelProvider(val output: FabricDataOutput):
       .texture(textureKey, texture)
 
   def cubeAll[T: ModelResourceLike](name: T, texture: ResourceLocation): LumoModelBuilder =
-    singleTexture(name, new ResourceLocation("minecraft", "block/cube_all"), "all", texture)
+    singleTexture(name, ResourceLocation.withDefaultNamespace("block/cube_all"), "all", texture)
 
   def cubeBottomTop[T: ModelResourceLike](name: T, side: ResourceLocation, bottom: ResourceLocation, top: ResourceLocation): LumoModelBuilder =
     sideBottomTop(name, ResourceLocationExt.withDefaultNamespace("block/cube_bottom_top"), side, bottom, top)
@@ -85,12 +85,12 @@ class LumoModelProvider(val output: FabricDataOutput):
       .texture("top", top)
 
   def cubeColumn[T: ModelResourceLike](name: T, side: ResourceLocation, ends: ResourceLocation): LumoModelBuilder =
-    withExistingParent(name, new ResourceLocation("minecraft", "block/cube_column"))
+    withExistingParent(name, ResourceLocation.fromNamespaceAndPath("minecraft", "block/cube_column"))
       .texture("side", side)
       .texture("end", ends)
 
   def cubeColumnHorizontal[T: ModelResourceLike](name: T, side: ResourceLocation, ends: ResourceLocation): LumoModelBuilder =
-    withExistingParent(name, new ResourceLocation("minecraft", "block/cube_column_horizontal"))
+    withExistingParent(name, ResourceLocation.fromNamespaceAndPath("minecraft", "block/cube_column_horizontal"))
       .texture("side", side)
       .texture("end", ends)
 

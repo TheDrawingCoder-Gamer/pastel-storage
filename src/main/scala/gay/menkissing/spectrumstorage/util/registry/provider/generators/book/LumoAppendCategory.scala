@@ -2,6 +2,7 @@ package gay.menkissing.spectrumstorage.util.registry.provider.generators.book
 
 import com.klikli_dev.modonomicon.api.datagen.book.{BookCategoryModel, BookEntryModel}
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
+import net.minecraft.core.HolderLookup
 import net.minecraft.data.{CachedOutput, DataProvider}
 import net.minecraft.data.PackOutput.Target
 import net.minecraft.resources.ResourceLocation
@@ -22,7 +23,7 @@ class LumoAppendCategory(val book: ResourceLocation, val category: ResourceLocat
     f(r)
     this
 
-  def generateAll(cache: CachedOutput, output: FabricDataOutput): CompletableFuture[?] =
+  def generateAll(cache: CachedOutput, output: FabricDataOutput, lookup: HolderLookup.Provider): CompletableFuture[?] =
     val path =
       output.getOutputFolder(Target.DATA_PACK)
             .resolve(book.getNamespace)
@@ -32,7 +33,7 @@ class LumoAppendCategory(val book: ResourceLocation, val category: ResourceLocat
 
     CompletableFuture.allOf(
       this.entries.map: entry =>
-        DataProvider.saveStable(cache, entry.toJson, path.resolve(entry.getId.getPath + ".json"))
+        DataProvider.saveStable(cache, entry.toJson(lookup), path.resolve(entry.getId.getPath + ".json"))
       .toSeq*
     )
 

@@ -3,7 +3,9 @@ package gay.menkissing.spectrumstorage.content.item
 import gay.menkissing.spectrumstorage.item.ItemBackedInventory
 import gay.menkissing.spectrumstorage.registries.LumoTags
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu
+import gay.menkissing.spectrumstorage.screen.ToolContainerMenu.ToolContainerData
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory
+import net.minecraft.core.component.DataComponents
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerPlayer
@@ -19,9 +21,9 @@ class ToolContainerItem(props: Item.Properties) extends Item(props):
   override def use(level: Level, player: Player, interactionHand: InteractionHand): InteractionResultHolder[ItemStack] =
     if !level.isClientSide then
       val stack = player.getItemInHand(interactionHand)
-      val provider = new ExtendedScreenHandlerFactory {
-        override def writeScreenOpeningData(player: ServerPlayer, buf: FriendlyByteBuf): Unit =
-          buf.writeBoolean(interactionHand == InteractionHand.MAIN_HAND)
+      val provider = new ExtendedScreenHandlerFactory[ToolContainerData] {
+        override def getScreenOpeningData(player: ServerPlayer): ToolContainerData =
+          ToolContainerData(interactionHand == InteractionHand.MAIN_HAND)
 
         override def getDisplayName: Component = stack.getHoverName
 
@@ -32,8 +34,8 @@ class ToolContainerItem(props: Item.Properties) extends Item(props):
     InteractionResultHolder.sidedSuccess(player.getItemInHand(interactionHand), level.isClientSide)
 
   override def onDestroyed(itemEntity: ItemEntity): Unit =
-    ItemUtils.onContainerDestroyed(itemEntity, ToolContainerItem.getRawInventory(itemEntity.getItem).items.stream())
-    itemEntity.getItem.removeTagKey(ItemBackedInventory.ItemsTag)
+    ItemUtils.onContainerDestroyed(itemEntity, ToolContainerItem.getRawInventory(itemEntity.getItem).items)
+    itemEntity.getItem.remove(DataComponents.CONTAINER)
 
   override def overrideOtherStackedOnMe(thisStack: ItemStack, thatStack: ItemStack, slot: Slot, clickAction: ClickAction, player: Player, slotAccess: SlotAccess): Boolean =
     if clickAction == ClickAction.SECONDARY && slot.allowModification(player) && !thatStack.isEmpty && thatStack.is(LumoTags.item.validToolTag) then

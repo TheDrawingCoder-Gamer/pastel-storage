@@ -5,9 +5,9 @@ import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks
 import gay.menkissing.spectrumstorage.screen.FilterChestMenu
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
-import net.minecraft.core.{BlockPos, Direction, NonNullList}
+import net.minecraft.core.{BlockPos, Direction, HolderLookup, NonNullList}
 import net.minecraft.nbt.CompoundTag
-import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.{FriendlyByteBuf, RegistryFriendlyByteBuf}
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.sounds.{SoundEvent, SoundEvents, SoundSource}
@@ -25,7 +25,7 @@ import java.util.stream.IntStream
 import scala.annotation.nowarn
 
 @nowarn("msg=unstable")
-class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity, pos, state), WorldlyContainer, FilterConfigurable, ExtendedScreenHandlerFactory:
+class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity, pos, state), WorldlyContainer, FilterConfigurable, ExtendedScreenHandlerFactory[FilterConfigurable.ExtendedDataWithPos]:
   val filterItems: NonNullList[ItemVariant] = NonNullList.withSize(FilterChestBlockEntity.filterCount, ItemVariant.blank())
   var items: NonNullList[ItemStack] = NonNullList.withSize(FilterChestBlockEntity.inventorySize, ItemStack.EMPTY)
   val openersCounter: ContainerOpenersCounter =
@@ -107,26 +107,23 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
 
   override def setFilterItem(slot: Int, item: ItemVariant): Unit = filterItems.set(slot, item)
 
-  override def saveAdditional(tag: CompoundTag): Unit =
-    super.saveAdditional(tag)
-    ContainerHelper.saveAllItems(tag, items)
+  override def saveAdditional(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
+    super.saveAdditional(tag, provider)
+    ContainerHelper.saveAllItems(tag, items, provider)
     FilterConfigurable.writeFilterNbt(tag, filterItems)
 
-  override def load(tag: CompoundTag): Unit =
-    super.load(tag)
-    ContainerHelper.loadAllItems(tag, items)
+  override def loadAdditional(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
+    super.loadAdditional(tag, provider)
+    ContainerHelper.loadAllItems(tag, items, provider)
     FilterConfigurable.readFilterNbt(tag, filterItems)
 
-  override def writeScreenOpeningData(player: ServerPlayer, buf: FriendlyByteBuf): Unit =
-    buf.writeBlockPos(this.pos)
-    FilterConfigurable.writeScreenOpeningData(buf, filterItems, 1, FilterChestBlockEntity.filterCount, FilterChestBlockEntity.filterCount)
+  override def getScreenOpeningData(player: ServerPlayer): FilterConfigurable.ExtendedDataWithPos  =
+    FilterConfigurable.ExtendedDataWithPos(worldPosition, this)
 
   override def getItems: NonNullList[ItemStack] = items
 
   override def setItems(nonNullList: NonNullList[ItemStack]): Unit = items = nonNullList
-
-  override def createMenu(i: Int, inventory: Inventory): AbstractContainerMenu =
-    FilterChestMenu(i, inventory, this)
+  
 
   override def startOpen(player: Player): Unit =
     super.startOpen(player)
@@ -137,6 +134,9 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
     super.stopOpen(player)
     if !this.remove && !player.isSpectator then
       decrementOpeners(player)
+
+  override def createMenu(i: Int, inventory: Inventory): AbstractContainerMenu =
+    FilterChestMenu(i, inventory, this, this, getScreenOpeningData(inventory.player.asInstanceOf[ServerPlayer]))
 
 object FilterChestBlockEntity:
   val filterCount: Int = 18

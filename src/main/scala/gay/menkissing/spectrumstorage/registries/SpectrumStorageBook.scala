@@ -3,56 +3,55 @@ package gay.menkissing.spectrumstorage.registries
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel
 import com.klikli_dev.modonomicon.api.datagen.book.condition.BookAdvancementConditionModel
 import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel, BookTextPageModel}
-import de.dafuqs.spectrum.registries.{SpectrumEnchantments, SpectrumItems}
+import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumEnchantments, SpectrumItems}
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation}
-import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.{BookNbtSpotlightPageModel, BookPedestalPageModel}
+import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.BookPedestalPageModel
 import net.minecraft.resources.ResourceLocation
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
+import net.minecraft.core.{Holder, HolderLookup, HolderOwner}
+import net.minecraft.core.registries.Registries
+import net.minecraft.network.chat.Component
 import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.enchantment.Enchantments
+import net.minecraft.world.item.enchantment.{Enchantment, Enchantments, ItemEnchantments}
 
 object SpectrumStorageBook:
 
-  def init(): Unit =
-    val spectrumBook = ResourceLocation("spectrum", "guidebook")
-    val magicalCategory = ResourceLocation("spectrum", "magical_blocks")
-    val equipCategory = ResourceLocation("spectrum", "equipment")
+  def init(lookup: HolderLookup.Provider): Unit =
+    val spectrumBook = ResourceLocation.fromNamespaceAndPath("spectrum", "guidebook")
+    val magicalCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "magical_blocks")
+    val equipCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "equipment")
     val commonDesc = "book.spectrumstorage.added_by_spectrumstorage"
 
     def itemUnlock(id: String): BookAdvancementConditionModel =
       BookAdvancementConditionModel
-        .builder()
+        .create()
         .withAdvancementId(s"spectrumstorage:unlocks/items/$id")
-        .build()
 
     def blockUnlock(id: String): BookAdvancementConditionModel =
       BookAdvancementConditionModel
-        .builder()
+        .create()
         .withAdvancementId(s"spectrumstorage:unlocks/blocks/$id")
-        .build()
     def entryLoc(path: String): EntryLocation =
-      EntryLocation(spectrumBook, ResourceLocation("spectrum", path))
+      EntryLocation(spectrumBook, ResourceLocation.fromNamespaceAndPath("spectrum", path))
 
     def firstPage(item: ItemLike, text: String): BookSpotlightPageModel =
       BookSpotlightPageModel
-        .builder()
+        .create()
         .withText(text)
         .withItem(Ingredient.of(item))
         .withTitle(item.asItem().getDescriptionId)
-        .build()
 
     def pedestalPage(recipe: String, text: String): BookPedestalPageModel =
       BookPedestalPageModel
-        .Builder()
+        .create()
         .withText(text)
         .withRecipeId(recipe)
         .withTitle("container.spectrum.rei.pedestal_recipe")
-        .build()
 
     def commonEntry(item: ItemLike, entry: BookEntry)(firstTxt: String): BookEntry =
       entry
@@ -63,26 +62,31 @@ object SpectrumStorageBook:
         .addPage(
           trans => firstPage(item, trans.text(firstTxt))
         )
+    val enchantLookup = lookup.lookupOrThrow(Registries.ENCHANTMENT)
+
+    // HACK : (
+    // dummy out this so MAYBE it works
+    val powerEnchant = enchantLookup.getOrThrow(Enchantments.POWER)
+    val voidingEnchant = enchantLookup.getOrThrow(SpectrumEnchantments.VOIDING)
 
     val powerVStack =
       ItemStack(SpectrumStorageItems.bottomlessBottle)
-    powerVStack.enchant(Enchantments.POWER_ARROWS, 5)
+    powerVStack.enchant(powerEnchant, 5)
     val voidingBundle =
-      ItemStack(SpectrumItems.BOTTOMLESS_BUNDLE)
-    voidingBundle.enchant(SpectrumEnchantments.VOIDING, 1)
+      ItemStack(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem())
+    voidingBundle.enchant(voidingEnchant, 1)
 
-    val buildEnchanter = BookAdvancementConditionModel.builder().withAdvancementId("spectrum:midgame/build_enchanting_structure").build()
+    val buildEnchanter = BookAdvancementConditionModel.create().withAdvancementId("spectrum:midgame/build_enchanting_structure")
 
-    def voidingPage(text: String): BookNbtSpotlightPageModel =
-      BookNbtSpotlightPageModel
-        .Builder()
+    def voidingPage(text: String): BookSpotlightPageModel =
+      BookSpotlightPageModel
+        .create()
         .withCondition(buildEnchanter)
-        .withItem(ItemVariant.of(voidingBundle))
+        .withItem(voidingBundle)
         .withTitle("enchantment.spectrum.voiding")
         .withText(
           text
         )
-        .build()
 
     InfoCollector
       .instance
@@ -104,13 +108,12 @@ object SpectrumStorageBook:
               )
             )
             .addPage(trans =>
-              BookNbtSpotlightPageModel
-                .Builder()
+              BookSpotlightPageModel
+                .create()
                 .withTitle("enchantment.minecraft.power")
                 .withCondition(buildEnchanter)
-                .withItem(ItemVariant.of(powerVStack))
+                .withItem(powerVStack)
                 .withText(trans.text("Power increases its capacity eightfold each level."))
-                .build()
             )
       }
       .addGuidebookEntry(entryLoc("equipment/tool_container"), equipCategory, SpectrumStorageItems.toolContainer.location) {
@@ -164,13 +167,12 @@ object SpectrumStorageBook:
             )
             .addPage(trans =>
               BookTextPageModel
-                .builder()
+                .create()
                 .withText(trans.text(
                   """
                     |Just like the bottomless shelf and bottomless barrel before it, the bottomless amphora remembers what items and fluids were inside its items, meaning you can use it as a filter.
                     |""".stripMargin
                 ))
-                .build()
             ).addPage(trans =>
               voidingPage(
                 trans.text(
@@ -210,13 +212,12 @@ object SpectrumStorageBook:
               )
             ).addPage(trans =>
               BookTextPageModel
-                .builder()
+                .create()
                 .withText(
                   trans.text("""
                           |Just like the bottomless shelf, the bottomless barrel will remember what items and fluids were inside its items, meaning you can use it as a filter
                           |""".stripMargin)
                 )
-                .build()
             )
             .addPage(trans =>
               voidingPage(
@@ -250,7 +251,7 @@ object SpectrumStorageBook:
             )
             .addPage(trans =>
               BookTextPageModel
-                .builder()
+                .create()
                 .withText(
                   trans.text(
                     """
@@ -258,7 +259,6 @@ object SpectrumStorageBook:
                       |""".stripMargin
                   )
                 )
-                .build()
             )
             .addPage(trans =>
               voidingPage(

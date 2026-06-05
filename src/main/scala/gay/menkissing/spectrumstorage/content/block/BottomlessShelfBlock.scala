@@ -1,11 +1,12 @@
 package gay.menkissing.spectrumstorage.content.block
 
-import de.dafuqs.spectrum.registries.SpectrumItems
+import com.mojang.serialization.MapCodec
+import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumItems}
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity}
 import net.minecraft.core.{BlockPos, Direction}
 import net.minecraft.util.StringRepresentable
-import net.minecraft.world.{Containers, InteractionHand, InteractionResult}
+import net.minecraft.world.{Containers, InteractionHand, InteractionResult, ItemInteractionResult}
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.context.BlockPlaceContext
@@ -43,25 +44,25 @@ class BottomlessShelfBlock(props: BlockBehaviour.Properties) extends BaseEntityB
   override def newBlockEntity(pos: BlockPos, state: BlockState): BlockEntity =
     BottomlessShelfBlockEntity(pos, state)
 
-  def useItemOn(stack: ItemStack, state: BlockState, level: Level, pos: BlockPos
-               , player: Player, hand: InteractionHand, hitResult: BlockHitResult): InteractionResult =
+  override def useItemOn(stack: ItemStack, state: BlockState, level: Level, pos: BlockPos
+               , player: Player, hand: InteractionHand, hitResult: BlockHitResult): ItemInteractionResult =
     level.getBlockEntity(pos) match
       case blockEntity: BottomlessShelfBlockEntity =>
-        if !stack.is(SpectrumStorageItems.bottomlessBottle) && !stack.is(SpectrumItems.BOTTOMLESS_BUNDLE) then
-          InteractionResult.PASS
+        if !stack.is(SpectrumStorageItems.bottomlessBottle) && !stack.is(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem()) then
+          ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
         else
           this.getHitSlot(hitResult, state) match
             case None =>
-              InteractionResult.PASS
+              ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
             case Some(slot) =>
               if !state.getValue(BottomlessShelfBlock.SHELF_SLOT_OCCUPIED_PROPS(slot)).isEmpty then
-                InteractionResult.PASS
+                ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
               else
                 BottomlessShelfBlock.insertContainer(level, pos, player, blockEntity, stack, slot)
-                InteractionResult.sidedSuccess(level.isClientSide)
-      case _ => InteractionResult.PASS
+                ItemInteractionResult.sidedSuccess(level.isClientSide)
+      case _ => ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 
-  def useWithoutItem(state: BlockState, level: Level, pos: BlockPos, player: Player, hitResult: BlockHitResult): InteractionResult =
+  override def useWithoutItem(state: BlockState, level: Level, pos: BlockPos, player: Player, hitResult: BlockHitResult): InteractionResult =
     level.getBlockEntity(pos) match
       case blockEntity: BottomlessShelfBlockEntity =>
         this.getHitSlot(hitResult, state) match
@@ -75,12 +76,8 @@ class BottomlessShelfBlock(props: BlockBehaviour.Properties) extends BaseEntityB
               InteractionResult.sidedSuccess(level.isClientSide)
       case _ => InteractionResult.PASS
 
-  override def use(state: BlockState, level: Level, pos: BlockPos, player: Player, hand: InteractionHand, hitResult: BlockHitResult): InteractionResult =
-    val item = player.getItemInHand(hand)
-    if item.isEmpty then
-      useWithoutItem(state, level, pos, player, hitResult)
-    else
-      useItemOn(item, state, level, pos, player, hand, hitResult)
+  override def codec(): MapCodec[_ <: BaseEntityBlock] = BottomlessShelfBlock.CODEC
+    
 
   override def getRenderShape(blockState: BlockState): RenderShape = RenderShape.MODEL
 
@@ -107,6 +104,8 @@ class BottomlessShelfBlock(props: BlockBehaviour.Properties) extends BaseEntityB
 
 
 object BottomlessShelfBlock:
+  val CODEC: MapCodec[BottomlessShelfBlock] = BlockBehaviour.simpleCodec(BottomlessShelfBlock.apply)
+  
   enum ShelfSlotOccupiedBy extends Enum[ShelfSlotOccupiedBy], StringRepresentable:
     case Empty, Bottle, Bundle
 

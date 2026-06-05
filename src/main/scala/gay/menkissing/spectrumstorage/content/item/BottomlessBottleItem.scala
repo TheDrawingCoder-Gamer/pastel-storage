@@ -1,13 +1,17 @@
 package gay.menkissing.spectrumstorage.content.item
 
+import com.mojang.serialization.Codec
+import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.world.item.{Item, ItemDisplayContext, ItemStack, TooltipFlag}
-import de.dafuqs.spectrum.api.item.ExtendedEnchantable
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
-import gay.menkissing.spectrumstorage.registries.LumoTranslationKeys
+import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoTranslationKeys}
+import gay.menkissing.spectrumstorage.util.LumoEnchantmentHelper
 import gay.menkissing.spectrumstorage.util.resources.ResourceLocationExt
+import io.netty.buffer.ByteBuf
 import net.fabricmc.api.{EnvType, Environment}
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin
+import net.fabricmc.fabric.api.item.v1.EnchantingContext
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel
 import net.fabricmc.fabric.api.renderer.v1.render.RenderContext
@@ -23,18 +27,21 @@ import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.{BakedQuad, ItemOverrides, ItemTransforms}
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
 import net.minecraft.client.resources.model.{BakedModel, Material, ModelBaker, ModelState, UnbakedModel}
-import net.minecraft.core.{BlockPos, Direction}
+import net.minecraft.core.{BlockPos, Direction, Holder, HolderLookup}
 import net.minecraft.core.cauldron.CauldronInteraction
 import net.minecraft.core.particles.ParticleTypes
 import net.minecraft.nbt.CompoundTag
+import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.chat.Component
+import net.minecraft.network.codec.{ByteBufCodecs, StreamCodec}
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.sounds.{SoundEvents, SoundSource}
 import net.minecraft.tags.FluidTags
 import net.minecraft.util.RandomSource
 import net.minecraft.world.entity.player.Player
 import net.minecraft.world.inventory.InventoryMenu
-import net.minecraft.world.{InteractionHand, InteractionResult, InteractionResultHolder}
+import net.minecraft.world.item.Item.TooltipContext
+import net.minecraft.world.{InteractionHand, InteractionResult, InteractionResultHolder, ItemInteractionResult}
 import net.minecraft.world.item.enchantment.{Enchantment, EnchantmentHelper, Enchantments}
 import net.minecraft.world.level.{BlockAndTintGetter, ClipContext, Level}
 import net.minecraft.world.level.block.{Blocks, BucketPickup, LayeredCauldronBlock, LiquidBlockContainer}
@@ -47,23 +54,23 @@ import java.util.function
 import java.util.function.Supplier
 import scala.annotation.nowarn
 
-class BottomlessBottleItem(props: Item.Properties) extends Item(props), ExtendedEnchantable:
+class BottomlessBottleItem(props: Item.Properties) extends Item(props):
   override def isEnchantable(stack: ItemStack): Boolean = true
 
   override def getEnchantmentValue: Int = 5
 
-  override def acceptsEnchantment(enchantment: Enchantment): Boolean =
-    enchantment == Enchantments.POWER_ARROWS
+  override def canBeEnchantedWith(stack: ItemStack, enchantment: Holder[Enchantment], context: EnchantingContext): Boolean =
+    super.canBeEnchantedWith(stack, enchantment, context) || enchantment.is(Enchantments.POWER)
 
 
-  override def appendHoverText(stack: ItemStack, level: Level, tooltipComponents: util.List[Component], tooltipFlag: TooltipFlag): Unit =
+  override def appendHoverText(stack: ItemStack, context: TooltipContext, tooltipComponents: util.List[Component], tooltipFlag: TooltipFlag): Unit =
     val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack)
     if contents.isEmpty then
       tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.empty)
       tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.usagePickup)
     else
       val containedFluid = contents.variant
-      val max = BottomlessBottleItem.getMaxStackExpensive(stack)
+      val max = BottomlessBottleItem.getMaxStackRegistry(context.registries(), stack)
       tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.countMB(contents.amount, max))
       tooltipComponents.add(FluidVariantAttributes.getName(containedFluid))
       tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.usagePickup)
@@ -84,7 +91,7 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props), Extended
     if
       !blockState.isAir && !canPlace && (
         blockState.getBlock match
-          case liquidBlock: LiquidBlockContainer => !liquidBlock.canPlaceLiquid(level, pos, blockState, contents.variant.getFluid)
+          case liquidBlock: LiquidBlockContainer => !liquidBlock.canPlaceLiquid(player, level, pos, blockState, contents.variant.getFluid)
           case _ => true
       )
     then
@@ -125,7 +132,7 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props), Extended
           InteractionResultHolder.fail(stack)
         else
           val hitState = level.getBlockState(hitPos)
-          val builder = BottomlessBottleItem.BottomlessBottleContents.Builder.fromStack(stack)
+          val builder = BottomlessBottleItem.BottomlessBottleContents.Builder.of(level, stack)
           if player.isShiftKeyDown then
             // placing
             if builder.extract(builder.template, FluidConstants.BUCKET) != FluidConstants.BUCKET then
@@ -148,7 +155,7 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props), Extended
                 if builder.insert(FluidVariant.of(fluid.getType), FluidConstants.BUCKET) == FluidConstants.BUCKET then
                   hitState.getBlock match
                     case bucketPickup: BucketPickup =>
-                      if !bucketPickup.pickupBlock(level, hitPos, hitState).isEmpty then
+                      if !bucketPickup.pickupBlock(player, level, hitPos, hitState).isEmpty then
                         val sound = FluidVariantAttributes.getFillSound(FluidVariant.of(fluid.getType))
                         level.playSound(player, hitPos, sound, SoundSource.BLOCKS, 1f, 1f)
 
@@ -163,79 +170,82 @@ object BottomlessBottleItem:
 
   @nowarn("msg=eta")
   def registerCauldronInteractions(): Unit =
-    CauldronInteraction.EMPTY.put(SpectrumStorageItems.bottomlessBottle, emptyBottleInteraction)
-    CauldronInteraction.LAVA.put(SpectrumStorageItems.bottomlessBottle, fillBottleInteraction(Fluids.LAVA))
-    CauldronInteraction.WATER.put(SpectrumStorageItems.bottomlessBottle, fillBottleInteraction(Fluids.WATER))
+    CauldronInteraction.EMPTY.map().put(SpectrumStorageItems.bottomlessBottle, emptyBottleInteraction)
+    CauldronInteraction.LAVA.map().put(SpectrumStorageItems.bottomlessBottle, fillBottleInteraction(Fluids.LAVA))
+    CauldronInteraction.WATER.map().put(SpectrumStorageItems.bottomlessBottle, fillBottleInteraction(Fluids.WATER))
 
   def maxAllowed(level: Int): Long =
     baseMax * math.pow(8, math.min(level, 5)).toLong
+  def getMaxStack(world: Level, stack: ItemStack): Long =
+    getMaxStackRegistry(world.registryAccess(), stack)
+  def getMaxStackRegistry(lookup: HolderLookup.Provider, stack: ItemStack): Long =
+    maxAllowed(LumoEnchantmentHelper.getLevel(lookup, Enchantments.POWER, stack))
   // Not really that expensive on 1.20, but 1.21 makes this expensive
   def getMaxStackExpensive(stack: ItemStack): Long =
-    maxAllowed(EnchantmentHelper.getEnchantments(stack).getOrDefault(Enchantments.POWER_ARROWS, 0))
+    maxAllowed(LumoEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
 
-  def emptyBottleInteraction(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): InteractionResult =
+  def emptyBottleInteraction(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
     val contents = BottomlessBottleContents.getFromStack(stack)
 
     if contents.variant.getFluid == Fluids.WATER then
-      val builder = BottomlessBottleContents.Builder.fromStack(stack)
+      val builder = BottomlessBottleContents.Builder.of(level, stack)
       if builder.extract(FluidVariant.of(Fluids.WATER), FluidConstants.BUCKET) == FluidConstants.BUCKET then
         level.setBlockAndUpdate(blockPos, Blocks.WATER_CAULDRON.defaultBlockState()
           .setValue(LayeredCauldronBlock.LEVEL, LayeredCauldronBlock.MAX_FILL_LEVEL))
         level.playSound(player, blockPos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1f, 1f)
         BottomlessBottleContents.replaceInStack(stack, builder.build)
-        return InteractionResult.SUCCESS
+        return ItemInteractionResult.SUCCESS
     else if contents.variant.getFluid == Fluids.LAVA then
-      val builder = BottomlessBottleContents.Builder.fromStack(stack)
+      val builder = BottomlessBottleContents.Builder.of(level, stack)
       if builder.extract(FluidVariant.of(Fluids.LAVA), FluidConstants.BUCKET) == FluidConstants.BUCKET then
         level.setBlockAndUpdate(blockPos, Blocks.LAVA_CAULDRON.defaultBlockState())
         level.playSound(player, blockPos, SoundEvents.BUCKET_EMPTY_LAVA, SoundSource.BLOCKS, 1f, 1f)
         BottomlessBottleContents.replaceInStack(stack, builder.build)
-        return InteractionResult.SUCCESS
-    InteractionResult.PASS
+        return ItemInteractionResult.SUCCESS
+    ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 
-  def fillBottleInteraction(fluid: Fluid)(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): InteractionResult =
+  def fillBottleInteraction(fluid: Fluid)(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
     val contents = BottomlessBottleContents.getFromStack(stack)
     if contents.isEmpty || contents.variant.getFluid == fluid then
       val amount = blockState.getOptionalValue(LayeredCauldronBlock.LEVEL).orElse(3) * FluidConstants.BOTTLE
-      val builder = BottomlessBottleContents.Builder.fromStack(stack)
+      val builder = BottomlessBottleContents.Builder.of(level, stack)
       if builder.insert(FluidVariant.of(fluid), amount) == amount then
         BottomlessBottleContents.replaceInStack(stack, builder.build)
         level.setBlockAndUpdate(blockPos, Blocks.CAULDRON.defaultBlockState())
         level.playSound(player, blockPos, FluidVariantAttributes.getFillSound(builder.template), SoundSource
           .BLOCKS, 1f, 1f)
-        return InteractionResult.SUCCESS
+        return ItemInteractionResult.SUCCESS
 
-    InteractionResult.PASS
+    ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 
   final case class BottomlessBottleContents(variant: FluidVariant, amount: Long):
     def isEmpty: Boolean = variant.isBlank || amount == 0
-
-    def toNbt: CompoundTag =
-      val tag = CompoundTag()
-      tag.put("Fluid", variant.toNbt)
-      tag.putLong("Amount", amount)
-      tag
   object BottomlessBottleContents:
+    val CODEC: Codec[BottomlessBottleContents] =
+      RecordCodecBuilder.create { builder =>
+        builder.group(
+          FluidVariant.CODEC.fieldOf("variant").forGetter((it: BottomlessBottleContents) => it.variant),
+          Codec.LONG.fieldOf("amount").forGetter((it: BottomlessBottleContents) => java.lang.Long.valueOf(it.amount))
+        ).apply(builder, (a, b) => BottomlessBottleContents(a, b)) // massage long
+      }
+
+    val STREAM_CODEC: StreamCodec[RegistryFriendlyByteBuf, BottomlessBottleContents] =
+      StreamCodec.composite(
+        FluidVariant.PACKET_CODEC, (it: BottomlessBottleContents) => it.variant,
+        ByteBufCodecs.VAR_LONG, (it: BottomlessBottleContents) => it.amount,
+        BottomlessBottleContents.apply
+      )
+
     val EMPTY: BottomlessBottleContents =
       BottomlessBottleContents(FluidVariant.blank(), 0)
 
-    def fromNbt(nbt: CompoundTag): BottomlessBottleContents =
-      val variant = FluidVariant.fromNbt(nbt.getCompound("Fluid"))
-      val amount = nbt.getLong("Amount")
-      BottomlessBottleContents(variant, amount)
 
 
     def getFromStack(stack: ItemStack): BottomlessBottleContents =
-      val compound = stack.getOrCreateTag()
-      if compound.contains("StoredFluid") then
-        val storedCompound = compound.getCompound("StoredFluid")
-        fromNbt(storedCompound)
-      else
-        BottomlessBottleContents.EMPTY
+      stack.getOrDefault(LumoComponents.BottomlessBottleContentsComponent, BottomlessBottleContents.EMPTY)
 
     def replaceInStack(stack: ItemStack, contents: BottomlessBottleContents): Unit =
-      val compound = stack.getOrCreateTag()
-      compound.put("StoredFluid", contents.toNbt)
+      stack.set(LumoComponents.BottomlessBottleContentsComponent, contents)
 
     class Builder(var template: FluidVariant, var amount: Long, val max: Long):
       def isEmpty: Boolean =
@@ -276,16 +286,21 @@ object BottomlessBottleItem:
 
           toRemove
     object Builder:
-      def fromStack(stack: ItemStack): BottomlessBottleContents.Builder =
+      def of(world: Level, stack: ItemStack): BottomlessBottleContents.Builder =
         val prev = getFromStack(stack)
-        val max = getMaxStackExpensive(stack)
+        val max = getMaxStack(world, stack)
         BottomlessBottleContents.Builder(prev.variant, prev.amount, max)
-    class BottomlessBottleStorage(val context: ContainerItemContext) extends SingleSlotStorage[FluidVariant]:
+
+      def withMax(stack: ItemStack, max: Long): BottomlessBottleContents.Builder =
+        val prev = getFromStack(stack)
+        BottomlessBottleContents.Builder(prev.variant, prev.amount, max)
+
+    class BottomlessBottleStorage(val context: ContainerItemContext, var maxStoredInBundle: Long) extends SingleSlotStorage[FluidVariant]:
       override def getCapacity: Long =
         if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
           0
         else
-          getMaxStackExpensive(context.getItemVariant.toStack)
+          maxStoredInBundle
 
       override def extract(resource: FluidVariant, maxAmount: Long, transaction: TransactionContext): Long =
         StoragePreconditions.notBlankNotNegative(resource, maxAmount)
@@ -293,7 +308,7 @@ object BottomlessBottleItem:
         if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
           return 0
 
-        val builder = Builder.fromStack(context.getItemVariant.toStack)
+        val builder = Builder.withMax(context.getItemVariant.toStack, maxStoredInBundle)
 
         if !builder.isEmpty && resource == builder.template then
           val extracted = builder.extract(resource, maxAmount)
@@ -312,7 +327,7 @@ object BottomlessBottleItem:
         if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
           return 0
 
-        val builder = Builder.fromStack(context.getItemVariant.toStack)
+        val builder = Builder.withMax(context.getItemVariant.toStack, maxStoredInBundle)
 
         if builder.isEmpty || resource == builder.template then
           val inserted = builder.insert(resource, maxAmount)
@@ -398,7 +413,7 @@ class BottomlessBottleItemModel extends UnbakedModel, BakedModel, FabricBakedMod
         quad.pos(i, pos)
 
       if fluidSprite == null then
-        quad.spriteBake(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(ResourceLocationExt.withDefaultNamespace("missingno")), MutableQuadView.BAKE_LOCK_UV)
+        quad.spriteBake(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(ResourceLocation.withDefaultNamespace("missingno")), MutableQuadView.BAKE_LOCK_UV)
       else
         quad.spriteBake(fluidSprite, MutableQuadView.BAKE_LOCK_UV)
 
@@ -416,7 +431,7 @@ class BottomlessBottleItemModel extends UnbakedModel, BakedModel, FabricBakedMod
 
   override def isVanillaAdapter: Boolean = false
 
-  override def bake(baker: ModelBaker, spriteGetter: function.Function[Material, TextureAtlasSprite], state: ModelState, resourceLocation: ResourceLocation): BakedModel =
+  override def bake(baker: ModelBaker, spriteGetter: function.Function[Material, TextureAtlasSprite], state: ModelState): BakedModel =
     baseModel = baker.bake(BottomlessBottleRenderer.bottomlessBottleID, state)
     fluidModel = baker.bake(BottomlessBottleRenderer.fluidModelID, state)
     sprite = spriteGetter.apply(Material(InventoryMenu.BLOCK_ATLAS, SpectrumStorage.locate("item/bottomless_bottle")))

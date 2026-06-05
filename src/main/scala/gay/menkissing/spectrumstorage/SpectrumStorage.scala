@@ -1,7 +1,8 @@
 package gay.menkissing.spectrumstorage
 
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
-import gay.menkissing.spectrumstorage.registries.{LumoLang, LumoScreens, LumoTags, SpectrumStorageBook}
+import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoLang, LumoScreens, LumoTags, SpectrumStorageBook}
+import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import net.fabricmc.api.ModInitializer
 import net.minecraft.resources.ResourceLocation
 import org.slf4j.{Logger, LoggerFactory}
@@ -10,7 +11,7 @@ object SpectrumStorage extends ModInitializer:
   val ModId: String = "spectrumstorage"
   val Logger: Logger = LoggerFactory.getLogger("spectrumstorage")
 
-  def locate(id: String): ResourceLocation = new ResourceLocation(ModId, id)
+  def locate(id: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ModId, id)
 
   override def onInitialize(): Unit =
     SpectrumStorageItems.init()
@@ -18,4 +19,5 @@ object SpectrumStorage extends ModInitializer:
     LumoScreens.init()
     LumoTags.init()
     LumoLang.init()
-    SpectrumStorageBook.init()
+    val _ = LumoComponents
+    InfoCollector.instance.addBookRegister(SpectrumStorageBook.init)

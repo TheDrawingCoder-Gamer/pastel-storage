@@ -60,6 +60,8 @@ class InfoCollector(val modid: String):
   private[registry] val tagMembers = mutable.HashMap[ResourceKey[? <: Registry[?]], Multimap[TagKey[?], ChildKind[?]]]()
 
   private [registry] val bookEntries = mutable.HashMap[EntryLocation, BookEntry]()
+  
+  private val bookRegisters = mutable.ArrayBuffer.empty[HolderLookup.Provider => Unit]
 
   private lazy val doDatagen = System.getProperty("fabric-api.datagen") != null
 
@@ -94,6 +96,11 @@ class InfoCollector(val modid: String):
   def addGuidebookEntry(entryName: String): GuidebookLangHelper =
     GuidebookLangHelper(this, entryName)
 
+  def addBookRegister(register: HolderLookup.Provider => Unit): InfoCollector =
+    if !doDatagen then
+      return this
+    bookRegisters += register
+    this
   
   
   def addGuidebookEntry(location: EntryLocation, category: ResourceLocation, transId: ResourceLocation)(creator: BookEntry => BookEntry): InfoCollector =
@@ -114,33 +121,33 @@ class InfoCollector(val modid: String):
     BlockBuilder(this, (), block, name)
 
   def block(name: String, block: Block): BlockBuilder[Unit] =
-    this.block(ResourceLocation(modid, name), block)
+    this.block(ResourceLocation.fromNamespaceAndPath(modid, name), block)
 
   def item(name: ResourceLocation, item: Item): ItemBuilder[Unit] =
     ItemBuilder(this, (), item, name)
 
   def item(name: String, item: Item): ItemBuilder[Unit] =
-    this.item(ResourceLocation(modid, name), item)
+    this.item(ResourceLocation.fromNamespaceAndPath(modid, name), item)
 
   def tag[T](registry: ResourceKey[? <: Registry[T]], name: ResourceLocation): TagBuilder[T, Unit] =
     TagBuilder(this, (), registry, TagKey.create(registry, name))
   
   def tag[T](registry: ResourceKey[? <: Registry[T]], name: String): TagBuilder[T, Unit] =
-    this.tag(registry, ResourceLocation(modid, name))
+    this.tag(registry, ResourceLocation.fromNamespaceAndPath(modid, name))
     
   def appendTag[T](key: TagKey[T]): TagBuilder[T, Unit] =
     TagBuilder(this, (), key.registry(), key)
   
   def registerDataGenerators(pack: FabricDataGenerator#Pack): Unit =
     pack.addProvider { (output, lookup) =>
-      val langProvider = new FabricLanguageProvider(output, "en_us") {
-        override def generateTranslations(translationBuilder: FabricLanguageProvider.TranslationBuilder): Unit =
+      val langProvider = new FabricLanguageProvider(output, "en_us", lookup) {
+        override def generateTranslations(provider: HolderLookup.Provider, translationBuilder: FabricLanguageProvider.TranslationBuilder): Unit =
           lang.foreach { (k, v) =>
             translationBuilder.add(k, v)
           }
       }
       val blockLootProvider =
-        new FabricBlockLootTableProvider(output):
+        new FabricBlockLootTableProvider(output, lookup):
           override def generate(): Unit =
             blockLootTables.foreach { (block, gen) =>
               this.add(block, gen(this))
@@ -157,17 +164,22 @@ class InfoCollector(val modid: String):
       val bookEntryProvider =
         new DataProvider:
           override def run(cachedOutput: CachedOutput): CompletableFuture[?] =
-            CompletableFuture.allOf(
-              bookEntries.map: (k, v) =>
-                val path =
-                  output.getOutputFolder(Target.DATA_PACK)
-                        .resolve(k.book.getNamespace)
-                        .resolve("modonomicon/books")
-                        .resolve(k.book.getPath)
-                        .resolve("entries")
-                DataProvider.saveStable(cachedOutput, v.toJson, path.resolve(v.location.id.getPath + ".json"))
-              .toSeq*
-            )
+            lookup.thenAcceptAsync { lookup =>
+              bookRegisters.foreach(_(lookup))
+              
+              CompletableFuture.allOf(
+                bookEntries.map: (k, v) =>
+                   val path =
+                     output.getOutputFolder(Target.DATA_PACK)
+                           .resolve(k.book.getNamespace)
+                           .resolve("modonomicon/books")
+                           .resolve(k.book.getPath)
+                           .resolve("entries")
+                   DataProvider.saveStable(cachedOutput, v.toJson(lookup), path.resolve(v.location.id.getPath + ".json"))
+                 .toSeq *
+              )
+            }
+            
           override def getName: String = s"Book Entry Provider for $modid"
 
 

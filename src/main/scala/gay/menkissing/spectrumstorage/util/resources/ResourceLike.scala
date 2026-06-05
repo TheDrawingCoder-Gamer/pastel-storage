@@ -41,20 +41,20 @@ extension[T] (self: T)(using rl: ModelResourceLike[T])
 
 given ModelResourceLike[Item] = self =>
   val key = self.location
-  new ResourceLocation(key.getNamespace, "item/" + key.getPath)
+  ResourceLocation.fromNamespaceAndPath(key.getNamespace, "item/" + key.getPath)
 
 given ModelResourceLike[Block] = self =>
   val key = self.location
-  new ResourceLocation(key.getNamespace, "block/" + key.getPath)
+  ResourceLocation.fromNamespaceAndPath(key.getNamespace, "block/" + key.getPath)
 
 given ModelResourceLike[ResourceLocation] = self => self
 
 extension (self: ResourceLocation)
   def extend(suffix: String): ResourceLocation =
-    new ResourceLocation(self.getNamespace, self.getPath + suffix)
+    ResourceLocation.fromNamespaceAndPath(self.getNamespace, self.getPath + suffix)
   
 object ResourceLocationExt:
   def withDefaultNamespace(id: String): ResourceLocation =
-    new ResourceLocation("minecraft", id)
+    ResourceLocation.withDefaultNamespace(id)
   def fromNamespaceAndPath(namespace: String, path: String): ResourceLocation =
-    new ResourceLocation(namespace, path)
+    ResourceLocation.fromNamespaceAndPath(namespace, path)

@@ -2,11 +2,13 @@ package gay.menkissing.spectrumstorage.screen
 
 import gay.menkissing.spectrumstorage.item.ItemBackedInventory
 import gay.menkissing.spectrumstorage.registries.{LumoScreens, LumoTags}
+import io.netty.buffer.ByteBuf
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.{InteractionHand, SimpleContainer}
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, Slot}
 import net.minecraft.world.item.ItemStack
+import net.minecraft.network.codec.{ByteBufCodecs, StreamCodec}
 
 class ToolContainerMenu(windowId: Int, playerInv: Inventory, val box: ItemStack) extends AbstractContainerMenu(LumoScreens.toolContainer, windowId):
   locally:
@@ -84,7 +86,15 @@ object ToolContainerMenu:
   val columns = 9
   val containerSize = rows * columns
 
-  def fromNetwork(windowId: Int, inv: Inventory, buf: FriendlyByteBuf): ToolContainerMenu =
-    val mainHand = buf.readBoolean()
-    val hand = if mainHand then InteractionHand.MAIN_HAND else InteractionHand.OFF_HAND
+  final case class ToolContainerData(mainHand: Boolean)
+  object ToolContainerData {
+    val STREAM_CODEC = StreamCodec.composite[ByteBuf, ToolContainerData, java.lang.Boolean](
+      ByteBufCodecs.BOOL,
+      it => it.mainHand,
+      slot => ToolContainerData(slot)
+    )
+  }
+
+  def fromNetwork(windowId: Int, inv: Inventory, data: ToolContainerData): ToolContainerMenu =
+    val hand = if data.mainHand then InteractionHand.MAIN_HAND else InteractionHand.OFF_HAND
     new ToolContainerMenu(windowId, inv, inv.player.getItemInHand(hand))

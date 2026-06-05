@@ -24,7 +24,9 @@ class FilterChestBlock(props: BlockBehaviour.Properties) extends BarrelBlock(pro
   override def newBlockEntity(blockPos: BlockPos, blockState: BlockState): BlockEntity =
     FilterChestBlockEntity(blockPos, blockState)
 
-  override def use(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, interactionHand: InteractionHand, blockHitResult: BlockHitResult): InteractionResult =
+  
+  
+  override def useWithoutItem(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, blockHitResult: BlockHitResult): InteractionResult =
     if level.isClientSide then
       InteractionResult.SUCCESS
     else
@@ -54,11 +56,4 @@ class FilterChestBlock(props: BlockBehaviour.Properties) extends BarrelBlock(pro
       case fcbe: FilterChestBlockEntity =>
         fcbe.recheckOpen()
       case _ => ()
-
-  override def setPlacedBy(level: Level, blockPos: BlockPos, blockState: BlockState, livingEntity: LivingEntity, itemStack: ItemStack): Unit =
-    if itemStack.hasCustomHoverName then
-      level.getBlockEntity(blockPos) match
-        case fcbe: FilterChestBlockEntity =>
-          fcbe.setCustomName(itemStack.getHoverName)
-        case _ => ()
     

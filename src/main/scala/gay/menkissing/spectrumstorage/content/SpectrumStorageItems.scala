@@ -10,6 +10,8 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.{Item, ItemStack}
 import de.dafuqs.fractal.api.ItemSubGroupEvents
 import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
+import gay.menkissing.spectrumstorage.util.LumoEnchantmentHelper
+import net.minecraft.world.item.enchantment.Enchantments
 
 import scala.collection.mutable
 
@@ -43,5 +45,5 @@ object SpectrumStorageItems:
       ItemSubGroupEvents.modifyEntriesEvent(subgroup).register: entries =>
         items.foreach(entries.accept)
 
-    FluidStorage.ITEM.registerForItems((stack: ItemStack, context: ContainerItemContext) => BottomlessBottleItem.BottomlessBottleContents.BottomlessBottleStorage(context),
-      bottomlessBottle)
+    FluidStorage.ITEM.registerForItems((stack: ItemStack, context: ContainerItemContext) => 
+      BottomlessBottleItem.BottomlessBottleContents.BottomlessBottleStorage(context, LumoEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack)), bottomlessBottle)

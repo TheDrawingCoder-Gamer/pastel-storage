@@ -25,7 +25,7 @@ abstract class BottomlessStorageBlock(val capacity: Int, props: BlockBehaviour.P
       
   
   
-  override def use(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, interactionHand: InteractionHand, blockHitResult: BlockHitResult): InteractionResult =
+  override def useWithoutItem(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, blockHitResult: BlockHitResult): InteractionResult =
     if level.isClientSide then
       InteractionResult.SUCCESS
     else
@@ -57,12 +57,6 @@ abstract class BottomlessStorageBlock(val capacity: Int, props: BlockBehaviour.P
         sbe.recheckOpen()
       case _ => ()
 
-  override def setPlacedBy(level: Level, blockPos: BlockPos, blockState: BlockState, livingEntity: LivingEntity, itemStack: ItemStack): Unit =
-    if itemStack.hasCustomHoverName then
-      level.getBlockEntity(blockPos) match
-        case bsbe: ContainerBottomlessStorageBlockEntity =>
-          bsbe.setCustomName(itemStack.getHoverName)
-        case _ => ()
   
   
 

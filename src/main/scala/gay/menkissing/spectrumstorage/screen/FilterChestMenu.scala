@@ -4,16 +4,19 @@ import de.dafuqs.spectrum.api.block.FilterConfigurable
 import de.dafuqs.spectrum.inventories.slots.ShadowSlot
 import gay.menkissing.spectrumstorage.content.block.entity.FilterChestBlockEntity
 import gay.menkissing.spectrumstorage.registries.LumoScreens
+import io.netty.buffer.ByteBuf
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
+import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
+import net.minecraft.network.codec.{ByteBufCodecs, StreamCodec}
 import net.minecraft.world.{Container, SimpleContainer}
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, ClickAction, Slot}
 import net.minecraft.world.item.ItemStack
 
-class FilterChestMenu(windowId: Int, playerInv: Inventory, val container: Container, val blockEntity: FilterChestBlockEntity | Null, filterContainerFactory: AbstractContainerMenu => Container) extends AbstractContainerMenu(LumoScreens.filterChest, windowId):
+class FilterChestMenu(windowId: Int, playerInv: Inventory, val container: Container, val blockEntity: FilterChestBlockEntity | Null, val data: FilterConfigurable.ExtendedDataWithPos) extends AbstractContainerMenu(LumoScreens.filterChest, windowId):
   val level = playerInv.player.level()
-  val filterInventory = filterContainerFactory(this)
+  val filterInventory = FilterConfigurable.getFilterInventoryFromExtendedData(windowId, playerInv, data.data(), this)
 
   locally:
     AbstractContainerMenu.checkContainerSize(container, FilterChestBlockEntity.inventorySize)
@@ -83,16 +86,14 @@ object FilterChestMenu:
   def isShadowSlot(slot: Int): Boolean =
     slot >= FilterChestBlockEntity.inventorySize && slot < FilterChestBlockEntity.inventorySize + FilterChestBlockEntity.filterCount
 
+  
+  
 
-  def apply(windowId: Int, playerInv: Inventory, blockEntity: FilterChestBlockEntity): FilterChestMenu =
-    new FilterChestMenu(windowId, playerInv, blockEntity, blockEntity, (menu: AbstractContainerMenu) => FilterConfigurable.getFilterInventoryFromItemsHandler(windowId, playerInv, blockEntity.getItemFilters, menu))
-
-
-  def fromNetwork(windowId: Int, playerInv: Inventory, buf: FriendlyByteBuf): FilterChestMenu =
-    val pos = buf.readBlockPos()
+  def fromNetwork(windowId: Int, playerInv: Inventory, data: FilterConfigurable.ExtendedDataWithPos): FilterChestMenu =
+    val pos = data.pos()
     val container = new SimpleContainer(FilterChestBlockEntity.inventorySize)
     val blockEntity =
       playerInv.player.level().getBlockEntity(pos) match
         case filterChestBlockEntity: FilterChestBlockEntity => filterChestBlockEntity
         case _ => null
-    new FilterChestMenu(windowId, playerInv, container, blockEntity, (menu: AbstractContainerMenu) => FilterConfigurable.getFilterInventoryFromPacketHandler(windowId, playerInv, buf, menu))
+    new FilterChestMenu(windowId, playerInv, container, blockEntity, data)

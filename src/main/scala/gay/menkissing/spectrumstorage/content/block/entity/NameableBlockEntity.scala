@@ -1,5 +1,6 @@
 package gay.menkissing.spectrumstorage.content.block.entity
 
+import net.minecraft.core.HolderLookup
 import net.minecraft.nbt.{CompoundTag, Tag}
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Component.Serializer
@@ -20,12 +21,12 @@ trait NameableBlockEntity extends BlockEntity, Nameable:
   override def getCustomName: Component =
     name.orNull
 
-  override def load(tag: CompoundTag): Unit =
-    super.load(tag)
+  override def loadAdditional(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
+    super.loadAdditional(tag, provider)
     if tag.contains("CustomName", Tag.TAG_STRING) then
-      this.name = Option(Serializer.fromJson(tag.getString("CustomName")))
+      this.name = Option(Serializer.fromJson(tag.getString("CustomName"), provider))
 
-  override protected def saveAdditional(tag: CompoundTag): Unit =
-    super.saveAdditional(tag)
+  override protected def saveAdditional(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
+    super.saveAdditional(tag, provider)
     name.foreach: name =>
-      tag.putString("CustomName", Serializer.toJson(name))
+      tag.putString("CustomName", Serializer.toJson(name, provider))

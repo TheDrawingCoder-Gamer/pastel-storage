@@ -16,7 +16,7 @@ class FilterChestGui(menu: FilterChestMenu, playerInv: Inventory, title: Compone
     guiGraphics.blit(FilterChestGui.texture, i, j, 0, 0, this.imageWidth, this.imageHeight)
 
   override def render(guiGraphics: GuiGraphics, mouseX: Int, mouseY: Int, delta: Float): Unit =
-    this.renderBackground(guiGraphics)
+    this.renderBackground(guiGraphics, mouseX, mouseY, delta)
     super.render(guiGraphics, mouseX, mouseY, delta)
     this.renderTooltip(guiGraphics, mouseX, mouseY)
   
