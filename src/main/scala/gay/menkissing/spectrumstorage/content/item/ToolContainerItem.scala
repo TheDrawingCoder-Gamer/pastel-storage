@@ -34,7 +34,7 @@ class ToolContainerItem(props: Item.Properties) extends Item(props):
     InteractionResultHolder.sidedSuccess(player.getItemInHand(interactionHand), level.isClientSide)
 
   override def onDestroyed(itemEntity: ItemEntity): Unit =
-    ItemUtils.onContainerDestroyed(itemEntity, ToolContainerItem.getRawInventory(itemEntity.getItem).items)
+    ItemUtils.onContainerDestroyed(itemEntity, ToolContainerItem.getRawInventory(itemEntity.getItem).getItems)
     itemEntity.getItem.remove(DataComponents.CONTAINER)
 
   override def overrideOtherStackedOnMe(thisStack: ItemStack, thatStack: ItemStack, slot: Slot, clickAction: ClickAction, player: Player, slotAccess: SlotAccess): Boolean =

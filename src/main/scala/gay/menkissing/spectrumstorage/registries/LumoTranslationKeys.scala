@@ -8,12 +8,12 @@ object LumoTranslationKeys:
   object keys:
     object bottomlessBottle:
       object tooltip:
-        val usagePickup: String = SpectrumStorageItems.bottomlessBottle.getDescriptionId + ".tooltip.usage_pickup"
-        val usagePlace: String = SpectrumStorageItems.bottomlessBottle.getDescriptionId + ".tooltip.usage_place"
+        val usagePickup: String = SpectrumStorageItems.bottomlessBottle.get().getDescriptionId + ".tooltip.usage_pickup"
+        val usagePlace: String = SpectrumStorageItems.bottomlessBottle.get().getDescriptionId + ".tooltip.usage_place"
         
-        val empty: String = SpectrumStorageItems.bottomlessBottle.getDescriptionId + ".tooltip.empty"
+        val empty: String = SpectrumStorageItems.bottomlessBottle.get().getDescriptionId + ".tooltip.empty"
         
-        val countMB: String = SpectrumStorageItems.bottomlessBottle.getDescriptionId + ".tooltip.count_mb"
+        val countMB: String = SpectrumStorageItems.bottomlessBottle.get().getDescriptionId + ".tooltip.count_mb"
         
   
   object bottomlessBottle:

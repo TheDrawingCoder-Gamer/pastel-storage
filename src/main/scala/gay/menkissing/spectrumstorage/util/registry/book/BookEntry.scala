@@ -4,7 +4,6 @@ import com.google.gson.{JsonArray, JsonObject}
 import com.klikli_dev.modonomicon.api.datagen.book.condition.BookConditionModel
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookPageModel
 import com.klikli_dev.modonomicon.api.datagen.book.{BookCategoryModel, BookEntryParentModel, BookIconModel}
-import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
 import net.minecraft.core.HolderLookup
 import net.minecraft.data.CachedOutput
@@ -103,11 +102,7 @@ class BookEntry(val location: EntryLocation, var name: String, var translationId
     
     
     json
-  
-  def register(infoCollector: InfoCollector): Unit =
-    langEntries.foreach: (k, v) =>
-      infoCollector.addRawLang(k, v)
-    infoCollector.bookEntries(location) = this
+
     
       
   

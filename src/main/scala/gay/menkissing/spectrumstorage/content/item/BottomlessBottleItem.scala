@@ -9,7 +9,6 @@ import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoTranslatio
 import gay.menkissing.spectrumstorage.util.LumoEnchantmentHelper
 import gay.menkissing.spectrumstorage.util.resources.ResourceLocationExt
 import io.netty.buffer.ByteBuf
-import net.fabricmc.api.{EnvType, Environment}
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin
 import net.fabricmc.fabric.api.item.v1.EnchantingContext
 import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView
@@ -23,6 +22,7 @@ import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext
 import net.fabricmc.fabric.impl.client.indigo.renderer.helper.GeometryHelper
+import net.fabricmc.fabric.impl.renderer.VanillaModelEncoder
 import net.minecraft.client.Minecraft
 import net.minecraft.client.renderer.block.model.{BakedQuad, ItemOverrides, ItemTransforms}
 import net.minecraft.client.renderer.texture.TextureAtlasSprite
@@ -59,8 +59,8 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
 
   override def getEnchantmentValue: Int = 5
 
-  override def canBeEnchantedWith(stack: ItemStack, enchantment: Holder[Enchantment], context: EnchantingContext): Boolean =
-    super.canBeEnchantedWith(stack, enchantment, context) || enchantment.is(Enchantments.POWER)
+  override def supportsEnchantment(stack: ItemStack, enchantment: Holder[Enchantment]): Boolean =
+    super.supportsEnchantment(stack, enchantment) || enchantment.is(Enchantments.POWER)
 
 
   override def appendHoverText(stack: ItemStack, context: TooltipContext, tooltipComponents: util.List[Component], tooltipFlag: TooltipFlag): Unit =
@@ -170,9 +170,9 @@ object BottomlessBottleItem:
 
   @nowarn("msg=eta")
   def registerCauldronInteractions(): Unit =
-    CauldronInteraction.EMPTY.map().put(SpectrumStorageItems.bottomlessBottle, emptyBottleInteraction)
-    CauldronInteraction.LAVA.map().put(SpectrumStorageItems.bottomlessBottle, fillBottleInteraction(Fluids.LAVA))
-    CauldronInteraction.WATER.map().put(SpectrumStorageItems.bottomlessBottle, fillBottleInteraction(Fluids.WATER))
+    CauldronInteraction.EMPTY.map().put(SpectrumStorageItems.bottomlessBottle.get(), emptyBottleInteraction)
+    CauldronInteraction.LAVA.map().put(SpectrumStorageItems.bottomlessBottle.get(), fillBottleInteraction(Fluids.LAVA))
+    CauldronInteraction.WATER.map().put(SpectrumStorageItems.bottomlessBottle.get(), fillBottleInteraction(Fluids.WATER))
 
   def maxAllowed(level: Int): Long =
     baseMax * math.pow(8, math.min(level, 5)).toLong
@@ -297,7 +297,7 @@ object BottomlessBottleItem:
 
     class BottomlessBottleStorage(val context: ContainerItemContext, var maxStoredInBundle: Long) extends SingleSlotStorage[FluidVariant]:
       override def getCapacity: Long =
-        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
+        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle.get()) then
           0
         else
           maxStoredInBundle
@@ -305,7 +305,7 @@ object BottomlessBottleItem:
       override def extract(resource: FluidVariant, maxAmount: Long, transaction: TransactionContext): Long =
         StoragePreconditions.notBlankNotNegative(resource, maxAmount)
 
-        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
+        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle.get()) then
           return 0
 
         val builder = Builder.withMax(context.getItemVariant.toStack, maxStoredInBundle)
@@ -324,7 +324,7 @@ object BottomlessBottleItem:
       override def insert(resource: FluidVariant, maxAmount: Long, transaction: TransactionContext): Long =
         StoragePreconditions.notBlankNotNegative(resource, maxAmount)
 
-        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
+        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle.get()) then
           return 0
 
         val builder = Builder.withMax(context.getItemVariant.toStack, maxStoredInBundle)
@@ -341,17 +341,17 @@ object BottomlessBottleItem:
         0
 
       override def isResourceBlank: Boolean =
-        !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle)
+        !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle.get())
         || getFromStack(context.getItemVariant.toStack).variant.isBlank
 
       override def getResource: FluidVariant =
-        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
+        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle.get()) then
           FluidVariant.blank()
         else
           getFromStack(context.getItemVariant.toStack).variant
 
       override def getAmount: Long =
-        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle) then
+        if !context.getItemVariant.isOf(SpectrumStorageItems.bottomlessBottle.get()) then
           0
         else
           getFromStack(context.getItemVariant.toStack).amount
@@ -363,7 +363,8 @@ object BottomlessBottleRenderer:
   val bottomlessBottleID: ResourceLocation = SpectrumStorage.locate("item/bottomless_bottle_base")
   val fluidModelID: ResourceLocation = SpectrumStorage.locate("item/bottomless_bottle_fluid")
 
-@Environment(EnvType.CLIENT)
+// wtf...
+// @Environment(EnvType.CLIENT)
 class BottomlessBottleItemModel extends UnbakedModel, BakedModel, FabricBakedModel:
   private var baseModel: BakedModel = null
   private var fluidModel: BakedModel = null
@@ -381,7 +382,8 @@ class BottomlessBottleItemModel extends UnbakedModel, BakedModel, FabricBakedMod
     ()
 
   override def emitItemQuads(stack: ItemStack, randomSupplier: Supplier[RandomSource], context: RenderContext): Unit =
-    baseModel.emitItemQuads(stack, randomSupplier, context)
+    // DUE TO LACK OF MIXINS I _HAVE_ TO DO THIS?
+    VanillaModelEncoder.emitItemQuads(baseModel, null, randomSupplier, context)
 
     val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack)
 
@@ -449,7 +451,7 @@ class BottomlessBottleItemModel extends UnbakedModel, BakedModel, FabricBakedMod
 
   override def getOverrides: ItemOverrides = ItemOverrides.EMPTY
 
-@Environment(EnvType.CLIENT)
+// @Environment(EnvType.CLIENT)
 class BottomlessBottleModelLoader extends ModelLoadingPlugin:
   override def onInitializeModelLoader(context: ModelLoadingPlugin.Context): Unit =
     context.addModels(BottomlessBottleRenderer.fluidModelID, BottomlessBottleRenderer.bottomlessBottleID)

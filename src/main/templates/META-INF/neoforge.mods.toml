@@ -1,0 +1,32 @@
+modLoader="javafml"
+loaderVersion="[1,)"
+license="mit"
+
+[[mods]]
+modId="spectrumstorage"
+version="${version}"
+displayName="Spectrum Storage"
+logoFile="assets/spectrumstorage/icon.png"
+authors="BulbyVR"
+description='''Storage addons for Spectrum'''
+
+[[dependencies.spectrumstorage]]
+modId="neoforge"
+type="required"
+versionRange="${neoforge_version_range}"
+ordering="NONE"
+side="BOTH"
+
+[[dependencies.spectrumstorage]]
+modId="spectrum"
+type="required"
+versionRange="${spectrum_version_range}"
+ordering="AFTER"
+side="BOTH"
+
+[[dependencies.spectrumstorage]]
+modId="minecraft"
+type="required"
+versionRange="[${minecraft_version}]"
+ordering="NONE"
+side="BOTH"

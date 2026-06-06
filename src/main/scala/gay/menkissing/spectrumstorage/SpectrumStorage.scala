@@ -1,23 +1,24 @@
 package gay.menkissing.spectrumstorage
 
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
-import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoLang, LumoScreens, LumoTags, SpectrumStorageBook}
-import gay.menkissing.spectrumstorage.util.registry.InfoCollector
-import net.fabricmc.api.ModInitializer
+import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoScreens, LumoTags, SpectrumStorageBook}
 import net.minecraft.resources.ResourceLocation
+import net.neoforged.bus.api.IEventBus
+import net.neoforged.fml.common.Mod
+import net.neoforged.neoforge.registries.RegisterEvent
 import org.slf4j.{Logger, LoggerFactory}
 
-object SpectrumStorage extends ModInitializer:
-  val ModId: String = "spectrumstorage"
+object SpectrumStorage:
+  inline val ModId = "spectrumstorage"
   val Logger: Logger = LoggerFactory.getLogger("spectrumstorage")
 
   def locate(id: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ModId, id)
 
-  override def onInitialize(): Unit =
-    SpectrumStorageItems.init()
-    SpectrumStorageBlocks.init()
-    LumoScreens.init()
-    LumoTags.init()
-    LumoLang.init()
-    val _ = LumoComponents
-    InfoCollector.instance.addBookRegister(SpectrumStorageBook.init)
+
+@Mod(SpectrumStorage.ModId)
+class SpectrumStorage(modBus: IEventBus):
+  SpectrumStorageBlocks.submit(modBus)
+  SpectrumStorageItems.submit(modBus)
+  LumoComponents.submit(modBus)
+  LumoScreens.submit(modBus)
+  // InfoCollector.instance.addBookRegister(SpectrumStorageBook.init)

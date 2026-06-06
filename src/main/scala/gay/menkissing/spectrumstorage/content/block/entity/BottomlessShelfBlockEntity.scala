@@ -9,7 +9,7 @@ import net.minecraft.world.level.gameevent.GameEvent
 
 import java.util.Objects
 
-class BottomlessShelfBlockEntity(pos: BlockPos, state: BlockState) extends BottomlessStorageBlockEntity(6, SpectrumStorageBlocks.bottomlessShelfBlockEntity, pos, state):
+class BottomlessShelfBlockEntity(pos: BlockPos, state: BlockState) extends BottomlessStorageBlockEntity(6, SpectrumStorageBlocks.bottomlessShelfBlockEntity.get(), pos, state):
 
   override def updateSlotShown(slot: Int): Unit =
 

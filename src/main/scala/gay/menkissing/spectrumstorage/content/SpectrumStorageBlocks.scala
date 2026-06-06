@@ -1,50 +1,53 @@
 package gay.menkissing.spectrumstorage.content
 
-import de.dafuqs.fractal.api.ItemSubGroupEvents
+import de.dafuqs.fractal.api.CreativeSubTabEvent
 import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.block.BottomlessStorageBlock.{BottomlessAmphoraBlock, BottomlessBarrelBlock}
 import gay.menkissing.spectrumstorage.content.block.{BottomlessShelfBlock, FilterChestBlock}
 import gay.menkissing.spectrumstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity, FilterChestBlockEntity}
 import gay.menkissing.spectrumstorage.datagen.ComplexBlockstateDatagen
-import gay.menkissing.spectrumstorage.util.registry.InfoCollector
-import gay.menkissing.spectrumstorage.util.registry.builder.{BlockBuilder, ItemBuilder}
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
 import net.minecraft.core.Registry
-import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.{BuiltInRegistries, Registries}
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.BlockTags
-import net.minecraft.world.item.Item
+import net.minecraft.world.item.{Item, ItemStack}
 import net.minecraft.world.level.block.{Block, SoundType}
 import net.minecraft.world.level.block.entity.{BlockEntity, BlockEntityType}
 import net.minecraft.world.level.block.state.BlockBehaviour
+import net.neoforged.bus.api.IEventBus
+import net.neoforged.neoforge.common.NeoForge
+import net.neoforged.neoforge.registries.{DeferredBlock, DeferredHolder, DeferredItem, DeferredRegister}
 
 import scala.collection.mutable
+import scala.jdk.CollectionConverters.*
 
 object SpectrumStorageBlocks:
-  private val blockItems = mutable.Map[ResourceLocation, mutable.ArrayBuffer[Item]]()
+  private val blockItems = mutable.Map[ResourceLocation, mutable.ArrayBuffer[DeferredItem[?]]]()
 
-  extension (builder: BlockBuilder[?])
-    def registerItemInGroup(subgroup: ResourceLocation): Block =
-      val i = builder.register()
-      blockItems.getOrElseUpdate(subgroup, mutable.ArrayBuffer.empty) += i.asItem()
-      i
-  extension (builder: ItemBuilder[?])
-    def registerItemInGroup(subgroup: ResourceLocation): Item =
-      val i = builder.register()
-      blockItems.getOrElseUpdate(subgroup, mutable.ArrayBuffer.empty) += i.asItem()
-      i
+
+  val blockItemRegistrar = DeferredRegister.createItems(SpectrumStorage.ModId)
+  val blockRegistrar = DeferredRegister.createBlocks(SpectrumStorage.ModId)
+  val blockEntityRegister = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, SpectrumStorage.ModId)
 
   //def makeItem(rl: ResourceLocation, item: Item): Item =
   //  blockItems += item
   //  Registry.register(BuiltInRegistries.ITEM, rl, item)
 
-  def makeEntity[T <: BlockEntity](name: String, factory: BlockEntityType.BlockEntitySupplier[T], blocks: Block*): BlockEntityType[T] =
-    val id = SpectrumStorage.locate(name)
+  def makeEntity[T <: BlockEntity](name: String, factory: BlockEntityType.BlockEntitySupplier[T], blocks: => Block*): DeferredHolder[BlockEntityType[?], BlockEntityType[T]] =
     // Seems like null is ok here, if it's null then it won't check data fixers?
-    Registry.register[BlockEntityType[?], BlockEntityType[T]](BuiltInRegistries.BLOCK_ENTITY_TYPE, id, BlockEntityType.Builder.of[T](factory, blocks*).build(null))
+    blockEntityRegister.register(name, () => BlockEntityType.Builder.of[T](factory, blocks *).build(null))
 
-  val bottomlessShelf: Block =
+  def register[T <: Block](name: String, tab: ResourceLocation, block: => T): DeferredBlock[T] =
+    val it = blockRegistrar.register(name, () => block)
+    val item = blockItemRegistrar.registerSimpleBlockItem(it, Item.Properties())
+    blockItems.getOrElseUpdate(tab, mutable.ArrayBuffer.empty).addOne(item)
+    it
+
+  val bottomlessShelf: DeferredBlock[Block] =
+    register("bottomless_shelf", ItemGroupIDs.SUBTAB_FUNCTIONAL, BottomlessShelfBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
+    /*
     InfoCollector.instance.block(SpectrumStorage.locate("bottomless_shelf"),
       BottomlessShelfBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
                  .lang("Bottomless Shelf")
@@ -55,7 +58,11 @@ object SpectrumStorageBlocks:
                  .blockstate(ComplexBlockstateDatagen.BottomlessShelf.genBottomlessShelf)
                  .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
 
-  val bottomlessBarrel: Block =
+     */
+
+  val bottomlessBarrel =
+    register("bottomless_barrel", ItemGroupIDs.SUBTAB_FUNCTIONAL, BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
+    /*
     InfoCollector.instance.block(SpectrumStorage.locate("bottomless_barrel"),
       BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
                  .lang("Bottomless Barrel")
@@ -64,8 +71,10 @@ object SpectrumStorageBlocks:
                  .dropSelf()
                  .blockstate(gen => block => gen.barrelBlock(block))
                  .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
-
-  val bottomlessAmphora: Block =
+    */
+  val bottomlessAmphora =
+    register("bottomless_amphora", ItemGroupIDs.SUBTAB_FUNCTIONAL, BottomlessAmphoraBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f)))
+  /*
     InfoCollector.instance.block(SpectrumStorage.locate("bottomless_amphora"),
       BottomlessAmphoraBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f)))
                  .lang("Bottomless Amphora")
@@ -74,8 +83,10 @@ object SpectrumStorageBlocks:
                  .dropSelf()
                  .blockstate(gen => block => gen.barrelBlock(block))
                  .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
-
-  val filterChest: Block =
+    */
+  val filterChest =
+    register("filter_chest", ItemGroupIDs.SUBTAB_FUNCTIONAL, FilterChestBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f).noOcclusion()))
+    /*
     InfoCollector.instance.block(SpectrumStorage.locate("filter_chest"),
       FilterChestBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f).noOcclusion()))
                  .lang("Filter Barrel")
@@ -85,18 +96,31 @@ object SpectrumStorageBlocks:
                  .blockstate(gen => block => gen.barrelBlockExistingModel(block))
                  .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
 
-  val bottomlessShelfBlockEntity: BlockEntityType[BottomlessStorageBlockEntity] =
-    makeEntity("bottomless_shelf", (a, b) => BottomlessShelfBlockEntity(a, b), bottomlessShelf)
-  val bottomlessBarrelBlockEntity: BlockEntityType[BottomlessStorageBlockEntity] =
-    makeEntity("bottomless_barrel", (a, b) => BottomlessStorageBlockEntity.BottomlessBarrelBlockEntity(a, b), bottomlessBarrel)
-  val bottomlessAmphoraBlockEntity: BlockEntityType[BottomlessStorageBlockEntity] =
-    makeEntity("bottomless_amphora", (a, b) => BottomlessStorageBlockEntity.BottomlessAmphoraBlockEntity(a, b), bottomlessAmphora)
+   */
 
-  val filterChestBlockEntity: BlockEntityType[FilterChestBlockEntity] =
-    makeEntity("filter_chest", (a, b) => FilterChestBlockEntity(a, b), filterChest)
+  val bottomlessShelfBlockEntity =
+    makeEntity("bottomless_shelf", (a, b) => BottomlessShelfBlockEntity(a, b), bottomlessShelf.get())
+  val bottomlessBarrelBlockEntity =
+    makeEntity("bottomless_barrel", (a, b) => BottomlessStorageBlockEntity.BottomlessBarrelBlockEntity(a, b), bottomlessBarrel.get())
+  val bottomlessAmphoraBlockEntity =
+    makeEntity("bottomless_amphora", (a, b) => BottomlessStorageBlockEntity.BottomlessAmphoraBlockEntity(a, b), bottomlessAmphora.get())
 
-  def init(): Unit =
-    BottomlessStorageBlockEntity.registerStorages()
-    blockItems.foreach: (key, items) =>
-      ItemSubGroupEvents.modifyEntriesEvent(key).register: entries =>
-        items.foreach(entries.accept)
+  val filterChestBlockEntity =
+    makeEntity("filter_chest", (a, b) => FilterChestBlockEntity(a, b), filterChest.get())
+
+  def addItemsToSubTabs(it: CreativeSubTabEvent): Unit =
+    val subgroup = it.subGroup()
+    blockItems.get(subgroup.getIdentifier).foreach { items =>
+      val builder = it.getItemDisplayBuilder
+      items.foreach(builder.accept)
+    }
+
+  def submit(register: IEventBus): Unit =
+    BottomlessStorageBlockEntity.registerStorages(register)
+    blockRegistrar.register(register)
+    blockItemRegistrar.register(register)
+    blockEntityRegister.register(register)
+
+    NeoForge.EVENT_BUS.addListener(addItemsToSubTabs)
+
+

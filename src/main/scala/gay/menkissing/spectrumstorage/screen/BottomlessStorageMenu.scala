@@ -79,13 +79,13 @@ object BottomlessStorageMenu:
     new BottomlessStorageMenu(screen, rows, windowId, playerInv, new SimpleContainer(rows * 9))
   
   def barrel(windowId: Int, playerInv: Inventory): BottomlessStorageMenu =
-    bindConstructor(LumoScreens.bottomlessBarrel, barrelRows)(windowId, playerInv)
+    bindConstructor(LumoScreens.bottomlessBarrel.get(), barrelRows)(windowId, playerInv)
     
   def barrelServer(windowId: Int, playerInv: Inventory, container: Container): BottomlessStorageMenu =
-    new BottomlessStorageMenu(LumoScreens.bottomlessBarrel, barrelRows, windowId, playerInv, container)
+    new BottomlessStorageMenu(LumoScreens.bottomlessBarrel.get(), barrelRows, windowId, playerInv, container)
     
   def amphora(windowId: Int, playerInv: Inventory): BottomlessStorageMenu =
-    bindConstructor(LumoScreens.bottomlessAmphora, amphoraRows)(windowId, playerInv)
+    bindConstructor(LumoScreens.bottomlessAmphora.get(), amphoraRows)(windowId, playerInv)
   
   def amphoraServer(windowId: Int, playerInv: Inventory, container: Container): BottomlessStorageMenu =
-    new BottomlessStorageMenu(LumoScreens.bottomlessAmphora, amphoraRows, windowId, playerInv, container)
+    new BottomlessStorageMenu(LumoScreens.bottomlessAmphora.get(), amphoraRows, windowId, playerInv, container)

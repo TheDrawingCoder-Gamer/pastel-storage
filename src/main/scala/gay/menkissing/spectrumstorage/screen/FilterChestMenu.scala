@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, ClickAction, Slot}
 import net.minecraft.world.item.ItemStack
 
-class FilterChestMenu(windowId: Int, playerInv: Inventory, val container: Container, val blockEntity: FilterChestBlockEntity | Null, val data: FilterConfigurable.ExtendedDataWithPos) extends AbstractContainerMenu(LumoScreens.filterChest, windowId):
+class FilterChestMenu(windowId: Int, playerInv: Inventory, val container: Container, val blockEntity: FilterChestBlockEntity | Null, val data: FilterConfigurable.ExtendedDataWithPos) extends AbstractContainerMenu(LumoScreens.filterChest.get(), windowId):
   val level = playerInv.player.level()
   val filterInventory = FilterConfigurable.getFilterInventoryFromExtendedData(windowId, playerInv, data.data(), this)
 
@@ -73,7 +73,7 @@ class FilterChestMenu(windowId: Int, playerInv: Inventory, val container: Contai
 
     override def onClicked(heldStack: ItemStack, kind: ClickAction, player: Player): Boolean =
       if blockEntity != null then
-        blockEntity.setFilterItem(getContainerSlot, ItemVariant.of(heldStack))
+        blockEntity.setFilterItem(getContainerSlot, heldStack)
       super.onClicked(heldStack, kind, player)
 
 object FilterChestMenu:

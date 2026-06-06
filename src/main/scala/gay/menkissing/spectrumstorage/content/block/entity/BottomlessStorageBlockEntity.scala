@@ -1,9 +1,9 @@
 package gay.menkissing.spectrumstorage.content.block.entity
 
-import de.dafuqs.spectrum.blocks.bottomless_bundle.BottomlessBundleItem
-import de.dafuqs.spectrum.blocks.bottomless_bundle.BottomlessBundleItem.BottomlessStack
-import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumDataComponentTypes, SpectrumEnchantmentTags, SpectrumEnchantments, SpectrumItems}
+import de.dafuqs.spectrum.blocks.bottomless_bundle.{BottomlessBundleItem, BottomlessComponent, BottomlessItemHandler}
+import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumDataComponentTypes, SpectrumEnchantmentKeys, SpectrumEnchantmentTags, SpectrumItems}
 import gay.menkissing.spectrumstorage.SpectrumStorage
+import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks.bottomlessBarrel
 import gay.menkissing.spectrumstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.spectrumstorage.content.item.BottomlessBottleItem
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
@@ -32,11 +32,16 @@ import net.minecraft.world.level.block.BarrelBlock
 import net.minecraft.world.level.block.entity.{BaseContainerBlockEntity, BlockEntity, BlockEntityType, ContainerOpenersCounter}
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.gameevent.GameEvent
+import net.neoforged.bus.api.IEventBus
+import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
+import net.neoforged.neoforge.fluids.capability.IFluidHandler
+import net.neoforged.neoforge.items.IItemHandler
+import org.sinytra.fabric.transfer_api.compat.{FluidStorageFluidHandler, ItemStorageItemHandler, SlottedItemStorageItemHandler}
 
 import java.util.Objects
 import scala.jdk.CollectionConverters.*
 
-abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: BlockEntityType[BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BlockEntity(baseEntity, pos, state):
+abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BlockEntity(baseEntity, pos, state):
 
   import BottomlessStorageBlockEntity.BundleHelper
 
@@ -108,31 +113,31 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def isResourceBlank: Boolean =
       this.bundle.forall: stack =>
-        val contents = BundleHelper.contentsFromStack(stack)
-        contents.count() == 0L || contents.variant().isBlank
+        val contents = BundleHelper.contentsFromStack(stack).handler()
+        contents.count() == 0L || contents.variant().isEmpty
 
     override def getResource: ItemVariant =
       this.bundle match
         case None => ItemVariant.blank()
-        case Some(bundle) => BundleHelper.contentsFromStack(bundle).variant
+        case Some(bundle) => ItemVariant.of(BundleHelper.contentsFromStack(bundle).handler().variant)
 
     override def getAmount: Long =
       this.bundle match
         case None => 0L
-        case Some(bundle) => BundleHelper.contentsFromStack(bundle).count
+        case Some(bundle) => BundleHelper.contentsFromStack(bundle).handler().count
 
     override def getCapacity: Long =
       this.bundle match
         case None => 0L
-        case Some(bundle) => BottomlessBundleItem
+        case Some(bundle) => BottomlessComponent
           .getMaxStoredAmount(LumoEnchantmentHelper.getLevel(level.registryAccess(), Enchantments.POWER, bundle))
 
     override def createSnapshot(): ResourceAmount[ItemVariant] =
       this.bundle match
         case None => ResourceAmount(ItemVariant.blank(), 0L)
         case Some(bundle) =>
-          val contents = BundleHelper.contentsFromStack(bundle)
-          ResourceAmount(contents.variant, contents.count)
+          val contents = BundleHelper.contentsFromStack(bundle).handler()
+          ResourceAmount(ItemVariant.of(contents.variant), contents.count)
 
     override def readSnapshot(snapshot: ResourceAmount[ItemVariant]): Unit =
       this.bundle match
@@ -269,7 +274,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       fluidStorage.parts.get(slot).filter = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack).variant
     else if stack.is(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem()) then
       fluidStorage.parts.get(slot).resetVariant()
-      itemStorage.parts.get(slot).filter = BundleHelper.contentsFromStack(stack).variant
+      itemStorage.parts.get(slot).filter = ItemVariant.of(BundleHelper.contentsFromStack(stack).handler().variant)
     else
       fluidStorage.parts.get(slot).resetVariant()
       itemStorage.parts.get(slot).resetVariant()
@@ -347,7 +352,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
 
 
-abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: BlockEntityType[BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BottomlessStorageBlockEntity(capacity, baseEntity, pos, state), MenuProvider, NameableBlockEntity:
+abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BottomlessStorageBlockEntity(capacity, baseEntity, pos, state), MenuProvider, NameableBlockEntity:
   protected val openSound: SoundEvent = SoundEvents.BARREL_OPEN
   protected val closeSound: SoundEvent = SoundEvents.BARREL_CLOSE
 
@@ -466,33 +471,37 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
 object BottomlessStorageBlockEntity:
   val tagFluidFilters = "fluid_filters"
   val tagItemFilters = "item_filters"
-  final class BottomlessBarrelBlockEntity(pos: BlockPos, state: BlockState) extends ContainerBottomlessStorageBlockEntity(BottomlessStorageMenu.barrelContainerSize, SpectrumStorageBlocks.bottomlessBarrelBlockEntity, pos, state):
+  final class BottomlessBarrelBlockEntity(pos: BlockPos, state: BlockState) extends ContainerBottomlessStorageBlockEntity(BottomlessStorageMenu.barrelContainerSize, SpectrumStorageBlocks.bottomlessBarrelBlockEntity.get(), pos, state):
     override def defaultName: Component = Component.translatable("container.spectrumstorage.bottomless_barrel")
 
     override def createMenu(windowId: Int, inventory: Inventory, player: Player): AbstractContainerMenu =
       BottomlessStorageMenu.barrelServer(windowId, inventory, containerView)
 
 
-  final class BottomlessAmphoraBlockEntity(pos: BlockPos, state: BlockState) extends ContainerBottomlessStorageBlockEntity(BottomlessStorageMenu.amphoraContainerSize, SpectrumStorageBlocks.bottomlessAmphoraBlockEntity, pos, state):
+  final class BottomlessAmphoraBlockEntity(pos: BlockPos, state: BlockState) extends ContainerBottomlessStorageBlockEntity(BottomlessStorageMenu.amphoraContainerSize, SpectrumStorageBlocks.bottomlessAmphoraBlockEntity.get(), pos, state):
     override def defaultName: Component = Component.translatable("container.spectrumstorage.bottomless_amphora")
 
     override def createMenu(windowId: Int, inventory: Inventory, player: Player): AbstractContainerMenu =
       BottomlessStorageMenu.amphoraServer(windowId, inventory, containerView)
 
+
+
   object BundleHelper:
-    def contentsFromStack(stack: ItemStack): BottomlessStack =
-      stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessStack.DEFAULT)
+
+
+    def contentsFromStack(stack: ItemStack): BottomlessComponent =
+      stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessComponent.DEFAULT)
 
     def buildFromStack(stack: ItemStack): Builder =
-      val prev = stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessStack.DEFAULT)
-      val max = BottomlessBundleItem.getMaxStoredAmount(LumoEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
+      val prev = stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessComponent.DEFAULT)
+      val max = BottomlessComponent.getMaxStoredAmount(LumoEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
       val voiding = EnchantmentHelper.hasTag(stack, SpectrumEnchantmentTags.DELETES_OVERFLOW_IN_INVENTORY)
       val locked = stack.has(DataComponents.LOCK)
       new Builder(prev, max, voiding, locked)
 
-    final class Builder(prev: BottomlessStack, val max: Long, val voiding: Boolean, val locked: Boolean):
-      var amount: Long = prev.count()
-      var template: ItemVariant = prev.variant()
+    final class Builder(prev: BottomlessComponent, val max: Long, val voiding: Boolean, val locked: Boolean):
+      var amount: Long = prev.handler().count
+      var template: ItemVariant = ItemVariant.of(prev.handler().variant)
 
       def isEmpty: Boolean =
         template.isBlank || amount == 0L
@@ -540,7 +549,7 @@ object BottomlessStorageBlockEntity:
         if this.isEmpty then
           stack.remove(SpectrumDataComponentTypes.BOTTOMLESS_STACK)
         else
-          stack.set(SpectrumDataComponentTypes.BOTTOMLESS_STACK, new BottomlessStack(template, amount, locked))
+          stack.set(SpectrumDataComponentTypes.BOTTOMLESS_STACK, new BottomlessComponent(BottomlessItemHandler(max, voiding, locked, template.toStack, amount)))
 
   def dropContents(level: Level, pos: BlockPos, entity: BottomlessStorageBlockEntity): Unit =
     (0 until entity.capacity).foreach: slot =>
@@ -559,16 +568,24 @@ object BottomlessStorageBlockEntity:
 
       level.gameEvent(player, GameEvent.BLOCK_CHANGE, pos)
 
-  def registerStorages(): Unit =
+  final class BottomlessStorageIFluidProvider
+
+  def registerStorages(bus: IEventBus): Unit =
     import SpectrumStorageBlocks.{
       bottomlessAmphoraBlockEntity => bottomlessAmphoraBE,
       bottomlessShelfBlockEntity => bottomlessShelfBE,
       bottomlessBarrelBlockEntity => bottomlessBarrelBE
     }
-    List(bottomlessShelfBE, bottomlessAmphoraBE, bottomlessBarrelBE).foreach: it =>
-      FluidStorage.SIDED.registerForBlockEntity[BottomlessStorageBlockEntity]((cooler, dir) => {
-        cooler.fluidStorage
-      }, it)
-      ItemStorage.SIDED.registerForBlockEntity[BottomlessStorageBlockEntity]((cooler, dir) => {
-        cooler.itemStorage
-      }, it)
+    // fingers crossed this works?
+    bus.addListener: (ev: RegisterCapabilitiesEvent) =>
+      List[BlockEntityType[? <: BottomlessStorageBlockEntity]](bottomlessShelfBE.get(), bottomlessAmphoraBE.get(), bottomlessBarrelBE.get()).foreach: entity =>
+        ev.registerBlockEntity(
+          Capabilities.ItemHandler.BLOCK,
+          entity,
+          (en, side) => SlottedItemStorageItemHandler(en.itemStorage)
+        )
+        ev.registerBlockEntity(
+          Capabilities.FluidHandler.BLOCK,
+          entity,
+          (en, side) => FluidStorageFluidHandler(en.fluidStorage)
+        )

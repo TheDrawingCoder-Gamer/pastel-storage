@@ -25,8 +25,8 @@ import java.util.stream.IntStream
 import scala.annotation.nowarn
 
 @nowarn("msg=unstable")
-class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity, pos, state), WorldlyContainer, FilterConfigurable, ExtendedScreenHandlerFactory[FilterConfigurable.ExtendedDataWithPos]:
-  val filterItems: NonNullList[ItemVariant] = NonNullList.withSize(FilterChestBlockEntity.filterCount, ItemVariant.blank())
+class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity.get(), pos, state), WorldlyContainer, FilterConfigurable, ExtendedScreenHandlerFactory[FilterConfigurable.ExtendedDataWithPos]:
+  val filterItems: NonNullList[ItemStack] = NonNullList.withSize(FilterChestBlockEntity.filterCount, ItemStack.EMPTY)
   var items: NonNullList[ItemStack] = NonNullList.withSize(FilterChestBlockEntity.inventorySize, ItemStack.EMPTY)
   val openersCounter: ContainerOpenersCounter =
     new ContainerOpenersCounter:
@@ -90,8 +90,8 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
     if stack.isEmpty then
       false
     else
-      filterItems.stream().anyMatch(it => !it.isBlank && stack.is(it.getItem)) ||
-        filterItems.stream().allMatch(_.isBlank)
+      filterItems.stream().anyMatch(it => !it.isEmpty && stack.is(it.getItem)) ||
+        filterItems.stream().allMatch(_.isEmpty)
 
   override def canPlaceItemThroughFace(i: Int, stack: ItemStack, direction: Direction): Boolean =
     acceptsItemStack(stack)
@@ -103,9 +103,9 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
 
   override def getContainerSize: Int = FilterChestBlockEntity.inventorySize
 
-  override def getItemFilters: util.List[ItemVariant] = filterItems
+  override def getItemFilters: util.List[ItemStack] = filterItems
 
-  override def setFilterItem(slot: Int, item: ItemVariant): Unit = filterItems.set(slot, item)
+  override def setFilterItem(slot: Int, item: ItemStack): Unit = filterItems.set(slot, item)
 
   override def saveAdditional(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     super.saveAdditional(tag, provider)

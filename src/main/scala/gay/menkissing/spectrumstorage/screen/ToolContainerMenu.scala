@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.{AbstractContainerMenu, Slot}
 import net.minecraft.world.item.ItemStack
 import net.minecraft.network.codec.{ByteBufCodecs, StreamCodec}
 
-class ToolContainerMenu(windowId: Int, playerInv: Inventory, val box: ItemStack) extends AbstractContainerMenu(LumoScreens.toolContainer, windowId):
+class ToolContainerMenu(windowId: Int, playerInv: Inventory, val box: ItemStack) extends AbstractContainerMenu(LumoScreens.toolContainer.get(), windowId):
   locally:
     val boxInv =
       if !playerInv.player.level().isClientSide then

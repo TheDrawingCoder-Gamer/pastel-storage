@@ -3,9 +3,8 @@ package gay.menkissing.spectrumstorage.registries
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel
 import com.klikli_dev.modonomicon.api.datagen.book.condition.BookAdvancementConditionModel
 import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel, BookTextPageModel}
-import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumEnchantments, SpectrumItems}
+import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumItems}
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
-import gay.menkissing.spectrumstorage.util.registry.InfoCollector
 import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation}
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.BookPedestalPageModel
 import net.minecraft.resources.ResourceLocation
@@ -20,7 +19,7 @@ import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.enchantment.{Enchantment, Enchantments, ItemEnchantments}
 
 object SpectrumStorageBook:
-
+  /*
   def init(lookup: HolderLookup.Provider): Unit =
     val spectrumBook = ResourceLocation.fromNamespaceAndPath("spectrum", "guidebook")
     val magicalCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "magical_blocks")
@@ -291,3 +290,6 @@ object SpectrumStorageBook:
             )
           )
       }
+      
+   */
+  ()
