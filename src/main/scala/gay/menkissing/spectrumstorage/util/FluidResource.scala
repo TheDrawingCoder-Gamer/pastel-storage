@@ -26,6 +26,9 @@ final class FluidResource private (val fluid: Fluid, val components: DataCompone
     else
       FluidStack(fluid.builtInRegistryHolder(), size, components)
 
+  def sameAsStack(stack: FluidStack): Boolean =
+    this.fluid == stack.getFluid && this.componentsMatch(stack.getComponentsPatch)
+  
   override def equals(obj: Any): Boolean =
     if (this eq obj.asInstanceOf[Object]) true
     else if (obj == null || getClass != obj.getClass) false
@@ -35,6 +38,7 @@ final class FluidResource private (val fluid: Fluid, val components: DataCompone
 }
 
 object FluidResource:
+  
   val CODEC: Codec[FluidResource] =
     RecordCodecBuilder.create: builder =>
       builder.group(

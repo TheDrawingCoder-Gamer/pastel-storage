@@ -18,15 +18,7 @@ object SpectrumStorageEnchantmentHelper:
   def getLevel(registryLookup: HolderLookup.Provider, enchantment: ResourceKey[Enchantment], stack: ItemStack): Int =
     getRegistry(registryLookup)
       .flatMap(_.get(enchantment))
-      .map(entry => EnchantmentHelper.getItemEnchantmentLevel(entry, stack))
+      .map(entry => stack.getEnchantmentLevel(entry))
       .orElse(0)
 
-  def getLevelExpensive(key: ResourceKey[Enchantment], stack: ItemStack): Int =
-    stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY)
-         .entrySet()
-         .iterator()
-         .asScala
-         .find(_.getKey.is(key))
-         .map(_.getIntValue)
-         .getOrElse(0)
 

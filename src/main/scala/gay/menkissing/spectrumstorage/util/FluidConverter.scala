@@ -6,6 +6,9 @@ import net.neoforged.neoforge.fluids.FluidType
 object FluidConverter:
   final val DropletMbConversion = FluidConstants.BUCKET / FluidType.BUCKET_VOLUME
 
+  def dropletToMbLong(droplet: Long): Long =
+    droplet / DropletMbConversion
+  
   def dropletToMb(droplet: Long): Int =
     (droplet / DropletMbConversion).toInt
 

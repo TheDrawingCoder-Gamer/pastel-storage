@@ -13,6 +13,7 @@ import gay.menkissing.spectrumstorage.registries.SpectrumStorageComponents
 import gay.menkissing.spectrumstorage.util.{FluidConverter, SpectrumStorageEnchantmentHelper}
 import net.minecraft.world.item.enchantment.Enchantments
 import net.neoforged.bus.api.IEventBus
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
 import net.neoforged.neoforge.common.NeoForge
 import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack
@@ -57,9 +58,10 @@ object SpectrumStorageItems:
 
   def submit(bus: IEventBus): Unit =
     // TODO IMPORTANT!
-    //bus.addListener: (ev: RegisterEvent) =>
-    //  BottomlessBottleItem.registerCauldronInteractions()
+
     registrar.register(bus)
+    bus.addListener: (ev: FMLCommonSetupEvent) =>
+      BottomlessBottleItem.registerCauldronInteractions()
     NeoForge.EVENT_BUS.addListener[CreativeSubTabEvent]((it: CreativeSubTabEvent) => {
       val subgroup = it.subGroup()
       items.get(subgroup.getIdentifier).foreach { items =>
@@ -71,7 +73,7 @@ object SpectrumStorageItems:
       it.registerItem(
         Capabilities.FluidHandler.ITEM,
         (stack, _) => {
-          FluidHandlerItemStack(SpectrumStorageComponents.BottomlessBottleContentsComponent, stack, FluidConverter.dropletToMb(BottomlessBottleItem.getMaxStackExpensive(stack)))
+          FluidHandlerItemStack(SpectrumStorageComponents.BottomlessBottleContentsComponent, stack, FluidConverter.dropletToMb(BottomlessBottleItem.getMaxStack(stack)))
         },
         bottomlessBottle.get()
       )

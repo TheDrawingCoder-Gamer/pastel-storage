@@ -57,6 +57,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     CombinedSlottedStorage((0 until capacity).map(BottleFluidStorageWrapper(_)).toList.asJava)
 
   // TODO: Figure out a way to rewrite this BULLSHIT with forge capabilities
+  // Not a blocker, but would be preferable to remove dep on FFAPI
   class BundleItemStorageWrapper(val slot: Int) extends SnapshotParticipant[ResourceAmount[ItemVariant]], SingleSlotStorage[ItemVariant]:
     var filter: ItemVariant = ItemVariant.blank()
 
@@ -228,7 +229,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       this.bottle match
         case None => 0L
         case Some(bottle) =>
-          BottomlessBottleItem.getMaxStackExpensive(bottle)
+          BottomlessBottleItem.getMaxStack(bottle)
 
     override def createSnapshot(): ResourceAmount[FluidVariant] =
       this.bottle match
@@ -495,7 +496,12 @@ object BottomlessStorageBlockEntity:
 
     def buildFromStack(stack: ItemStack): Builder =
       val prev = stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessComponent.DEFAULT)
-      val max = BottomlessComponent.getMaxStoredAmount(SpectrumStorageEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
+      val max =
+        val access = SpectrumStorage.getRegistryAccess
+        if access == null then
+          BottomlessComponent.getMaxStoredAmount(0)
+        else
+          BottomlessComponent.getMaxStoredAmount(SpectrumStorageEnchantmentHelper.getLevel(access, Enchantments.POWER, stack))
       val voiding = EnchantmentHelper.hasTag(stack, SpectrumEnchantmentTags.DELETES_OVERFLOW_IN_INVENTORY)
       val locked = stack.has(DataComponents.LOCK)
       new Builder(prev, max, voiding, locked)

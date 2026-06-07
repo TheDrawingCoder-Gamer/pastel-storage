@@ -6,7 +6,7 @@ import net.minecraft.world.item.{Item, ItemDisplayContext, ItemStack, TooltipFla
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.registries.{SpectrumStorageComponents, SpectrumStorageTranslationKeys}
-import gay.menkissing.spectrumstorage.util.{FluidConverter, SpectrumStorageEnchantmentHelper}
+import gay.menkissing.spectrumstorage.util.{FluidConverter, FluidResource, SpectrumStorageEnchantmentHelper}
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext
 import net.fabricmc.fabric.api.transfer.v1.fluid.{FluidConstants, FluidVariant, FluidVariantAttributes}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
@@ -158,13 +158,12 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
 object BottomlessBottleItem:
   val baseMax: Long = FluidConstants.BUCKET * 256
 
-  /*
   @nowarn("msg=eta")
   def registerCauldronInteractions(): Unit =
     CauldronInteraction.EMPTY.map().put(SpectrumStorageItems.bottomlessBottle.get(), emptyBottleInteraction)
     CauldronInteraction.LAVA.map().put(SpectrumStorageItems.bottomlessBottle.get(), fillBottleInteraction(Fluids.LAVA))
     CauldronInteraction.WATER.map().put(SpectrumStorageItems.bottomlessBottle.get(), fillBottleInteraction(Fluids.WATER))
-  */
+
 
   def maxAllowed(level: Int): Long =
     baseMax * math.pow(8, math.min(level, 5)).toLong
@@ -172,50 +171,106 @@ object BottomlessBottleItem:
     getMaxStackRegistry(world.registryAccess(), stack)
   def getMaxStackRegistry(lookup: HolderLookup.Provider, stack: ItemStack): Long =
     maxAllowed(SpectrumStorageEnchantmentHelper.getLevel(lookup, Enchantments.POWER, stack))
-  // Not really that expensive on 1.20, but 1.21 makes this expensive
-  def getMaxStackExpensive(stack: ItemStack): Long =
-    maxAllowed(SpectrumStorageEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
-  /*
-  def emptyBottleInteraction(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
-    val contents = BottomlessBottleContents.getFromStack(stack)
+  def getMaxStack(stack: ItemStack): Long =
+    val access = SpectrumStorage.getRegistryAccess
+    if access == null then
+      baseMax
+    else
+      getMaxStackRegistry(access, stack)
 
-    if contents.variant.getFluid == Fluids.WATER then
-      val builder = BottomlessBottleContents.Builder.of(level, stack)
-      if builder.extract(FluidVariant.of(Fluids.WATER), FluidConstants.BUCKET) == FluidConstants.BUCKET then
+  def emptyBottleInteraction(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
+    val contents = SimpleFluidContentBuilder.fromStack(stack)
+
+    if contents.template.fluid == Fluids.WATER then
+      if contents.extract(FluidResource.of(Fluids.WATER), FluidType.BUCKET_VOLUME) == FluidType.BUCKET_VOLUME then
         level.setBlockAndUpdate(blockPos, Blocks.WATER_CAULDRON.defaultBlockState()
           .setValue(LayeredCauldronBlock.LEVEL, LayeredCauldronBlock.MAX_FILL_LEVEL))
         level.playSound(player, blockPos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1f, 1f)
-        BottomlessBottleContents.replaceInStack(stack, builder.build)
+        contents.buildAndSet(stack)
         return ItemInteractionResult.SUCCESS
-    else if contents.variant.getFluid == Fluids.LAVA then
-      val builder = BottomlessBottleContents.Builder.of(level, stack)
-      if builder.extract(FluidVariant.of(Fluids.LAVA), FluidConstants.BUCKET) == FluidConstants.BUCKET then
+    else if contents.template.fluid == Fluids.LAVA then
+      if contents.extract(FluidResource.of(Fluids.LAVA), FluidType.BUCKET_VOLUME) == FluidType.BUCKET_VOLUME then
         level.setBlockAndUpdate(blockPos, Blocks.LAVA_CAULDRON.defaultBlockState())
         level.playSound(player, blockPos, SoundEvents.BUCKET_EMPTY_LAVA, SoundSource.BLOCKS, 1f, 1f)
-        BottomlessBottleContents.replaceInStack(stack, builder.build)
+        contents.buildAndSet(stack)
         return ItemInteractionResult.SUCCESS
     ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 
   def fillBottleInteraction(fluid: Fluid)(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
-    val contents = BottomlessBottleContents.getFromStack(stack)
-    if contents.isEmpty || contents.variant.getFluid == fluid then
-      val amount = blockState.getOptionalValue(LayeredCauldronBlock.LEVEL).orElse(3) * FluidConstants.BOTTLE
-      val builder = BottomlessBottleContents.Builder.of(level, stack)
-      if builder.insert(FluidVariant.of(fluid), amount) == amount then
-        BottomlessBottleContents.replaceInStack(stack, builder.build)
+    val contents = SimpleFluidContentBuilder.fromStack(stack)
+    if contents.isEmpty || contents.template.fluid.isSame(fluid) then
+      // Thou shalt convert thine Integer to Int unless thy want sadness
+      val amount = blockState.getOptionalValue(LayeredCauldronBlock.LEVEL).orElse(3).toInt
+      if amount != 3 then
+        // Fail here because FORGE USES IMPRECISE MB!
+        // and my ass is NOT rounding
+        ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
+      else if contents.insert(FluidResource.of(fluid), FluidType.BUCKET_VOLUME) == FluidType.BUCKET_VOLUME then
+        contents.buildAndSet(stack)
         level.setBlockAndUpdate(blockPos, Blocks.CAULDRON.defaultBlockState())
-        level.playSound(player, blockPos, FluidVariantAttributes.getFillSound(builder.template), SoundSource
-          .BLOCKS, 1f, 1f)
-        return ItemInteractionResult.SUCCESS
+        val emptySound = contents.template.fluid.getFluidType.getSound(player, level, blockPos, SoundActions.BUCKET_EMPTY)
+        if emptySound != null then
+          level.playSound(player, blockPos, emptySound, SoundSource
+            .BLOCKS, 1f, 1f)
+        ItemInteractionResult.SUCCESS
+      else
+        ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
+    else
+      ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
 
-    ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
-  */
   final case class BottomlessBottleContents(variant: FluidVariant, amount: Long):
     def isEmpty: Boolean = variant.isBlank || amount == 0
 
     def toSimple: SimpleFluidContent =
       val stack = FluidStack(variant.getRegistryEntry, FluidConverter.dropletToMb(amount), variant.getComponents)
       SimpleFluidContent.copyOf(stack)
+
+
+  // Max MUST be long due to our maximum possible being outside the int range
+  final class SimpleFluidContentBuilder(var template: FluidResource, var amount: Int, var max: Long):
+    def isEmpty: Boolean =
+      template.isBlank || amount == 0
+
+    def result(): SimpleFluidContent =
+      SimpleFluidContent.copyOf(FluidStack(template.fluid.builtInRegistryHolder(), amount, template.components))
+
+    def buildAndSet(stack: ItemStack): Unit =
+      val res = result()
+      stack.set(SpectrumStorageComponents.BottomlessBottleContentsComponent, res)
+
+    def getMaxAllowed(variant: FluidResource, amount: Int): Int =
+      if variant.isBlank || amount <= 0 || (!this.isEmpty && template != variant) then
+        0
+      else
+        val r = this.max - this.amount
+        if r > Int.MaxValue then Int.MaxValue else r.toInt
+
+    def insert(variant: FluidResource, amount: Int): Int =
+      val added = math.min(amount, getMaxAllowed(variant, amount))
+      if added == 0 then
+        return 0
+      if this.isEmpty then
+        this.template = variant
+
+      this.amount += math.min(this.max - this.amount, added).toInt
+      added
+
+    def extract(variant: FluidResource, amount: Int): Int =
+      if template != variant then
+        0
+      else
+        val toRemove = math.min(this.amount, amount)
+        this.amount -= toRemove
+        if this.amount == 0 then
+          this.template = FluidResource.EMPTY
+
+        toRemove
+  object SimpleFluidContentBuilder:
+    def fromStack(stack: ItemStack): SimpleFluidContentBuilder =
+      val content = stack.getOrDefault(SpectrumStorageComponents.BottomlessBottleContentsComponent, SimpleFluidContent.EMPTY)
+      val resource = FluidResource.ofStack(content.copy())
+      SimpleFluidContentBuilder(resource, content.getAmount, FluidConverter.dropletToMbLong(getMaxStack(stack)))
+
 
   object BottomlessBottleContents:
 
