@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture
 import scala.collection.mutable
 
 // guidebook pages
-abstract class LumoBookProvider(modid: String, val output: PackOutput, val lookup: CompletableFuture[HolderLookup.Provider]) extends LanguageProvider(output, modid, "en_us"):
+abstract class SpectrumStorageBaseBookProvider(modid: String, val output: PackOutput, val lookup: CompletableFuture[HolderLookup.Provider]) extends LanguageProvider(output, modid, "en_us"):
   val bookEntries = mutable.HashMap.empty[EntryLocation, BookEntry]
 
   def addEntry(location: EntryLocation, category: ResourceLocation, transId: ResourceLocation)(creator: BookEntry => BookEntry): Unit =

@@ -2,7 +2,7 @@ package gay.menkissing.spectrumstorage.screen
 
 import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumItems}
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
-import gay.menkissing.spectrumstorage.registries.LumoScreens
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageScreens
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, MenuType, Slot}
 import net.minecraft.world.item.ItemStack
@@ -79,13 +79,13 @@ object BottomlessStorageMenu:
     new BottomlessStorageMenu(screen, rows, windowId, playerInv, new SimpleContainer(rows * 9))
   
   def barrel(windowId: Int, playerInv: Inventory): BottomlessStorageMenu =
-    bindConstructor(LumoScreens.bottomlessBarrel.get(), barrelRows)(windowId, playerInv)
+    bindConstructor(SpectrumStorageScreens.bottomlessBarrel.get(), barrelRows)(windowId, playerInv)
     
   def barrelServer(windowId: Int, playerInv: Inventory, container: Container): BottomlessStorageMenu =
-    new BottomlessStorageMenu(LumoScreens.bottomlessBarrel.get(), barrelRows, windowId, playerInv, container)
+    new BottomlessStorageMenu(SpectrumStorageScreens.bottomlessBarrel.get(), barrelRows, windowId, playerInv, container)
     
   def amphora(windowId: Int, playerInv: Inventory): BottomlessStorageMenu =
-    bindConstructor(LumoScreens.bottomlessAmphora.get(), amphoraRows)(windowId, playerInv)
+    bindConstructor(SpectrumStorageScreens.bottomlessAmphora.get(), amphoraRows)(windowId, playerInv)
   
   def amphoraServer(windowId: Int, playerInv: Inventory, container: Container): BottomlessStorageMenu =
-    new BottomlessStorageMenu(LumoScreens.bottomlessAmphora.get(), amphoraRows, windowId, playerInv, container)
+    new BottomlessStorageMenu(SpectrumStorageScreens.bottomlessAmphora.get(), amphoraRows, windowId, playerInv, container)

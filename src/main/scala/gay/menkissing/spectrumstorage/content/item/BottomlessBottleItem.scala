@@ -5,8 +5,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder
 import net.minecraft.world.item.{Item, ItemDisplayContext, ItemStack, TooltipFlag}
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
-import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoTranslationKeys}
-import gay.menkissing.spectrumstorage.util.{FabricJankinator, LumoEnchantmentHelper}
+import gay.menkissing.spectrumstorage.registries.{SpectrumStorageComponents, SpectrumStorageTranslationKeys}
+import gay.menkissing.spectrumstorage.util.{FabricJankinator, SpectrumStorageEnchantmentHelper}
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext
 import net.fabricmc.fabric.api.transfer.v1.fluid.{FluidConstants, FluidVariant, FluidVariantAttributes}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
@@ -55,15 +55,15 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
   override def appendHoverText(stack: ItemStack, context: TooltipContext, tooltipComponents: util.List[Component], tooltipFlag: TooltipFlag): Unit =
     val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack)
     if contents.isEmpty then
-      tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.empty)
-      tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.usagePickup)
+      tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.empty)
+      tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.usagePickup)
     else
       val containedFluid = contents.variant
       val max = BottomlessBottleItem.getMaxStackRegistry(context.registries(), stack)
-      tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.countMB(contents.amount, max))
+      tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.countMB(contents.amount, max))
       tooltipComponents.add(FluidVariantAttributes.getName(containedFluid))
-      tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.usagePickup)
-      tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.usagePlace)
+      tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.usagePickup)
+      tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.usagePlace)
 
   def playEmptyingSound(player: Player, level: Level, pos: BlockPos, fluidType: FluidType): Unit =
     val sound = fluidType.getSound(player, level, pos, SoundActions.BUCKET_EMPTY)
@@ -71,7 +71,7 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
       level.playSound(player, pos, sound, SoundSource.BLOCKS, 1f, 1f)
 
   def placeFluid(player: Player | Null, level: Level, pos: BlockPos, hitResult: BlockHitResult, thisStack: ItemStack): Boolean =
-    val contents = thisStack.get(LumoComponents.BottomlessBottleContentsComponent)
+    val contents = thisStack.get(SpectrumStorageComponents.BottomlessBottleContentsComponent)
     if contents.isEmpty || contents.getAmount < FluidType.BUCKET_VOLUME then
       return false
 
@@ -109,7 +109,7 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
 
   override def use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder[ItemStack] =
     val stack = player.getItemInHand(usedHand)
-    val contents = stack.get(LumoComponents.BottomlessBottleContentsComponent)
+    val contents = stack.get(SpectrumStorageComponents.BottomlessBottleContentsComponent)
     val blockHitResult = Item.getPlayerPOVHitResult(level, player, if player.isShiftKeyDown then ClipContext.Fluid.NONE else ClipContext.Fluid.SOURCE_ONLY)
     blockHitResult.getType match
       case HitResult.Type.MISS | HitResult.Type.ENTITY =>
@@ -171,10 +171,10 @@ object BottomlessBottleItem:
   def getMaxStack(world: Level, stack: ItemStack): Long =
     getMaxStackRegistry(world.registryAccess(), stack)
   def getMaxStackRegistry(lookup: HolderLookup.Provider, stack: ItemStack): Long =
-    maxAllowed(LumoEnchantmentHelper.getLevel(lookup, Enchantments.POWER, stack))
+    maxAllowed(SpectrumStorageEnchantmentHelper.getLevel(lookup, Enchantments.POWER, stack))
   // Not really that expensive on 1.20, but 1.21 makes this expensive
   def getMaxStackExpensive(stack: ItemStack): Long =
-    maxAllowed(LumoEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
+    maxAllowed(SpectrumStorageEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
   /*
   def emptyBottleInteraction(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
     val contents = BottomlessBottleContents.getFromStack(stack)
@@ -225,7 +225,7 @@ object BottomlessBottleItem:
 
 
     def getFromStack(stack: ItemStack): BottomlessBottleContents =
-      val r = stack.get(LumoComponents.BottomlessBottleContentsComponent)
+      val r = stack.get(SpectrumStorageComponents.BottomlessBottleContentsComponent)
       if r != null then
         val it = r.copy()
         BottomlessBottleContents(FluidVariant.of(it.getFluid, it.getComponentsPatch), FabricJankinator.mbToDroplet(r.getAmount))
@@ -233,7 +233,7 @@ object BottomlessBottleItem:
         BottomlessBottleContents.EMPTY
 
     def replaceInStack(stack: ItemStack, contents: BottomlessBottleContents): Unit =
-      stack.set(LumoComponents.BottomlessBottleContentsComponent, contents.toSimple)
+      stack.set(SpectrumStorageComponents.BottomlessBottleContentsComponent, contents.toSimple)
 
     class Builder(var template: FluidVariant, var amount: Long, val max: Long):
       def isEmpty: Boolean =

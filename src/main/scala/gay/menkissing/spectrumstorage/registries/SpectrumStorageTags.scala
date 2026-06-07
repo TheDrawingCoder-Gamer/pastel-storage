@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.tags.{ItemTags, TagKey}
 import net.minecraft.world.item.{Item, Items}
 
-object LumoTags:
+object SpectrumStorageTags:
   def commonTag(path: String): ResourceLocation =
     ResourceLocation.fromNamespaceAndPath("c", path)
 
@@ -15,7 +15,7 @@ object LumoTags:
     private def tag(namespace: String, path: String): TagKey[Item] =
       TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(namespace, path))
     private def commonTag(path: String): TagKey[Item] =
-      TagKey.create(Registries.ITEM, LumoTags.commonTag(path))
+      TagKey.create(Registries.ITEM, SpectrumStorageTags.commonTag(path))
 
     val validToolTag: TagKey[Item] =
       TagKey.create(Registries.ITEM, SpectrumStorage.locate("valid_tools"))

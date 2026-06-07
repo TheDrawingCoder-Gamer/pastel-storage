@@ -4,7 +4,7 @@ import com.google.gson.{JsonArray, JsonObject}
 import com.klikli_dev.modonomicon.api.datagen.book.condition.BookConditionModel
 import com.klikli_dev.modonomicon.api.datagen.book.page.BookPageModel
 import com.klikli_dev.modonomicon.api.datagen.book.{BookCategoryModel, BookEntryParentModel, BookIconModel}
-import gay.menkissing.spectrumstorage.util.registry.provider.generators.LumoBookProvider
+import gay.menkissing.spectrumstorage.util.registry.provider.generators.SpectrumStorageBaseBookProvider
 import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
 import net.minecraft.core.HolderLookup
 import net.minecraft.data.CachedOutput
@@ -104,7 +104,7 @@ class BookEntry(val location: EntryLocation, var name: String, var translationId
     
     json
 
-  def submit(provider: LumoBookProvider): Unit =
+  def submit(provider: SpectrumStorageBaseBookProvider): Unit =
     langEntries.foreach: (k, v) =>
       provider.add(k, v)
       

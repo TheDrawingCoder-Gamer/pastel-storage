@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage.screen
 
 import gay.menkissing.spectrumstorage.item.ItemBackedInventory
-import gay.menkissing.spectrumstorage.registries.{LumoScreens, LumoTags}
+import gay.menkissing.spectrumstorage.registries.{SpectrumStorageScreens, SpectrumStorageTags}
 import io.netty.buffer.ByteBuf
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.world.{InteractionHand, SimpleContainer}
@@ -10,7 +10,7 @@ import net.minecraft.world.inventory.{AbstractContainerMenu, Slot}
 import net.minecraft.world.item.ItemStack
 import net.minecraft.network.codec.{ByteBufCodecs, StreamCodec}
 
-class ToolContainerMenu(windowId: Int, playerInv: Inventory, val box: ItemStack) extends AbstractContainerMenu(LumoScreens.toolContainer.get(), windowId):
+class ToolContainerMenu(windowId: Int, playerInv: Inventory, val box: ItemStack) extends AbstractContainerMenu(SpectrumStorageScreens.toolContainer.get(), windowId):
   locally:
     val boxInv =
       if !playerInv.player.level().isClientSide then
@@ -77,7 +77,7 @@ class ToolContainerMenu(windowId: Int, playerInv: Inventory, val box: ItemStack)
       slot.onTake(player, slotStack)
     transferredItemStack
 
-  def isValidItem(item: ItemStack): Boolean = item.is(LumoTags.item.validToolTag)
+  def isValidItem(item: ItemStack): Boolean = item.is(SpectrumStorageTags.item.validToolTag)
   override def stillValid(player: Player): Boolean =
     player.getItemInHand(InteractionHand.MAIN_HAND) == box || player.getItemInHand(InteractionHand.OFF_HAND) == box
 

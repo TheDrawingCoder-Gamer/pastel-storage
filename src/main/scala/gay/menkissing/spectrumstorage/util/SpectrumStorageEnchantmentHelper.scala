@@ -11,7 +11,7 @@ import java.util.Optional
 
 import scala.jdk.CollectionConverters.*
 
-object LumoEnchantmentHelper:
+object SpectrumStorageEnchantmentHelper:
   def getRegistry(lookup: HolderLookup.Provider): Optional[HolderLookup.RegistryLookup[Enchantment]] =
     lookup.lookup(Registries.ENCHANTMENT)
 

@@ -8,7 +8,7 @@ import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.fluids.SimpleFluidContent
 import net.neoforged.neoforge.registries.{DeferredHolder, DeferredRegister}
 
-object LumoComponents {
+object SpectrumStorageComponents {
   val registrar = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, SpectrumStorage.ModId)
 
 

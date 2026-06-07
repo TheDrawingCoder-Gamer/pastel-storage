@@ -3,7 +3,7 @@ package gay.menkissing.spectrumstorage.screen
 import de.dafuqs.spectrum.api.block.FilterConfigurable
 import de.dafuqs.spectrum.inventories.slots.ShadowSlot
 import gay.menkissing.spectrumstorage.content.block.entity.FilterChestBlockEntity
-import gay.menkissing.spectrumstorage.registries.LumoScreens
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageScreens
 import io.netty.buffer.ByteBuf
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.minecraft.core.BlockPos
@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, ClickAction, Slot}
 import net.minecraft.world.item.ItemStack
 
-class FilterChestMenu(windowId: Int, playerInv: Inventory, val container: Container, val blockEntity: FilterChestBlockEntity | Null, val data: FilterConfigurable.ExtendedDataWithPos) extends AbstractContainerMenu(LumoScreens.filterChest.get(), windowId):
+class FilterChestMenu(windowId: Int, playerInv: Inventory, val container: Container, val blockEntity: FilterChestBlockEntity | Null, val data: FilterConfigurable.ExtendedDataWithPos) extends AbstractContainerMenu(SpectrumStorageScreens.filterChest.get(), windowId):
   val level = playerInv.player.level()
   val filterInventory = FilterConfigurable.getFilterInventoryFromExtendedData(windowId, playerInv, data.data(), this)
 

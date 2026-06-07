@@ -2,9 +2,9 @@ package gay.menkissing.spectrumstorage.util
 
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants
 
-object LumoNumberFormatting:
+object SpectrumStorageNumberFormatting:
   def formatMB(amount: Long): String =
-    val mb = amount.toFloat / 81f
+    val mb = amount.toFloat / FabricJankinator.DropletMbConversion.toFloat
     if mb < 1000 then
       mb.toLong.toString
     else if mb < 1000000 then

@@ -8,7 +8,7 @@ import gay.menkissing.spectrumstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.spectrumstorage.content.item.BottomlessBottleItem
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.screen.BottomlessStorageMenu
-import gay.menkissing.spectrumstorage.util.{FabricJankinator, LumoEnchantmentHelper}
+import gay.menkissing.spectrumstorage.util.{FabricJankinator, SpectrumStorageEnchantmentHelper}
 import net.fabricmc.fabric.api.transfer.v1.fluid.{FluidStorage, FluidVariant}
 import net.fabricmc.fabric.api.transfer.v1.item.{ItemStorage, ItemVariant}
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions
@@ -130,7 +130,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       this.bundle match
         case None => 0L
         case Some(bundle) => BottomlessComponent
-          .getMaxStoredAmount(LumoEnchantmentHelper.getLevel(level.registryAccess(), Enchantments.POWER, bundle))
+          .getMaxStoredAmount(SpectrumStorageEnchantmentHelper.getLevel(level.registryAccess(), Enchantments.POWER, bundle))
 
     override def createSnapshot(): ResourceAmount[ItemVariant] =
       this.bundle match
@@ -494,7 +494,7 @@ object BottomlessStorageBlockEntity:
 
     def buildFromStack(stack: ItemStack): Builder =
       val prev = stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessComponent.DEFAULT)
-      val max = BottomlessComponent.getMaxStoredAmount(LumoEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
+      val max = BottomlessComponent.getMaxStoredAmount(SpectrumStorageEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
       val voiding = EnchantmentHelper.hasTag(stack, SpectrumEnchantmentTags.DELETES_OVERFLOW_IN_INVENTORY)
       val locked = stack.has(DataComponents.LOCK)
       new Builder(prev, max, voiding, locked)

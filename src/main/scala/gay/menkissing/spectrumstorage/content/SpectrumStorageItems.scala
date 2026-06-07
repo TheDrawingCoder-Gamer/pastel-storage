@@ -9,8 +9,8 @@ import net.minecraft.world.item.{Item, ItemStack}
 import de.dafuqs.fractal.api.CreativeSubTabEvent
 import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks.blockItems
-import gay.menkissing.spectrumstorage.registries.LumoComponents
-import gay.menkissing.spectrumstorage.util.{FabricJankinator, LumoEnchantmentHelper}
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageComponents
+import gay.menkissing.spectrumstorage.util.{FabricJankinator, SpectrumStorageEnchantmentHelper}
 import net.minecraft.world.item.enchantment.Enchantments
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
@@ -71,7 +71,7 @@ object SpectrumStorageItems:
       it.registerItem(
         Capabilities.FluidHandler.ITEM,
         (stack, _) => {
-          FluidHandlerItemStack(LumoComponents.BottomlessBottleContentsComponent, stack, FabricJankinator.dropletToMb(BottomlessBottleItem.getMaxStackExpensive(stack)))
+          FluidHandlerItemStack(SpectrumStorageComponents.BottomlessBottleContentsComponent, stack, FabricJankinator.dropletToMb(BottomlessBottleItem.getMaxStackExpensive(stack)))
         },
         bottomlessBottle.get()
       )

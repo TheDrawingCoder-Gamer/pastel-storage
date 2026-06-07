@@ -2,7 +2,7 @@ package gay.menkissing.spectrumstorage.datagen.providers
 
 import de.dafuqs.spectrum.registries.SpectrumItems
 import gay.menkissing.spectrumstorage.SpectrumStorage
-import gay.menkissing.spectrumstorage.registries.LumoTags
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageTags
 import net.minecraft.core.HolderLookup
 import net.minecraft.core.registries.Registries
 import net.minecraft.data.PackOutput
@@ -24,11 +24,11 @@ class SpectrumStorageItemTagsProvider
   extends ItemTagsProvider(output, lookupProvider, tagLookup, SpectrumStorage.ModId, existingFileHelper):
 
   def commonTag(path: String): TagKey[Item] =
-    TagKey.create(Registries.ITEM, LumoTags.commonTag(path))
+    TagKey.create(Registries.ITEM, SpectrumStorageTags.commonTag(path))
   
   override protected def addTags(provider: HolderLookup.Provider): Unit =
     
-    tag(LumoTags.item.validToolTag)
+    tag(SpectrumStorageTags.item.validToolTag)
       .addTag(Tags.Items.TOOLS)
       .add(Items.SPYGLASS)
       .add(Items.CLOCK)

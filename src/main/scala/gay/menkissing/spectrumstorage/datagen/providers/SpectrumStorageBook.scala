@@ -7,7 +7,7 @@ import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumEnchantmentKeys, S
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation}
-import gay.menkissing.spectrumstorage.util.registry.provider.generators.LumoBookProvider
+import gay.menkissing.spectrumstorage.util.registry.provider.generators.SpectrumStorageBaseBookProvider
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.BookPedestalPageModel
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
@@ -24,7 +24,7 @@ import net.minecraft.world.level.ItemLike
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 
-final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[HolderLookup.Provider]) extends LumoBookProvider(SpectrumStorage.ModId, output, lookup):
+final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[HolderLookup.Provider]) extends SpectrumStorageBaseBookProvider(SpectrumStorage.ModId, output, lookup):
   def addTooltip(item: Supplier[? <: Item], sub: String, value: String): Unit =
     val it = item.get()
     val key = s"${it.getDescriptionId}.tooltip.$sub"

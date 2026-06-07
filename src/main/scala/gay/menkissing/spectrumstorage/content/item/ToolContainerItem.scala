@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage.content.item
 
 import gay.menkissing.spectrumstorage.item.ItemBackedInventory
-import gay.menkissing.spectrumstorage.registries.LumoTags
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageTags
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu.ToolContainerData
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory
@@ -38,7 +38,7 @@ class ToolContainerItem(props: Item.Properties) extends Item(props):
     itemEntity.getItem.remove(DataComponents.CONTAINER)
 
   override def overrideOtherStackedOnMe(thisStack: ItemStack, thatStack: ItemStack, slot: Slot, clickAction: ClickAction, player: Player, slotAccess: SlotAccess): Boolean =
-    if clickAction == ClickAction.SECONDARY && slot.allowModification(player) && !thatStack.isEmpty && thatStack.is(LumoTags.item.validToolTag) then
+    if clickAction == ClickAction.SECONDARY && slot.allowModification(player) && !thatStack.isEmpty && thatStack.is(SpectrumStorageTags.item.validToolTag) then
       val container = ToolContainerItem.getRawInventory(thisStack)
       if container.canAddItem(thatStack) then
         val res = container.addItem(thatStack)
@@ -52,7 +52,7 @@ class ToolContainerItem(props: Item.Properties) extends Item(props):
     else
       val container = ToolContainerItem.getRawInventory(thisStack)
       val thatStack = slot.getItem
-      if !thatStack.isEmpty && thatStack.is(LumoTags.item.validToolTag) then
+      if !thatStack.isEmpty && thatStack.is(SpectrumStorageTags.item.validToolTag) then
         if container.canAddItem(thatStack) then
           val res = container.addItem(thatStack)
           slot.set(res)

@@ -1,10 +1,10 @@
 package gay.menkissing.spectrumstorage.registries
 
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
-import gay.menkissing.spectrumstorage.util.LumoNumberFormatting
+import gay.menkissing.spectrumstorage.util.SpectrumStorageNumberFormatting
 import net.minecraft.network.chat.Component
 
-object LumoTranslationKeys:
+object SpectrumStorageTranslationKeys:
   object keys:
     object bottomlessBottle:
       object tooltip:
@@ -23,5 +23,5 @@ object LumoTranslationKeys:
       
       val empty: Component = Component.translatable(keys.bottomlessBottle.tooltip.empty)
       def countMB(amount: Long, max: Long): Component =
-        Component.translatable(keys.bottomlessBottle.tooltip.countMB, LumoNumberFormatting.formatMB(amount), LumoNumberFormatting.formatFluidMax(max))
+        Component.translatable(keys.bottomlessBottle.tooltip.countMB, SpectrumStorageNumberFormatting.formatMB(amount), SpectrumStorageNumberFormatting.formatFluidMax(max))
         

@@ -14,7 +14,7 @@ import net.minecraft.world.inventory.{AbstractContainerMenu, MenuType}
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.registries.DeferredRegister
 
-object LumoScreens:
+object SpectrumStorageScreens:
   private val registry = DeferredRegister.create(Registries.MENU, SpectrumStorage.ModId)
 
   val toolContainer =
