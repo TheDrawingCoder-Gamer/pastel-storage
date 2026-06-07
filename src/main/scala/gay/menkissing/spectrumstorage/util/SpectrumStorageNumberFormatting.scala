@@ -4,7 +4,7 @@ import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants
 
 object SpectrumStorageNumberFormatting:
   def formatMB(amount: Long): String =
-    val mb = amount.toFloat / FabricJankinator.DropletMbConversion.toFloat
+    val mb = amount.toFloat / FluidConverter.DropletMbConversion.toFloat
     if mb < 1000 then
       mb.toLong.toString
     else if mb < 1000000 then

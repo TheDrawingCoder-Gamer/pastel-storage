@@ -6,7 +6,7 @@ import net.minecraft.world.item.{Item, ItemDisplayContext, ItemStack, TooltipFla
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.registries.{SpectrumStorageComponents, SpectrumStorageTranslationKeys}
-import gay.menkissing.spectrumstorage.util.{FabricJankinator, SpectrumStorageEnchantmentHelper}
+import gay.menkissing.spectrumstorage.util.{FluidConverter, SpectrumStorageEnchantmentHelper}
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext
 import net.fabricmc.fabric.api.transfer.v1.fluid.{FluidConstants, FluidVariant, FluidVariantAttributes}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
@@ -214,7 +214,7 @@ object BottomlessBottleItem:
     def isEmpty: Boolean = variant.isBlank || amount == 0
 
     def toSimple: SimpleFluidContent =
-      val stack = FluidStack(variant.getRegistryEntry, FabricJankinator.dropletToMb(amount), variant.getComponents)
+      val stack = FluidStack(variant.getRegistryEntry, FluidConverter.dropletToMb(amount), variant.getComponents)
       SimpleFluidContent.copyOf(stack)
 
   object BottomlessBottleContents:
@@ -228,7 +228,7 @@ object BottomlessBottleItem:
       val r = stack.get(SpectrumStorageComponents.BottomlessBottleContentsComponent)
       if r != null then
         val it = r.copy()
-        BottomlessBottleContents(FluidVariant.of(it.getFluid, it.getComponentsPatch), FabricJankinator.mbToDroplet(r.getAmount))
+        BottomlessBottleContents(FluidVariant.of(it.getFluid, it.getComponentsPatch), FluidConverter.mbToDroplet(r.getAmount))
       else
         BottomlessBottleContents.EMPTY
 
