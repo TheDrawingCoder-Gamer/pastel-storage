@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage.datagen
 
 import de.dafuqs.spectrum.registries.SpectrumEnchantmentKeys
-import gay.menkissing.spectrumstorage.datagen.providers.{SpectrumStorageBlockStateGenerator, SpectrumStorageBlockTagsProvider, SpectrumStorageBook, SpectrumStorageItemModelGenerator, SpectrumStorageItemTagsProvider}
+import gay.menkissing.spectrumstorage.datagen.providers.{SpectrumStorageBlockStateGenerator, SpectrumStorageBlockTagsProvider, SpectrumStorageBook, SpectrumStorageItemModelGenerator, SpectrumStorageItemTagsProvider, SpectrumStorageLootTableProvider}
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.LumoBookProvider
 import net.minecraft.core.registries.Registries
 import net.minecraft.core.{HolderLookup, RegistrySetBuilder}
@@ -37,5 +37,6 @@ object SpectrumStorageDatagen:
     val blockTagProvider = SpectrumStorageBlockTagsProvider(output, lookupProvider, existingFileHelper)
     event.addProvider(blockTagProvider)
     event.addProvider(SpectrumStorageItemTagsProvider(output, lookupProvider, blockTagProvider.contentsGetter, existingFileHelper))
+    event.createProvider(SpectrumStorageLootTableProvider.apply)
 
 

@@ -239,8 +239,6 @@ object BottomlessBottleItem:
       def isEmpty: Boolean =
         template.isBlank || amount == 0
 
-      // TODO: storing
-
       def copied: Builder =
         Builder(template, amount, max)
 

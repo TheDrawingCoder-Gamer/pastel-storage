@@ -1,7 +1,6 @@
 package gay.menkissing.spectrumstorage.util.registry.provider.generators
 
 import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation, FalseCategory}
-import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.LumoAppendCategory
 import net.minecraft.core.HolderLookup
 import net.minecraft.data.PackOutput.Target
 import net.minecraft.data.{CachedOutput, DataProvider, PackOutput}
