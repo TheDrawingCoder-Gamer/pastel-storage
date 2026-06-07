@@ -6,27 +6,13 @@ import net.minecraft.world.item.{Item, ItemDisplayContext, ItemStack, TooltipFla
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoTranslationKeys}
-import gay.menkissing.spectrumstorage.util.LumoEnchantmentHelper
-import gay.menkissing.spectrumstorage.util.resources.ResourceLocationExt
-import io.netty.buffer.ByteBuf
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin
-import net.fabricmc.fabric.api.item.v1.EnchantingContext
-import net.fabricmc.fabric.api.renderer.v1.mesh.MutableQuadView
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext
-import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering
+import gay.menkissing.spectrumstorage.util.{FabricJankinator, LumoEnchantmentHelper}
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext
 import net.fabricmc.fabric.api.transfer.v1.fluid.{FluidConstants, FluidVariant, FluidVariantAttributes}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions
 import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage
 import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext
-import net.fabricmc.fabric.impl.client.indigo.renderer.helper.GeometryHelper
-import net.fabricmc.fabric.impl.renderer.VanillaModelEncoder
-import net.minecraft.client.Minecraft
-import net.minecraft.client.renderer.block.model.{BakedQuad, ItemOverrides, ItemTransforms}
-import net.minecraft.client.renderer.texture.TextureAtlasSprite
-import net.minecraft.client.resources.model.{BakedModel, Material, ModelBaker, ModelState, UnbakedModel}
 import net.minecraft.core.{BlockPos, Direction, Holder, HolderLookup}
 import net.minecraft.core.cauldron.CauldronInteraction
 import net.minecraft.core.particles.ParticleTypes
@@ -49,7 +35,8 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.{Fluid, Fluids}
 import net.minecraft.world.phys.{BlockHitResult, HitResult}
 import net.neoforged.neoforge.client.model.IDynamicBakedModel
-import net.neoforged.neoforge.fluids.FluidType
+import net.neoforged.neoforge.common.SoundActions
+import net.neoforged.neoforge.fluids.{FluidStack, FluidType, SimpleFluidContent}
 
 import java.util
 import java.util.function
@@ -78,28 +65,29 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
       tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.usagePickup)
       tooltipComponents.add(LumoTranslationKeys.bottomlessBottle.tooltip.usagePlace)
 
-  def playEmptyingSound(player: Player, level: Level, pos: BlockPos, variant: FluidVariant): Unit =
-    val event = FluidVariantAttributes.getEmptySound(variant)
-    level.playSound(player, pos, event, SoundSource.BLOCKS, 1f, 1f)
+  def playEmptyingSound(player: Player, level: Level, pos: BlockPos, fluidType: FluidType): Unit =
+    val sound = fluidType.getSound(player, level, pos, SoundActions.BUCKET_EMPTY)
+    if sound != null then
+      level.playSound(player, pos, sound, SoundSource.BLOCKS, 1f, 1f)
 
   def placeFluid(player: Player | Null, level: Level, pos: BlockPos, hitResult: BlockHitResult, thisStack: ItemStack): Boolean =
-    val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(thisStack)
-    if contents.isEmpty || contents.amount < FluidConstants.BUCKET then
+    val contents = thisStack.get(LumoComponents.BottomlessBottleContentsComponent)
+    if contents.isEmpty || contents.getAmount < FluidType.BUCKET_VOLUME then
       return false
 
     val blockState = level.getBlockState(pos)
-    val canPlace = blockState.canBeReplaced(contents.variant.getFluid)
+    val canPlace = blockState.canBeReplaced(contents.getFluid)
 
     if
       !blockState.isAir && !canPlace && (
         blockState.getBlock match
-          case liquidBlock: LiquidBlockContainer => !liquidBlock.canPlaceLiquid(player, level, pos, blockState, contents.variant.getFluid)
+          case liquidBlock: LiquidBlockContainer => !liquidBlock.canPlaceLiquid(player, level, pos, blockState, contents.getFluid)
           case _ => true
       )
     then
       hitResult != null && this.placeFluid(player, level, hitResult.getBlockPos.relative(hitResult.getDirection), null, thisStack)
     else
-      if level.dimensionType().ultraWarm() && contents.variant.getFluid.is(FluidTags.WATER) then
+      if level.dimensionType().ultraWarm() && contents.getFluid.is(FluidTags.WATER) then
         val i = pos.getX
         val j = pos.getY
         val k = pos.getZ
@@ -108,20 +96,20 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
           level.addParticle(ParticleTypes.LARGE_SMOKE, i.toDouble + math.random(), j.toDouble + math.random(), k.toDouble + math.random(), 0d, 0d, 0d)
       else
         blockState.getBlock match
-          case liquidBlockContainer: LiquidBlockContainer if contents.variant.getFluid == Fluids.WATER =>
+          case liquidBlockContainer: LiquidBlockContainer if contents.getFluid == Fluids.WATER =>
             if liquidBlockContainer.placeLiquid(level, pos, blockState, Fluids.WATER.getSource(false)) then
-              this.playEmptyingSound(player, level, pos, contents.variant)
+              this.playEmptyingSound(player, level, pos, contents.getFluidType)
           case _ =>
             if !level.isClientSide && canPlace && !blockState.liquid() then
               level.removeBlock(pos, true)
 
-            this.playEmptyingSound(player, level, pos, contents.variant)
-            level.setBlock(pos, contents.variant.getFluid.defaultFluidState().createLegacyBlock(), 11)
+            this.playEmptyingSound(player, level, pos, contents.getFluidType)
+            level.setBlock(pos, contents.getFluid.defaultFluidState().createLegacyBlock(), 11)
       true
 
   override def use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder[ItemStack] =
     val stack = player.getItemInHand(usedHand)
-    val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack)
+    val contents = stack.get(LumoComponents.BottomlessBottleContentsComponent)
     val blockHitResult = Item.getPlayerPOVHitResult(level, player, if player.isShiftKeyDown then ClipContext.Fluid.NONE else ClipContext.Fluid.SOURCE_ONLY)
     blockHitResult.getType match
       case HitResult.Type.MISS | HitResult.Type.ENTITY =>
@@ -170,11 +158,13 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
 object BottomlessBottleItem:
   val baseMax: Long = FluidConstants.BUCKET * 256
 
+  /*
   @nowarn("msg=eta")
   def registerCauldronInteractions(): Unit =
     CauldronInteraction.EMPTY.map().put(SpectrumStorageItems.bottomlessBottle.get(), emptyBottleInteraction)
     CauldronInteraction.LAVA.map().put(SpectrumStorageItems.bottomlessBottle.get(), fillBottleInteraction(Fluids.LAVA))
     CauldronInteraction.WATER.map().put(SpectrumStorageItems.bottomlessBottle.get(), fillBottleInteraction(Fluids.WATER))
+  */
 
   def maxAllowed(level: Int): Long =
     baseMax * math.pow(8, math.min(level, 5)).toLong
@@ -185,7 +175,7 @@ object BottomlessBottleItem:
   // Not really that expensive on 1.20, but 1.21 makes this expensive
   def getMaxStackExpensive(stack: ItemStack): Long =
     maxAllowed(LumoEnchantmentHelper.getLevelExpensive(Enchantments.POWER, stack))
-
+  /*
   def emptyBottleInteraction(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
     val contents = BottomlessBottleContents.getFromStack(stack)
 
@@ -219,24 +209,15 @@ object BottomlessBottleItem:
         return ItemInteractionResult.SUCCESS
 
     ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
-
+  */
   final case class BottomlessBottleContents(variant: FluidVariant, amount: Long):
     def isEmpty: Boolean = variant.isBlank || amount == 0
-  object BottomlessBottleContents:
-    val CODEC: Codec[BottomlessBottleContents] =
-      RecordCodecBuilder.create { builder =>
-        builder.group(
-          FluidVariant.CODEC.fieldOf("variant").forGetter((it: BottomlessBottleContents) => it.variant),
-          Codec.LONG.fieldOf("amount").forGetter((it: BottomlessBottleContents) => java.lang.Long.valueOf(it.amount))
-        ).apply(builder, (a, b) => BottomlessBottleContents(a, b)) // massage long
-      }
 
-    val STREAM_CODEC: StreamCodec[RegistryFriendlyByteBuf, BottomlessBottleContents] =
-      StreamCodec.composite(
-        FluidVariant.PACKET_CODEC, (it: BottomlessBottleContents) => it.variant,
-        ByteBufCodecs.VAR_LONG, (it: BottomlessBottleContents) => it.amount,
-        BottomlessBottleContents.apply
-      )
+    def toSimple: SimpleFluidContent =
+      val stack = FluidStack(variant.getRegistryEntry, FabricJankinator.dropletToMb(amount), variant.getComponents)
+      SimpleFluidContent.copyOf(stack)
+
+  object BottomlessBottleContents:
 
     val EMPTY: BottomlessBottleContents =
       BottomlessBottleContents(FluidVariant.blank(), 0)
@@ -244,10 +225,15 @@ object BottomlessBottleItem:
 
 
     def getFromStack(stack: ItemStack): BottomlessBottleContents =
-      stack.getOrDefault(LumoComponents.BottomlessBottleContentsComponent, BottomlessBottleContents.EMPTY)
+      val r = stack.get(LumoComponents.BottomlessBottleContentsComponent)
+      if r != null then
+        val it = r.copy()
+        BottomlessBottleContents(FluidVariant.of(it.getFluid, it.getComponentsPatch), FabricJankinator.mbToDroplet(r.getAmount))
+      else
+        BottomlessBottleContents.EMPTY
 
     def replaceInStack(stack: ItemStack, contents: BottomlessBottleContents): Unit =
-      stack.set(LumoComponents.BottomlessBottleContentsComponent, contents)
+      stack.set(LumoComponents.BottomlessBottleContentsComponent, contents.toSimple)
 
     class Builder(var template: FluidVariant, var amount: Long, val max: Long):
       def isEmpty: Boolean =
@@ -313,7 +299,7 @@ object BottomlessBottleItem:
         val builder = Builder.withMax(context.getItemVariant.toStack, maxStoredInBundle)
 
         if !builder.isEmpty && resource == builder.template then
-          val extracted = builder.extract(resource, maxAmount)
+          val extracted = builder.extract(resource, maxAmount.toInt)
           val newStack = context.getItemVariant.toStack
           replaceInStack(newStack, builder.build)
           val newVariant = ItemVariant.of(newStack)

@@ -8,7 +8,7 @@ import gay.menkissing.spectrumstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.spectrumstorage.content.item.BottomlessBottleItem
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.screen.BottomlessStorageMenu
-import gay.menkissing.spectrumstorage.util.LumoEnchantmentHelper
+import gay.menkissing.spectrumstorage.util.{FabricJankinator, LumoEnchantmentHelper}
 import net.fabricmc.fabric.api.transfer.v1.fluid.{FluidStorage, FluidVariant}
 import net.fabricmc.fabric.api.transfer.v1.item.{ItemStorage, ItemVariant}
 import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions

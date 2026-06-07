@@ -9,12 +9,15 @@ import net.minecraft.world.item.{Item, ItemStack}
 import de.dafuqs.fractal.api.CreativeSubTabEvent
 import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks.blockItems
-import gay.menkissing.spectrumstorage.util.LumoEnchantmentHelper
+import gay.menkissing.spectrumstorage.registries.LumoComponents
+import gay.menkissing.spectrumstorage.util.{FabricJankinator, LumoEnchantmentHelper}
 import net.minecraft.world.item.enchantment.Enchantments
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
 import net.neoforged.neoforge.common.NeoForge
+import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack
 import net.neoforged.neoforge.registries.{DeferredItem, DeferredRegister, RegisterEvent}
+import org.sinytra.fabric.transfer_api.compat.FluidStorageFluidHandlerItem
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -64,6 +67,14 @@ object SpectrumStorageItems:
         items.foreach(builder.accept)
       }
     })
+    bus.addListener: (it: RegisterCapabilitiesEvent) =>
+      it.registerItem(
+        Capabilities.FluidHandler.ITEM,
+        (stack, _) => {
+          FluidHandlerItemStack(LumoComponents.BottomlessBottleContentsComponent, stack, FabricJankinator.dropletToMb(BottomlessBottleItem.getMaxStackExpensive(stack)))
+        },
+        bottomlessBottle.get()
+      )
 
     // LATER:tm:
     /*

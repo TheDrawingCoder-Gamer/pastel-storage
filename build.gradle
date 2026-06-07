@@ -93,6 +93,9 @@ dependencies {
     runtimeOnly("com.kotori316:scalablecatsforce-neoforge:${project.scalable_version}:with-library") {
         transitive(false)
     }
+    runtimeOnly("maven.modrinth:create:6.0.10+mc1.21.1") {
+        transitive(false)
+    }
     // modLocalRuntime "gay.menkissing:bulby-language-scala:${project.kls_version}+scala.${project.scala_runtime}"
 
     implementation "de.dafuqs:Spectrum:${project.spectrum_version}-neo"
