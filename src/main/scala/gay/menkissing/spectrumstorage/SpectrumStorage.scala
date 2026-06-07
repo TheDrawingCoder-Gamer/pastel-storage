@@ -1,7 +1,9 @@
 package gay.menkissing.spectrumstorage
 
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
-import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoScreens, LumoTags, SpectrumStorageBook}
+import gay.menkissing.spectrumstorage.datagen.SpectrumStorageDatagen
+import gay.menkissing.spectrumstorage.datagen.providers.SpectrumStorageBook
+import gay.menkissing.spectrumstorage.registries.{LumoComponents, LumoScreens, LumoTags}
 import net.minecraft.resources.ResourceLocation
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.common.Mod
@@ -21,4 +23,5 @@ class SpectrumStorage(modBus: IEventBus):
   SpectrumStorageItems.submit(modBus)
   LumoComponents.submit(modBus)
   LumoScreens.submit(modBus)
+  SpectrumStorageDatagen.submit(modBus)
   // InfoCollector.instance.addBookRegister(SpectrumStorageBook.init)

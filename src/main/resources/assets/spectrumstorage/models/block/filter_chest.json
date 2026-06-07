@@ -1,6 +1,7 @@
 {
 	"credit": "Made with Blockbench",
 	"parent": "minecraft:block/block",
+	"render_type": "cutout",
 	"textures": {
 		"0": "spectrumstorage:block/filter_chest_top",
 		"1": "spectrumstorage:block/filter_chest_bottom",

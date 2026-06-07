@@ -48,6 +48,8 @@ import net.minecraft.world.level.block.{Blocks, BucketPickup, LayeredCauldronBlo
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.material.{Fluid, Fluids}
 import net.minecraft.world.phys.{BlockHitResult, HitResult}
+import net.neoforged.neoforge.client.model.IDynamicBakedModel
+import net.neoforged.neoforge.fluids.FluidType
 
 import java.util
 import java.util.function
@@ -356,107 +358,3 @@ object BottomlessBottleItem:
         else
           getFromStack(context.getItemVariant.toStack).amount
 
-
-// Top level renderer, because fabric datagen doesn't
-// respect nested environment annnotations
-object BottomlessBottleRenderer:
-  val bottomlessBottleID: ResourceLocation = SpectrumStorage.locate("item/bottomless_bottle_base")
-  val fluidModelID: ResourceLocation = SpectrumStorage.locate("item/bottomless_bottle_fluid")
-
-// wtf...
-// @Environment(EnvType.CLIENT)
-class BottomlessBottleItemModel extends UnbakedModel, BakedModel, FabricBakedModel:
-  private var baseModel: BakedModel = null
-  private var fluidModel: BakedModel = null
-  private var sprite: TextureAtlasSprite = null
-
-  override def getDependencies: util.Collection[ResourceLocation] =
-    util.List.of(BottomlessBottleRenderer.bottomlessBottleID, BottomlessBottleRenderer.fluidModelID)
-
-  override def resolveParents(resolver: function.Function[ResourceLocation, UnbakedModel]): Unit = ()
-
-  override def getQuads(blockState: BlockState, direction: Direction, randomSource: RandomSource): util.List[BakedQuad] =
-    util.List.of()
-
-  override def emitBlockQuads(blockView: BlockAndTintGetter, state: BlockState, pos: BlockPos, randomSupplier: Supplier[RandomSource], context: RenderContext): Unit =
-    ()
-
-  override def emitItemQuads(stack: ItemStack, randomSupplier: Supplier[RandomSource], context: RenderContext): Unit =
-    // DUE TO LACK OF MIXINS I _HAVE_ TO DO THIS?
-    VanillaModelEncoder.emitItemQuads(baseModel, null, randomSupplier, context)
-
-    val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack)
-
-    if contents.isEmpty || context.itemTransformationMode() != ItemDisplayContext.GUI then
-      return
-
-    val variant = contents.variant
-
-    if variant.isBlank then
-      return
-
-    val variantRenderHandler = FluidVariantRendering.getHandlerOrDefault(variant.getFluid)
-
-    if variantRenderHandler == null then
-      return
-
-    val fluidSprite = variantRenderHandler.getSprites(variant)(0)
-    // force full alpha
-    val fluidColor = variantRenderHandler.getColor(variant, null, null) | 0xff000000
-
-    context.pushTransform: quad =>
-      quad.nominalFace(GeometryHelper.lightFace(quad))
-      quad.color(fluidColor, fluidColor, fluidColor, fluidColor)
-      (0 until 4).foreach: i =>
-        val pos = quad.copyPos(i, null)
-        pos.add(0.5f, 0.5f, 1f)
-        pos.mul(0.5f)
-        pos.add(0.25f, 0.25f, 0.25f)
-        quad.pos(i, pos)
-
-      if fluidSprite == null then
-        quad.spriteBake(Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(ResourceLocation.withDefaultNamespace("missingno")), MutableQuadView.BAKE_LOCK_UV)
-      else
-        quad.spriteBake(fluidSprite, MutableQuadView.BAKE_LOCK_UV)
-
-      true
-
-    val emitter = context.getEmitter
-
-    fluidModel.getQuads(null, null, randomSupplier.get()).forEach: q =>
-      emitter.fromVanilla(q.getVertices, 0)
-      emitter.emit()
-
-    context.popTransform()
-
-  override def isCustomRenderer: Boolean = false
-
-  override def isVanillaAdapter: Boolean = false
-
-  override def bake(baker: ModelBaker, spriteGetter: function.Function[Material, TextureAtlasSprite], state: ModelState): BakedModel =
-    baseModel = baker.bake(BottomlessBottleRenderer.bottomlessBottleID, state)
-    fluidModel = baker.bake(BottomlessBottleRenderer.fluidModelID, state)
-    sprite = spriteGetter.apply(Material(InventoryMenu.BLOCK_ATLAS, SpectrumStorage.locate("item/bottomless_bottle")))
-    this
-
-  override def useAmbientOcclusion(): Boolean = false
-
-  override def isGui3d: Boolean = false
-
-  override def usesBlockLight(): Boolean = false
-
-  override def getParticleIcon: TextureAtlasSprite = sprite
-
-  override def getTransforms: ItemTransforms = baseModel.getTransforms
-
-  override def getOverrides: ItemOverrides = ItemOverrides.EMPTY
-
-// @Environment(EnvType.CLIENT)
-class BottomlessBottleModelLoader extends ModelLoadingPlugin:
-  override def onInitializeModelLoader(context: ModelLoadingPlugin.Context): Unit =
-    context.addModels(BottomlessBottleRenderer.fluidModelID, BottomlessBottleRenderer.bottomlessBottleID)
-    context.resolveModel().register: ctx =>
-      if ctx.id() == SpectrumStorage.locate("item/bottomless_bottle") then
-        BottomlessBottleItemModel()
-      else
-        null

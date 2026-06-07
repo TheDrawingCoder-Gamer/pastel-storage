@@ -1,0 +1,30 @@
+{
+  "type": "spectrum:pedestal",
+  "time": 240,
+  "tier": "advanced",
+  "colors": {
+    "spectrum:magenta": 0,
+    "spectrum:yellow": 2,
+    "spectrum:cyan": 2,
+    "spectrum:black": 1,
+    "spectrum:white": 0
+  },
+
+  "experience": 2.0,
+  "pattern": [
+    "IPI",
+    "W W",
+    "AAA"
+  ],
+  "key": {
+    "W": "#minecraft:wool",
+    "I": "minecraft:iron_ingot",
+    "P": "spectrum:blue_pigment",
+    "A": "spectrum:polished_basalt"
+  },
+  "result": {
+    "id": "spectrumstorage:filter_chest",
+    "count": 1
+  },
+  "required_advancement": "spectrumstorage:unlocks/blocks/filter_chest"
+}

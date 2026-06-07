@@ -6,7 +6,6 @@ import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.block.BottomlessStorageBlock.{BottomlessAmphoraBlock, BottomlessBarrelBlock}
 import gay.menkissing.spectrumstorage.content.block.{BottomlessShelfBlock, FilterChestBlock}
 import gay.menkissing.spectrumstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity, FilterChestBlockEntity}
-import gay.menkissing.spectrumstorage.datagen.ComplexBlockstateDatagen
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
@@ -62,6 +61,7 @@ object SpectrumStorageBlocks:
 
   val bottomlessBarrel =
     register("bottomless_barrel", ItemGroupIDs.SUBTAB_FUNCTIONAL, BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
+
     /*
     InfoCollector.instance.block(SpectrumStorage.locate("bottomless_barrel"),
       BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))

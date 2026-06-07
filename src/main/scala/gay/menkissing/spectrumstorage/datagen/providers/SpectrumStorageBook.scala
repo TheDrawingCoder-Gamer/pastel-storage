@@ -1,26 +1,61 @@
-package gay.menkissing.spectrumstorage.registries
+package gay.menkissing.spectrumstorage.datagen.providers
 
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel
 import com.klikli_dev.modonomicon.api.datagen.book.condition.BookAdvancementConditionModel
 import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel, BookTextPageModel}
-import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumItems}
+import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumEnchantmentKeys, SpectrumItems}
+import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation}
+import gay.menkissing.spectrumstorage.util.registry.provider.generators.LumoBookProvider
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.BookPedestalPageModel
-import net.minecraft.resources.ResourceLocation
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
 import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
-import net.minecraft.core.{Holder, HolderLookup, HolderOwner}
 import net.minecraft.core.registries.Registries
+import net.minecraft.core.{Holder, HolderLookup, HolderOwner}
+import net.minecraft.data.PackOutput
 import net.minecraft.network.chat.Component
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.world.item.{Item, ItemStack}
 import net.minecraft.world.item.crafting.Ingredient
-import net.minecraft.world.level.ItemLike
-import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.enchantment.{Enchantment, Enchantments, ItemEnchantments}
+import net.minecraft.world.level.ItemLike
 
-object SpectrumStorageBook:
-  /*
-  def init(lookup: HolderLookup.Provider): Unit =
+import java.util.concurrent.CompletableFuture
+import java.util.function.Supplier
+
+final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[HolderLookup.Provider]) extends LumoBookProvider(SpectrumStorage.ModId, output, lookup):
+  def addTooltip(item: Supplier[? <: Item], sub: String, value: String): Unit =
+    val it = item.get()
+    val key = s"${it.getDescriptionId}.tooltip.$sub"
+    add(key, value)
+
+  override def addTranslations(): Unit =
+    addBlock(SpectrumStorageBlocks.bottomlessBarrel, "Bottomless Barrel")
+    addBlock(SpectrumStorageBlocks.bottomlessAmphora, "Bottomless Amphora")
+    addBlock(SpectrumStorageBlocks.filterChest, "Filter Chest")
+    addBlock(SpectrumStorageBlocks.bottomlessShelf, "Bottomless Shelf")
+
+    addItem(SpectrumStorageItems.bottomlessBottle, "Bottomless Bottle")
+    addTooltip(SpectrumStorageItems.bottomlessBottle, "empty", "Empty")
+    addTooltip(SpectrumStorageItems.bottomlessBottle, "usage_pickup", "Use to pickup")
+    addTooltip(SpectrumStorageItems.bottomlessBottle, "usage_place", "Sneak-use to place")
+    addTooltip(SpectrumStorageItems.bottomlessBottle, "count_mb", "%1$s mB / %2$s buckets")
+    addItem(SpectrumStorageItems.toolContainer, "Tool Container")
+
+    add("book.spectrumstorage.added_by_spectrumstorage", "§oAdded by Spectrum Storage")
+
+    List(
+      "bottomless_barrel" -> "Bottomless Barrel",
+      "bottomless_amphora" -> "Bottomless Amphora",
+      "filter_chest" -> "Filter Chest"
+    ).foreach: (k, v) =>
+      add(s"container.spectrumstorage.$k", v)
+
+
+
+  override def addEntries(lookup: HolderLookup.Provider): Unit =
+    SpectrumStorage.Logger.error("???")
     val spectrumBook = ResourceLocation.fromNamespaceAndPath("spectrum", "guidebook")
     val magicalCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "magical_blocks")
     val equipCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "equipment")
@@ -66,10 +101,10 @@ object SpectrumStorageBook:
     // HACK : (
     // dummy out this so MAYBE it works
     val powerEnchant = enchantLookup.getOrThrow(Enchantments.POWER)
-    val voidingEnchant = enchantLookup.getOrThrow(SpectrumEnchantments.VOIDING)
+    val voidingEnchant = enchantLookup.getOrThrow(SpectrumEnchantmentKeys.VOIDING)
 
     val powerVStack =
-      ItemStack(SpectrumStorageItems.bottomlessBottle)
+      ItemStack(SpectrumStorageItems.bottomlessBottle.get())
     powerVStack.enchant(powerEnchant, 5)
     val voidingBundle =
       ItemStack(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem())
@@ -87,46 +122,44 @@ object SpectrumStorageBook:
           text
         )
 
-    InfoCollector
-      .instance
-      .addGuidebookEntry(entryLoc("equipment/bottomless_bottle"), equipCategory, SpectrumStorageItems.bottomlessBottle.location) {
-        entry =>
-          commonEntry(SpectrumStorageItems.bottomlessBottle, entry)(
-            """
-              |I find myself often carrying half a dozen buckets holding the same thing. It would be nice if I could just cram all that liquid in one item.
-              |
-              |The bottomless bottle does just that - it stores a large amount of liquid inside itself.
-              |""".stripMargin
+    this.addEntry(entryLoc("equipment/bottomless_bottle"), equipCategory, SpectrumStorageItems.bottomlessBottle.get().location) {
+      entry =>
+        commonEntry(SpectrumStorageItems.bottomlessBottle, entry)(
+          """
+            |I find myself often carrying half a dozen buckets holding the same thing. It would be nice if I could just cram all that liquid in one item.
+            |
+            |The bottomless bottle does just that - it stores a large amount of liquid inside itself.
+            |""".stripMargin
+        )
+          .withLocation(3, 4)
+          .withCondition(itemUnlock("bottomless_bottle"))
+          .addPage(trans =>
+            pedestalPage(
+              "spectrumstorage:pedestal/tier2/bottomless_bottle",
+              trans.text("Right-click picks up liquid, while sneak right-click places it.")
+            )
           )
-            .withLocation(3, 4)
-            .withCondition(itemUnlock("bottomless_bottle"))
-            .addPage(trans =>
-              pedestalPage(
-                "spectrumstorage:pedestal/tier2/bottomless_bottle",
-                trans.text("Right-click picks up liquid, while sneak right-click places it.")
-              )
-            )
-            .addPage(trans =>
-              BookSpotlightPageModel
-                .create()
-                .withTitle("enchantment.minecraft.power")
-                .withCondition(buildEnchanter)
-                .withItem(powerVStack)
-                .withText(trans.text("Power increases its capacity eightfold each level."))
-            )
-      }
-      .addGuidebookEntry(entryLoc("equipment/tool_container"), equipCategory, SpectrumStorageItems.toolContainer.location) {
+          .addPage(trans =>
+            BookSpotlightPageModel
+              .create()
+              .withTitle("enchantment.minecraft.power")
+              .withCondition(buildEnchanter)
+              .withItem(powerVStack)
+              .withText(trans.text("Power increases its capacity eightfold each level."))
+          )
+    }
+    this.addEntry(entryLoc("equipment/tool_container"), equipCategory, SpectrumStorageItems.toolContainer.get().location) {
         entry =>
           entry
-            .withName(SpectrumStorageItems.toolContainer.getDescriptionId)
+            .withName(SpectrumStorageItems.toolContainer.get().getDescriptionId)
             .withLocation(4, 4)
             .withDescription(commonDesc)
             .withCondition(itemUnlock("tool_container"))
-            .withIcon(SpectrumStorageItems.toolContainer)
+            .withIcon(SpectrumStorageItems.toolContainer.get())
             .withHideWhileLocked(true)
             .addPage(trans =>
               firstPage(
-                SpectrumStorageItems.toolContainer,
+                SpectrumStorageItems.toolContainer.get(),
                 trans.text(
                   """
                     |On my travels I find myself carrying half a tool shed with me.
@@ -140,17 +173,17 @@ object SpectrumStorageBook:
                 trans.text("*Don't ask how they all fit*"))
             )
       }
-      .addGuidebookEntry(entryLoc("magical_blocks/bottomless_amphora"), magicalCategory, SpectrumStorageBlocks.bottomlessAmphora.location) {
+    this.addEntry(entryLoc("magical_blocks/bottomless_amphora"), magicalCategory, SpectrumStorageBlocks.bottomlessAmphora.get().location) {
         entry =>
           entry
-            .withName(SpectrumStorageBlocks.bottomlessAmphora.getDescriptionId)
+            .withName(SpectrumStorageBlocks.bottomlessAmphora.get().getDescriptionId)
             .withLocation(1, 5)
             .withDescription(commonDesc)
             .withCondition(blockUnlock("bottomless_amphora"))
-            .withIcon(SpectrumStorageBlocks.bottomlessAmphora)
+            .withIcon(SpectrumStorageBlocks.bottomlessAmphora.get())
             .withHideWhileLocked(true)
             .addPage(trans =>
-              firstPage(SpectrumStorageBlocks.bottomlessAmphora,
+              firstPage(SpectrumStorageBlocks.bottomlessAmphora.get(),
                 trans.text(
                   """
                     |I had thought that barrels could store a lot, but amphoras can store double that. So if I make a bottomless amphora...
@@ -184,17 +217,17 @@ object SpectrumStorageBook:
               )
             )
       }
-      .addGuidebookEntry(entryLoc("magical_blocks/bottomless_barrel"), magicalCategory, SpectrumStorageBlocks.bottomlessBarrel.location) {
+    this.addEntry(entryLoc("magical_blocks/bottomless_barrel"), magicalCategory, SpectrumStorageBlocks.bottomlessBarrel.get().location) {
         entry =>
           entry
-            .withName(SpectrumStorageBlocks.bottomlessBarrel.getDescriptionId)
+            .withName(SpectrumStorageBlocks.bottomlessBarrel.get().getDescriptionId)
             .withLocation(0, 5)
             .withDescription(commonDesc)
             .withCondition(blockUnlock("bottomless_barrel"))
-            .withIcon(SpectrumStorageBlocks.bottomlessBarrel)
+            .withIcon(SpectrumStorageBlocks.bottomlessBarrel.get())
             .withHideWhileLocked(true)
             .addPage(trans =>
-              firstPage(SpectrumStorageBlocks.bottomlessBarrel,
+              firstPage(SpectrumStorageBlocks.bottomlessBarrel.get(),
                 trans.text(
                   """
                     |While bottomless shelves are great, I find myself making complicated systems to access many of them.
@@ -231,9 +264,9 @@ object SpectrumStorageBook:
                 )
             )
       }
-      .addGuidebookEntry(entryLoc("magical_blocks/bottomless_shelf"), magicalCategory, SpectrumStorageBlocks.bottomlessShelf.location) {
+    this.addEntry(entryLoc("magical_blocks/bottomless_shelf"), magicalCategory, SpectrumStorageBlocks.bottomlessShelf.get().location) {
         entry =>
-          commonEntry(SpectrumStorageBlocks.bottomlessShelf, entry)(
+          commonEntry(SpectrumStorageBlocks.bottomlessShelf.get(), entry)(
               """
                 |My bottomless bottle seems to be too unstable to place down on its own - So why not put it on a shelf?
                 |
@@ -272,9 +305,9 @@ object SpectrumStorageBook:
               )
             )
       }
-      .addGuidebookEntry(entryLoc("magical_blocks/filter_chest"), magicalCategory, SpectrumStorageBlocks.filterChest.location) {
+    this.addEntry(entryLoc("magical_blocks/filter_chest"), magicalCategory, SpectrumStorageBlocks.filterChest.get().location) {
         entry =>
-          commonEntry(SpectrumStorageBlocks.filterChest, entry)(
+          commonEntry(SpectrumStorageBlocks.filterChest.get(), entry)(
             """
               |The machines I build to sort my vast catalog of items tend to get quite large. It would be nice to have something that easily filters them.
               |
@@ -290,6 +323,3 @@ object SpectrumStorageBook:
             )
           )
       }
-      
-   */
-  ()

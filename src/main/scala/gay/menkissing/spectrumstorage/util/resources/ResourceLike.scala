@@ -20,7 +20,7 @@ import net.minecraft.resources.ResourceLocation
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.block.Block
 
-trait ResourceLike[T]:
+trait ResourceLike[-T]:
   def location(self: T): ResourceLocation
 
 extension[T] (self: T)(using rl: ResourceLike[T])
@@ -33,7 +33,7 @@ given ResourceLike[Item] = self => BuiltInRegistries.ITEM.getKey(self)
 given ResourceLike[Block] = self => BuiltInRegistries.BLOCK.getKey(self)
 
 // things that have models (items + blocks)
-trait ModelResourceLike[T]:
+trait ModelResourceLike[-T]:
   def modelLoc(self: T): ResourceLocation
 
 extension[T] (self: T)(using rl: ModelResourceLike[T])

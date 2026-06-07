@@ -2,11 +2,14 @@
   "type": "spectrum:pedestal",
   "time": 240,
   "tier": "simple",
-  "magenta": 0,
-  "yellow": 0,
-  "cyan": 4,
-  "black": 0,
-  "white": 0,
+  "colors": {
+    "spectrum:magenta": 0,
+    "spectrum:yellow": 0,
+    "spectrum:cyan": 4,
+    "spectrum:black": 0,
+    "spectrum:white": 0
+  },
+
   "experience": 2.0,
   "pattern": [
     "WWW",
@@ -14,15 +17,11 @@
     "WWW"
   ],
   "key": {
-    "Q": {
-      "item": "spectrum:quitoxic_powder"
-    },
-    "W": {
-      "tag": "minecraft:planks"
-    }
+    "Q": "spectrum:quitoxic_powder",
+    "W": "#minecraft:planks"
   },
   "result": {
-    "item": "spectrumstorage:bottomless_shelf",
+    "id": "spectrumstorage:bottomless_shelf",
     "count": 1
   },
   "required_advancement": "spectrumstorage:unlocks/blocks/bottomless_shelf"
