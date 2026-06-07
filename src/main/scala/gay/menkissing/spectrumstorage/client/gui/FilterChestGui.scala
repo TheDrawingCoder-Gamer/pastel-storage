@@ -2,6 +2,7 @@ package gay.menkissing.spectrumstorage.client.gui
 
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.screen.FilterChestMenu
+import net.neoforged.api.distmarker.{Dist, OnlyIn}
 // import net.fabricmc.api.{EnvType, Environment}
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -9,6 +10,7 @@ import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory
 
 // @Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 class FilterChestGui(menu: FilterChestMenu, playerInv: Inventory, title: Component) extends AbstractContainerScreen[FilterChestMenu](menu, playerInv, title):
   override def renderBg(guiGraphics: GuiGraphics, f: Float, i: Int, j: Int): Unit =
     val i = (this.width - this.imageWidth) / 2

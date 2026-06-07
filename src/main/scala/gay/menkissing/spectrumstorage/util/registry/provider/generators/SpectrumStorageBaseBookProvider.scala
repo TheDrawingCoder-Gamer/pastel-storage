@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture
 import scala.collection.mutable
 
 // guidebook pages
-abstract class SpectrumStorageBaseBookProvider(modid: String, val output: PackOutput, val lookup: CompletableFuture[HolderLookup.Provider]) extends LanguageProvider(output, modid, "en_us"):
+abstract class SpectrumStorageBaseBookProvider(modid: String, val output: PackOutput, val lookup: CompletableFuture[HolderLookup.Provider], val clientActive: Boolean, val serverActive: Boolean) extends LanguageProvider(output, modid, "en_us"):
   val bookEntries = mutable.HashMap.empty[EntryLocation, BookEntry]
 
   def addEntry(location: EntryLocation, category: ResourceLocation, transId: ResourceLocation)(creator: BookEntry => BookEntry): Unit =
@@ -28,18 +28,20 @@ abstract class SpectrumStorageBaseBookProvider(modid: String, val output: PackOu
     lookup.thenCompose: lookup =>
       addEntries(lookup)
       CompletableFuture.allOf(
-        super.run(cachedOutput),
-        CompletableFuture.allOf(
-          bookEntries.map: (k, v) =>
-            val path =
-              output.getOutputFolder(Target.DATA_PACK)
-                    .resolve(k.book.getNamespace)
-                    .resolve("modonomicon/books")
-                    .resolve(k.book.getPath)
-                    .resolve("entries")
-            DataProvider.saveStable(cachedOutput, v.toJson(lookup), path.resolve(v.location.id.getPath + ".json"))
-          .toSeq*
-        )
+        if clientActive then super.run(cachedOutput) else CompletableFuture.allOf(),
+        if serverActive then
+          CompletableFuture.allOf(
+            bookEntries.map: (k, v) =>
+              val path =
+                output.getOutputFolder(Target.DATA_PACK)
+                      .resolve(k.book.getNamespace)
+                      .resolve("modonomicon/books")
+                      .resolve(k.book.getPath)
+                      .resolve("entries")
+              DataProvider.saveStable(cachedOutput, v.toJson(lookup), path.resolve(v.location.id.getPath + ".json"))
+            .toSeq*
+          )
+        else CompletableFuture.allOf()
       )
 
 

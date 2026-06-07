@@ -24,7 +24,7 @@ import net.minecraft.world.level.ItemLike
 import java.util.concurrent.CompletableFuture
 import java.util.function.Supplier
 
-final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[HolderLookup.Provider]) extends SpectrumStorageBaseBookProvider(SpectrumStorage.ModId, output, lookup):
+final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[HolderLookup.Provider], clientActive: Boolean, serverActive: Boolean) extends SpectrumStorageBaseBookProvider(SpectrumStorage.ModId, output, lookup, clientActive, serverActive):
   def addTooltip(item: Supplier[? <: Item], sub: String, value: String): Unit =
     val it = item.get()
     val key = s"${it.getDescriptionId}.tooltip.$sub"

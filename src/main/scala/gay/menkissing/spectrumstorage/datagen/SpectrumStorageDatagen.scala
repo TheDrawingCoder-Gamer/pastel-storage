@@ -29,14 +29,15 @@ object SpectrumStorageDatagen:
         bootstrap.register(SpectrumEnchantmentKeys.VOIDING, Enchantment(Component.empty(), null, null, null))
       })
     )
+    event.createProvider((a, b) => SpectrumStorageBook(a, b, event.includeClient(), event.includeServer()))
+    if event.includeClient() then
+      event.addProvider(SpectrumStorageBlockStateGenerator(output, existingFileHelper))
+      event.addProvider(SpectrumStorageItemModelGenerator(output, existingFileHelper))
+    if event.includeServer() then
+      val blockTagProvider = SpectrumStorageBlockTagsProvider(output, lookupProvider, existingFileHelper)
 
-    // TODO: this only works as a _create_ applier for some reason
-    event.createProvider(SpectrumStorageBook.apply)
-    event.addProvider(SpectrumStorageBlockStateGenerator(output, existingFileHelper))
-    event.addProvider(SpectrumStorageItemModelGenerator(output, existingFileHelper))
-    val blockTagProvider = SpectrumStorageBlockTagsProvider(output, lookupProvider, existingFileHelper)
-    event.addProvider(blockTagProvider)
-    event.addProvider(SpectrumStorageItemTagsProvider(output, lookupProvider, blockTagProvider.contentsGetter, existingFileHelper))
-    event.createProvider(SpectrumStorageLootTableProvider.apply)
+      event.addProvider(blockTagProvider)
+      event.addProvider(SpectrumStorageItemTagsProvider(output, lookupProvider, blockTagProvider.contentsGetter, existingFileHelper))
+      event.createProvider(SpectrumStorageLootTableProvider.apply)
 
 

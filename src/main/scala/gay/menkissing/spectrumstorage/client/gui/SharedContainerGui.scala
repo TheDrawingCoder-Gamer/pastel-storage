@@ -1,6 +1,7 @@
 package gay.menkissing.spectrumstorage.client.gui
 
 import de.dafuqs.spectrum.inventories.ScreenBackgroundVariant
+import net.neoforged.api.distmarker.{Dist, OnlyIn}
 // import net.fabricmc.api.{EnvType, Environment}
 import net.minecraft.client.gui.GuiGraphics
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen
@@ -10,6 +11,7 @@ import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.inventory.AbstractContainerMenu
 
 // @Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 class SharedContainerGui[T <: AbstractContainerMenu](val rows: Int, val tier: ScreenBackgroundVariant, menu: T, inventory: Inventory, component: Component)
   extends AbstractContainerScreen[T](menu, inventory, component):
   this.imageHeight = 114 + rows * 18
