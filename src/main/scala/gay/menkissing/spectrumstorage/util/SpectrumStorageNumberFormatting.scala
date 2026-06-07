@@ -3,8 +3,7 @@ package gay.menkissing.spectrumstorage.util
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants
 
 object SpectrumStorageNumberFormatting:
-  def formatMB(amount: Long): String =
-    val mb = amount.toFloat / FluidConverter.DropletMbConversion.toFloat
+  def formatMB(mb: Int): String =
     if mb < 1000 then
       mb.toLong.toString
     else if mb < 1000000 then
@@ -12,6 +11,6 @@ object SpectrumStorageNumberFormatting:
     else
       String.format("%1$.2fM", mb / 1000000f)
 
-  def formatFluidMax(amount: Long): String =
-    val buckets = math.round(amount.toFloat / FluidConstants.BUCKET)
+  def formatFluidMax(amountDroplets: Long): String =
+    val buckets = math.round(amountDroplets.toFloat / FluidConstants.BUCKET)
     buckets.toString

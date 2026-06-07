@@ -56,6 +56,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   val fluidStorage: CombinedSlottedStorage[FluidVariant, BottleFluidStorageWrapper] =
     CombinedSlottedStorage((0 until capacity).map(BottleFluidStorageWrapper(_)).toList.asJava)
 
+  // TODO: Figure out a way to rewrite this BULLSHIT with forge capabilities
   class BundleItemStorageWrapper(val slot: Int) extends SnapshotParticipant[ResourceAmount[ItemVariant]], SingleSlotStorage[ItemVariant]:
     var filter: ItemVariant = ItemVariant.blank()
 

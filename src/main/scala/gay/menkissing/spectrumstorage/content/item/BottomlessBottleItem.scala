@@ -53,15 +53,15 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
 
 
   override def appendHoverText(stack: ItemStack, context: TooltipContext, tooltipComponents: util.List[Component], tooltipFlag: TooltipFlag): Unit =
-    val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack)
+    val contents = stack.getOrDefault(SpectrumStorageComponents.BottomlessBottleContentsComponent, SimpleFluidContent.EMPTY)
     if contents.isEmpty then
       tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.empty)
       tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.usagePickup)
     else
-      val containedFluid = contents.variant
-      val max = BottomlessBottleItem.getMaxStackRegistry(context.registries(), stack)
-      tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.countMB(contents.amount, max))
-      tooltipComponents.add(FluidVariantAttributes.getName(containedFluid))
+      val containedFluid = contents.getFluidType
+      val maxDroplets = BottomlessBottleItem.getMaxStackRegistry(context.registries(), stack)
+      tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.countMB(contents.getAmount, maxDroplets))
+      tooltipComponents.add(containedFluid.getDescription)
       tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.usagePickup)
       tooltipComponents.add(SpectrumStorageTranslationKeys.bottomlessBottle.tooltip.usagePlace)
 
