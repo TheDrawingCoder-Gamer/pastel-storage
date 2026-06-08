@@ -55,7 +55,6 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
 
 
   override def addEntries(lookup: HolderLookup.Provider): Unit =
-    SpectrumStorage.Logger.error("???")
     val spectrumBook = ResourceLocation.fromNamespaceAndPath("spectrum", "guidebook")
     val magicalCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "magical_blocks")
     val equipCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "equipment")
@@ -145,7 +144,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
               .withTitle("enchantment.minecraft.power")
               .withCondition(buildEnchanter)
               .withItem(powerVStack)
-              .withText(trans.text("Power increases its capacity eightfold each level."))
+              .withText(trans.text("Power increases its capacity fourfold each level."))
           )
     }
     this.addEntry(entryLoc("equipment/tool_container"), equipCategory, SpectrumStorageItems.toolContainer.get().location) {

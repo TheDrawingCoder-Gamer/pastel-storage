@@ -166,7 +166,8 @@ object BottomlessBottleItem:
 
 
   def maxAllowed(level: Int): Long =
-    baseMax * math.pow(8, math.min(level, 5)).toLong
+    // Have to lower this due to long shenanagins
+    baseMax * math.pow(4, math.min(level, 5)).toLong
   def getMaxStack(world: Level, stack: ItemStack): Long =
     getMaxStackRegistry(world.registryAccess(), stack)
   def getMaxStackRegistry(lookup: HolderLookup.Provider, stack: ItemStack): Long =
