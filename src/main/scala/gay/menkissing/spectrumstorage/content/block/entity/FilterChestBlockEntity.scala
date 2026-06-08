@@ -3,8 +3,7 @@ package gay.menkissing.spectrumstorage.content.block.entity
 import de.dafuqs.spectrum.api.block.FilterConfigurable
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks
 import gay.menkissing.spectrumstorage.screen.FilterChestMenu
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
+import gay.menkissing.spectrumstorage.util.network.SpectrumStorageNetworking.GayScreenHandler
 import net.minecraft.core.{BlockPos, Direction, HolderLookup, NonNullList}
 import net.minecraft.nbt.CompoundTag
 import net.minecraft.network.{FriendlyByteBuf, RegistryFriendlyByteBuf}
@@ -25,7 +24,7 @@ import java.util.stream.IntStream
 import scala.annotation.nowarn
 
 @nowarn("msg=unstable")
-class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity.get(), pos, state), WorldlyContainer, FilterConfigurable, ExtendedScreenHandlerFactory[FilterConfigurable.ExtendedDataWithPos]:
+class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity.get(), pos, state), WorldlyContainer, FilterConfigurable, GayScreenHandler[FilterConfigurable.ExtendedDataWithPos](FilterConfigurable.ExtendedDataWithPos.PACKET_CODEC):
   val filterItems: NonNullList[ItemStack] = NonNullList.withSize(FilterChestBlockEntity.filterCount, ItemStack.EMPTY)
   var items: NonNullList[ItemStack] = NonNullList.withSize(FilterChestBlockEntity.inventorySize, ItemStack.EMPTY)
   val openersCounter: ContainerOpenersCounter =
@@ -117,7 +116,7 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
     ContainerHelper.loadAllItems(tag, items, provider)
     FilterConfigurable.readFilterNbt(tag, filterItems)
 
-  override def getScreenOpeningData(player: ServerPlayer): FilterConfigurable.ExtendedDataWithPos  =
+  override def getOpeningData(player: ServerPlayer): FilterConfigurable.ExtendedDataWithPos  =
     FilterConfigurable.ExtendedDataWithPos(worldPosition, this)
 
   override def getItems: NonNullList[ItemStack] = items
@@ -136,7 +135,7 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
       decrementOpeners(player)
 
   override def createMenu(i: Int, inventory: Inventory): AbstractContainerMenu =
-    FilterChestMenu(i, inventory, this, this, getScreenOpeningData(inventory.player.asInstanceOf[ServerPlayer]))
+    FilterChestMenu(i, inventory, this, this, getOpeningData(inventory.player.asInstanceOf[ServerPlayer]))
 
 object FilterChestBlockEntity:
   val filterCount: Int = 18

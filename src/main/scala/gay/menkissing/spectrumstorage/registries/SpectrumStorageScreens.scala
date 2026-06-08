@@ -5,7 +5,6 @@ import de.dafuqs.spectrum.api.block.FilterConfigurable
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu.ToolContainerData
 import gay.menkissing.spectrumstorage.screen.{BottomlessStorageMenu, FilterChestMenu, ToolContainerMenu}
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
 import net.minecraft.network.{FriendlyByteBuf, RegistryFriendlyByteBuf}

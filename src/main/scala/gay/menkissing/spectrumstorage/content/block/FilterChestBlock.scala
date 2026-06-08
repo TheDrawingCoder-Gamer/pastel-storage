@@ -1,6 +1,7 @@
 package gay.menkissing.spectrumstorage.content.block
 
 import gay.menkissing.spectrumstorage.content.block.entity.FilterChestBlockEntity
+import gay.menkissing.spectrumstorage.util.network.SpectrumStorageNetworking
 import net.minecraft.core.{BlockPos, Direction}
 import net.minecraft.server.level.ServerLevel
 import net.minecraft.util.RandomSource
@@ -33,7 +34,7 @@ class FilterChestBlock(props: BlockBehaviour.Properties) extends BarrelBlock(pro
       val blockEntity = level.getBlockEntity(blockPos)
       blockEntity match
         case be: FilterChestBlockEntity =>
-          player.openMenu(be)
+          SpectrumStorageNetworking.openExtendedMenu(player, be)
         case _ => ()
       InteractionResult.CONSUME
 

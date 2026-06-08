@@ -4,9 +4,9 @@ import gay.menkissing.spectrumstorage.item.ItemBackedInventory
 import gay.menkissing.spectrumstorage.registries.SpectrumStorageTags
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu.ToolContainerData
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory
+import gay.menkissing.spectrumstorage.util.network.SpectrumStorageNetworking
+import gay.menkissing.spectrumstorage.util.network.SpectrumStorageNetworking.GayScreenHandler
 import net.minecraft.core.component.DataComponents
-import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.chat.Component
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.SlotAccess
@@ -21,8 +21,8 @@ class ToolContainerItem(props: Item.Properties) extends Item(props):
   override def use(level: Level, player: Player, interactionHand: InteractionHand): InteractionResultHolder[ItemStack] =
     if !level.isClientSide then
       val stack = player.getItemInHand(interactionHand)
-      val provider = new ExtendedScreenHandlerFactory[ToolContainerData] {
-        override def getScreenOpeningData(player: ServerPlayer): ToolContainerData =
+      val provider = new GayScreenHandler[ToolContainerData](ToolContainerData.STREAM_CODEC) {
+        override def getOpeningData(player: ServerPlayer): ToolContainerData =
           ToolContainerData(interactionHand == InteractionHand.MAIN_HAND)
 
         override def getDisplayName: Component = stack.getHoverName
@@ -30,7 +30,7 @@ class ToolContainerItem(props: Item.Properties) extends Item(props):
         override def createMenu(i: Int, inventory: Inventory, player: Player): AbstractContainerMenu =
           new ToolContainerMenu(i, inventory, stack)
       }
-      player.openMenu(provider)
+      SpectrumStorageNetworking.openExtendedMenu(player, provider)
     InteractionResultHolder.sidedSuccess(player.getItemInHand(interactionHand), level.isClientSide)
 
   override def onDestroyed(itemEntity: ItemEntity): Unit =
