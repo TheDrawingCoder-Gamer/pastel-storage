@@ -8,10 +8,14 @@ import gay.menkissing.spectrumstorage.screen.{BottomlessStorageMenu, FilterChest
 import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
+import net.minecraft.network.{FriendlyByteBuf, RegistryFriendlyByteBuf}
+import net.minecraft.network.codec.StreamCodec
 import net.minecraft.util.ExtraCodecs
+import net.minecraft.world.entity.player.Inventory
 import net.minecraft.world.flag.{FeatureFlag, FeatureFlagSet, FeatureFlags}
 import net.minecraft.world.inventory.{AbstractContainerMenu, MenuType}
 import net.neoforged.bus.api.IEventBus
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension
 import net.neoforged.neoforge.registries.DeferredRegister
 
 object SpectrumStorageScreens:
@@ -20,7 +24,7 @@ object SpectrumStorageScreens:
   val toolContainer =
     registry.register(
       "tool_container",
-      () => new ExtendedScreenHandlerType[ToolContainerMenu, ToolContainerData](ToolContainerMenu.fromNetwork, ToolContainerData.STREAM_CODEC)
+      () => extendedWrapper(ToolContainerMenu.fromNetwork, ToolContainerData.STREAM_CODEC)
     )
   val bottomlessBarrel =
     registry.register(
@@ -37,9 +41,15 @@ object SpectrumStorageScreens:
   val filterChest =
     registry.register(
       "filter_chest",
-      () => new ExtendedScreenHandlerType[FilterChestMenu, FilterConfigurable.ExtendedDataWithPos](FilterChestMenu.fromNetwork, FilterConfigurable.ExtendedDataWithPos.PACKET_CODEC)
+      () => extendedWrapper(FilterChestMenu.fromNetwork, FilterConfigurable.ExtendedDataWithPos.PACKET_CODEC)
     )
-  
 
+  def extendedWrapper[R <: AbstractContainerMenu, T](constructor: (Int, Inventory, T) => R, codec: StreamCodec[? >: RegistryFriendlyByteBuf, T]): MenuType[R] =
+    IMenuTypeExtension.create[R](
+      (syncId, inv, buf) => {
+        val data: T = if buf == null then null.asInstanceOf[T] else codec.decode(buf)
+        constructor(syncId, inv, data)
+      }
+    )
   def submit(bus: IEventBus): Unit =
     registry.register(bus)
