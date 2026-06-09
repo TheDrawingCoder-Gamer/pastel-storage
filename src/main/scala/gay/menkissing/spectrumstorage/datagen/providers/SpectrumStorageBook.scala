@@ -10,7 +10,6 @@ import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocati
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.SpectrumStorageBaseBookProvider
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.BookPedestalPageModel
 import gay.menkissing.spectrumstorage.util.resources.{*, given}
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.minecraft.core.registries.Registries
 import net.minecraft.core.{Holder, HolderLookup, HolderOwner}
 import net.minecraft.data.PackOutput
@@ -43,34 +42,34 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
     addTooltip(SpectrumStorageItems.bottomlessBottle, "count_mb", "%1$s mB / %2$s buckets")
     addItem(SpectrumStorageItems.toolContainer, "Tool Container")
 
-    add("book.spectrumstorage.added_by_spectrumstorage", "§oAdded by Spectrum Storage")
+    add("book.pastelstorage.added_by_spectrumstorage", "§oAdded by Pastel Storage")
 
     List(
       "bottomless_barrel" -> "Bottomless Barrel",
       "bottomless_amphora" -> "Bottomless Amphora",
       "filter_chest" -> "Filter Chest"
     ).foreach: (k, v) =>
-      add(s"container.spectrumstorage.$k", v)
+      add(s"container.pastelstorage.$k", v)
 
 
 
   override def addEntries(lookup: HolderLookup.Provider): Unit =
-    val spectrumBook = ResourceLocation.fromNamespaceAndPath("spectrum", "guidebook")
-    val magicalCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "magical_blocks")
-    val equipCategory = ResourceLocation.fromNamespaceAndPath("spectrum", "equipment")
-    val commonDesc = "book.spectrumstorage.added_by_spectrumstorage"
+    val spectrumBook = ResourceLocation.fromNamespaceAndPath("pastel", "guidebook")
+    val magicalCategory = ResourceLocation.fromNamespaceAndPath("pastel", "magical_blocks")
+    val equipCategory = ResourceLocation.fromNamespaceAndPath("pastel", "equipment")
+    val commonDesc = "book.pastelstorage.added_by_spectrumstorage"
 
     def itemUnlock(id: String): BookAdvancementConditionModel =
       BookAdvancementConditionModel
         .create()
-        .withAdvancementId(s"spectrumstorage:unlocks/items/$id")
+        .withAdvancementId(s"pastelstorage:unlocks/items/$id")
 
     def blockUnlock(id: String): BookAdvancementConditionModel =
       BookAdvancementConditionModel
         .create()
-        .withAdvancementId(s"spectrumstorage:unlocks/blocks/$id")
+        .withAdvancementId(s"pastelstorage:unlocks/blocks/$id")
     def entryLoc(path: String): EntryLocation =
-      EntryLocation(spectrumBook, ResourceLocation.fromNamespaceAndPath("spectrum", path))
+      EntryLocation(spectrumBook, ResourceLocation.fromNamespaceAndPath("pastel", path))
 
     def firstPage(item: ItemLike, text: String): BookSpotlightPageModel =
       BookSpotlightPageModel
@@ -84,7 +83,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
         .create()
         .withText(text)
         .withRecipeId(recipe)
-        .withTitle("container.spectrum.rei.pedestal_recipe")
+        .withTitle("container.pastel.rei.pedestal_recipe")
 
     def commonEntry(item: ItemLike, entry: BookEntry)(firstTxt: String): BookEntry =
       entry
@@ -109,7 +108,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
       ItemStack(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
     voidingBundle.enchant(voidingEnchant, 1)
 
-    val buildEnchanter = BookAdvancementConditionModel.create().withAdvancementId("spectrum:midgame/build_enchanting_structure")
+    val buildEnchanter = BookAdvancementConditionModel.create().withAdvancementId("pastel:midgame/build_enchanting_structure")
 
     def voidingPage(text: String): BookSpotlightPageModel =
       BookSpotlightPageModel
@@ -276,7 +275,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
             .withCondition(blockUnlock("bottomless_shelf"))
             .addPage(trans =>
               pedestalPage(
-                "spectrumstorage:pedestal/tier2/bottomless_shelf",
+                "pastelstorage:pedestal/tier2/bottomless_shelf",
                 trans.text("*Don't be shelfish!*")
               )
             )
@@ -317,7 +316,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
           .withCondition(blockUnlock("filter_chest"))
           .addPage(trans =>
             pedestalPage(
-              "spectrumstorage:pedestal/tier3/filter_chest",
+              "pastelstorage:pedestal/tier3/filter_chest",
               trans.text("*Filter? I hardly know her!*")
             )
           )

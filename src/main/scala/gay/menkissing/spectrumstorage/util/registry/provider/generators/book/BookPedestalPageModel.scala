@@ -33,7 +33,7 @@ final class BookPedestalPageModel extends BookPageModel[BookPedestalPageModel](B
 
 
 object BookPedestalPageModel:
-  val id = ResourceLocation.fromNamespaceAndPath("spectrum", "pedestal_crafting")
+  val id = ResourceLocation.fromNamespaceAndPath("pastel", "pedestal_crafting")
 
   def create(): BookPedestalPageModel = BookPedestalPageModel()
       

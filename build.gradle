@@ -121,7 +121,7 @@ dependencies {
 
     implementation "maven.modrinth:pastel-mod:${project.pastel_version}"
     implementation("com.klikli_dev:modonomicon-${project.minecraft_version}-neoforge:${project.modonomicon_version}")
-    implementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.fabric_api_version}"
+    // implementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.fabric_api_version}"
 
     // Item viewer
     switch (recipe_viewer.toLowerCase(Locale.ROOT)) {

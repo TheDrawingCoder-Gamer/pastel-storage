@@ -5,7 +5,6 @@ import earth.terrarium.pastel.inventories.slots.ShadowSlot
 import gay.menkissing.spectrumstorage.content.block.entity.FilterChestBlockEntity
 import gay.menkissing.spectrumstorage.registries.SpectrumStorageScreens
 import io.netty.buffer.ByteBuf
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
 import net.minecraft.core.BlockPos
 import net.minecraft.network.FriendlyByteBuf
 import net.minecraft.network.codec.{ByteBufCodecs, StreamCodec}

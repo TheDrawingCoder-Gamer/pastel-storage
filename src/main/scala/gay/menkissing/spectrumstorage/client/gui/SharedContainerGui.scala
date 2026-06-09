@@ -36,6 +36,6 @@ class SharedContainerGui[T <: AbstractContainerMenu](val rows: Int, val tier: Sc
       case ScreenBackgroundVariant.LATEGAME => SharedContainerGui.tier3
 
 object SharedContainerGui:
-  val tier1 = ResourceLocation.fromNamespaceAndPath("spectrum", "textures/gui/container/generic_54_tier_1.png")
-  val tier2 = ResourceLocation.fromNamespaceAndPath("spectrum", "textures/gui/container/generic_54_tier_2.png")
-  val tier3 = ResourceLocation.fromNamespaceAndPath("spectrum", "textures/gui/container/generic_54_tier_3.png")
+  val tier1 = ResourceLocation.fromNamespaceAndPath("pastel", "textures/gui/container/generic_54_tier_1.png")
+  val tier2 = ResourceLocation.fromNamespaceAndPath("pastel", "textures/gui/container/generic_54_tier_2.png")
+  val tier3 = ResourceLocation.fromNamespaceAndPath("pastel", "textures/gui/container/generic_54_tier_3.png")
