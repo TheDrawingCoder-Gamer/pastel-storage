@@ -88,10 +88,6 @@ repositories {
             includeGroup("earth.terrarium")
         }
     }
-    // FF API
-    maven {
-        url "https://maven.su5ed.dev/releases"
-    }
 
     maven { url = "https://maven.ryanhcode.dev/releases" } // sable
 }
