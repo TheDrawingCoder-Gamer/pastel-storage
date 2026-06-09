@@ -1,6 +1,6 @@
 package gay.menkissing.spectrumstorage.datagen
 
-import de.dafuqs.spectrum.registries.SpectrumEnchantmentKeys
+import earth.terrarium.pastel.registries.PastelEnchantments
 import gay.menkissing.spectrumstorage.datagen.providers.{SpectrumStorageBlockStateGenerator, SpectrumStorageBlockTagsProvider, SpectrumStorageBook, SpectrumStorageItemModelGenerator, SpectrumStorageItemTagsProvider, SpectrumStorageLootTableProvider}
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.SpectrumStorageBaseBookProvider
 import net.minecraft.core.registries.Registries
@@ -26,7 +26,7 @@ object SpectrumStorageDatagen:
 
     event.createDatapackRegistryObjects(
       new RegistrySetBuilder().add(Registries.ENCHANTMENT, bootstrap => {
-        bootstrap.register(SpectrumEnchantmentKeys.VOIDING, Enchantment(Component.empty(), null, null, null))
+        bootstrap.register(PastelEnchantments.VOIDING, Enchantment(Component.empty(), null, null, null))
       })
     )
     event.createProvider((a, b) => SpectrumStorageBook(a, b, event.includeClient(), event.includeServer()))

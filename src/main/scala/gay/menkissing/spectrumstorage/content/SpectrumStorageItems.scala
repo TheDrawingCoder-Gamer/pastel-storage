@@ -1,13 +1,13 @@
 package gay.menkissing.spectrumstorage.content
 
+import earth.terrarium.pastel.helpers.enchantments.Ench
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.item.{BottomlessBottleItem, ToolContainerItem}
 import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext
 import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.world.item.{Item, ItemStack}
-import de.dafuqs.fractal.api.CreativeSubTabEvent
-import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
+import net.minecraft.world.item.{CreativeModeTab, Item, ItemStack}
+import earth.terrarium.pastel.registries.{PastelBlocks, PastelItemGroups}
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks.blockItems
 import gay.menkissing.spectrumstorage.registries.SpectrumStorageComponents
 import gay.menkissing.spectrumstorage.util.{FluidConverter, SpectrumStorageEnchantmentHelper}
@@ -16,6 +16,7 @@ import net.neoforged.bus.api.IEventBus
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
 import net.neoforged.neoforge.common.NeoForge
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent
 import net.neoforged.neoforge.fluids.capability.templates.FluidHandlerItemStack
 import net.neoforged.neoforge.registries.{DeferredItem, DeferredRegister, RegisterEvent}
 import org.sinytra.fabric.transfer_api.compat.FluidStorageFluidHandlerItem
@@ -25,36 +26,15 @@ import scala.jdk.CollectionConverters.*
 
 object SpectrumStorageItems:
   val registrar: DeferredRegister.Items = DeferredRegister.createItems(SpectrumStorage.ModId)
-
-  private val items = mutable.Map[ResourceLocation, mutable.ArrayBuffer[DeferredItem[Item]]]()
-
-
-  def register[T <: Item](name: String, tab: ResourceLocation, item: => T): DeferredItem[T] =
-    val it = registrar.register(name, () => item)
-    items.getOrElseUpdate(tab, mutable.ArrayBuffer.empty).addOne(it.asInstanceOf[DeferredItem[Item]])
-    it
+  
+  def register[T <: Item](name: String, item: => T): DeferredItem[T] =
+    registrar.register(name, () => item)
 
   val bottomlessBottle: DeferredItem[Item] =
-    register("bottomless_bottle", ItemGroupIDs.SUBTAB_EQUIPMENT, new BottomlessBottleItem(Item.Properties().stacksTo(1)))
-    /*
-    InfoCollector.instance.item(SpectrumStorage.locate("bottomless_bottle"), new BottomlessBottleItem(Item.Properties().stacksTo(1)))
-                 .lang("Bottomless Bottle")
-                 .tooltip("empty", "Empty")
-                 .tooltip("usage_pickup", "Use to pickup")
-                 .tooltip("usage_place", "Sneak-use to place")
-                 .tooltip("count_mb", "%1$s mB / %2$s buckets")
-                 .addToSubGroup(ItemGroupIDs.SUBTAB_EQUIPMENT)
-
-     */
+    register("bottomless_bottle", new BottomlessBottleItem(Item.Properties().stacksTo(1)))
 
   val toolContainer: DeferredItem[Item] =
-    register("tool_container", ItemGroupIDs.SUBTAB_EQUIPMENT, new ToolContainerItem(Item.Properties().stacksTo(1)))
-    /*
-    InfoCollector.instance.item(SpectrumStorage.locate("tool_container"), new ToolContainerItem(Item.Properties().stacksTo(1)))
-                 .lang("Tool Container")
-                 .defaultModel()
-                 .addToSubGroup(ItemGroupIDs.SUBTAB_EQUIPMENT)
-     */
+    register("tool_container", new ToolContainerItem(Item.Properties().stacksTo(1)))
 
   def submit(bus: IEventBus): Unit =
     // TODO IMPORTANT!
@@ -62,13 +42,11 @@ object SpectrumStorageItems:
     registrar.register(bus)
     bus.addListener: (ev: FMLCommonSetupEvent) =>
       BottomlessBottleItem.registerCauldronInteractions()
-    NeoForge.EVENT_BUS.addListener[CreativeSubTabEvent]((it: CreativeSubTabEvent) => {
-      val subgroup = it.subGroup()
-      items.get(subgroup.getIdentifier).foreach { items =>
-        val builder = it.getItemDisplayBuilder
-        items.foreach(builder.accept)
-      }
-    })
+    bus.addListener: (ev: BuildCreativeModeTabContentsEvent) =>
+      if ev.getTabKey.location() == PastelItemGroups.TOOLS_ID then
+        val baseStack = bottomlessBottle.toStack(1)
+        ev.insertAfter(PastelBlocks.BOTTOMLESS_BUNDLE.toStack(1), baseStack, CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS)
+        ev.insertAfter(baseStack, toolContainer.toStack(1), CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS)
     bus.addListener: (it: RegisterCapabilitiesEvent) =>
       it.registerItem(
         Capabilities.FluidHandler.ITEM,

@@ -1,0 +1,29 @@
+{
+  "type": "pastel:pedestal",
+  "time": 240,
+  "tier": "simple",
+  "colors": {
+    "pastel:magenta": 0,
+    "pastel:yellow": 0,
+    "pastel:cyan": 8,
+    "pastel:black": 0,
+    "pastel:white": 0
+  },
+  "experience": 2.0,
+  "pattern": [
+    "QGQ",
+    "ICI",
+    "QIQ"
+  ],
+  "key": {
+    "Q": "pastel:quitoxic_powder",
+    "I": "minecraft:iron_ingot",
+    "G": "minecraft:gold_ingot",
+    "C": "minecraft:chest"
+  },
+  "result": {
+    "id": "pastelstorage:tool_container",
+    "count": 1
+  },
+  "required_advancement": "pastelstorage:unlocks/items/tool_container"
+}

@@ -1,6 +1,6 @@
 package gay.menkissing.spectrumstorage.client.gui
 
-import de.dafuqs.spectrum.inventories.ScreenBackgroundVariant
+import earth.terrarium.pastel.inventories.ScreenBackgroundVariant
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu
 import net.minecraft.network.chat.Component
 import net.minecraft.world.entity.player.Inventory

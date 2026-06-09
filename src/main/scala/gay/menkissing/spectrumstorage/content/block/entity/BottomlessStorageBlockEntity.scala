@@ -1,22 +1,18 @@
 package gay.menkissing.spectrumstorage.content.block.entity
 
-import de.dafuqs.spectrum.blocks.bottomless_bundle.{BottomlessBundleItem, BottomlessComponent, BottomlessItemHandler}
-import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumDataComponentTypes, SpectrumEnchantmentKeys, SpectrumEnchantmentTags, SpectrumItems}
+import earth.terrarium.pastel.blocks.bottomless_bundle.BottomlessBundleItem
+import earth.terrarium.pastel.api.item.{ItemReference, ItemStorage}
+import earth.terrarium.pastel.registries.{PastelBlocks, PastelDataComponentTypes, PastelEnchantmentTags, PastelEnchantments}
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks.bottomlessBarrel
 import gay.menkissing.spectrumstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.spectrumstorage.content.item.BottomlessBottleItem
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageComponents
 import gay.menkissing.spectrumstorage.screen.BottomlessStorageMenu
-import gay.menkissing.spectrumstorage.util.{FluidConverter, SpectrumStorageEnchantmentHelper}
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant
-import net.fabricmc.fabric.api.transfer.v1.storage.StoragePreconditions
-import net.fabricmc.fabric.api.transfer.v1.storage.base.{CombinedSlottedStorage, CombinedStorage, ResourceAmount, SingleSlotStorage}
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext
-import net.fabricmc.fabric.api.transfer.v1.transaction.base.SnapshotParticipant
+import gay.menkissing.spectrumstorage.util.{FluidConverter, FluidResource, SpectrumStorageEnchantmentHelper}
 import net.minecraft.core.component.DataComponents
-import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.{BuiltInRegistries, Registries}
 import net.minecraft.core.{BlockPos, Direction, HolderLookup, NonNullList, Vec3i}
 import net.minecraft.nbt.{CompoundTag, ListTag, NbtOps, Tag}
 import net.minecraft.network.chat.Component
@@ -34,6 +30,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.gameevent.GameEvent
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
+import net.neoforged.neoforge.fluids.{FluidStack, SimpleFluidContent}
 import net.neoforged.neoforge.fluids.capability.IFluidHandler
 import net.neoforged.neoforge.items.IItemHandler
 import org.sinytra.fabric.transfer_api.compat.{FluidStorageFluidHandler, ItemStorageItemHandler, SlottedItemStorageItemHandler}
@@ -43,211 +40,298 @@ import scala.jdk.CollectionConverters.*
 
 abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BlockEntity(baseEntity, pos, state):
 
-  import BottomlessStorageBlockEntity.BundleHelper
-
-
 
   protected val items = NonNullList.withSize(capacity, ItemStack.EMPTY)
   protected var lastInteractedSlot: Int = -1
 
 
-  val itemStorage: CombinedSlottedStorage[ItemVariant, BundleItemStorageWrapper] =
-    CombinedSlottedStorage((0 until capacity).map(BundleItemStorageWrapper(_)).toList.asJava)
-  val fluidStorage: CombinedSlottedStorage[FluidVariant, BottleFluidStorageWrapper] =
-    CombinedSlottedStorage((0 until capacity).map(BottleFluidStorageWrapper(_)).toList.asJava)
+  val itemStorage: ItemStorages = new ItemStorages
+  val fluidStorage: FluidStorages = new FluidStorages
 
-  // TODO: Figure out a way to rewrite this BULLSHIT with forge capabilities
-  // Not a blocker, but would be preferable to remove dep on FFAPI
-  class BundleItemStorageWrapper(val slot: Int) extends SnapshotParticipant[ResourceAmount[ItemVariant]], SingleSlotStorage[ItemVariant]:
-    var filter: ItemVariant = ItemVariant.blank()
+  class ItemStorages extends IItemHandler {
+    val storages = Vector.fill(capacity)(new BundleItemStorageHandler)
 
-    def resetVariant(): Unit = filter = ItemVariant.blank()
+    def unsetSlot(slot: Int): Unit =
+      storages(slot).unset()
 
-    def validVariant(storedVariant: ItemVariant, resource: ItemVariant): Boolean =
-      if !storedVariant.isBlank && !filter.isBlank && filter != storedVariant then
-        SpectrumStorage.Logger.debug("Player must have modified the bundle manually, updating filter")
+    def setSlot(slot: Int, stack: ItemStack): Unit =
+      assert(stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()))
+      storages(slot).set(stack)
 
-      if !storedVariant.isBlank then
-        filter = storedVariant
+    override def getSlots: Int = capacity
+
+    override def getStackInSlot(slot: Int): ItemStack =
+      storages(slot).getStackInSlot(0)
+
+    override def getSlotLimit(slot: Int): Int =
+      storages(slot).getSlotLimit(0)
+
+    override def insertItem(slot: Int, stack: ItemStack, simulated: Boolean): ItemStack =
+      storages(slot).insertItem(0, stack, simulated)
+
+    override def extractItem(slot: Int, amount: Int, simulated: Boolean): ItemStack =
+      storages(slot).extractItem(slot, amount, simulated)
+
+    override def isItemValid(slot: Int, stack: ItemStack): Boolean = true
+  }
+
+  class BundleItemStorageHandler extends IItemHandler {
+    var stack: ItemStack = ItemStack.EMPTY
+    var innerStorage: ItemStorage | Null = null
+    var isVoiding: Boolean = false
+    var powerLevel: Int = 0
+
+    var filter: ItemReference = ItemReference.empty()
+
+    def syncStackWithStorage(): Unit =
+      if innerStorage != null && !stack.isEmpty then
+        innerStorage.copy().save(stack)
+
+    def syncStorageWithStack(): Unit =
+      if !stack.isEmpty then
+        innerStorage = ItemStorage.load(stack).copy()
+      else
+        innerStorage = null
+
+    def unset(): Unit =
+      if !this.stack.isEmpty && this.innerStorage != null then
+        syncStackWithStorage()
+      this.stack = ItemStack.EMPTY
+      this.filter = ItemReference.empty()
+      syncStorageWithStack()
+
+    def set(stack: ItemStack): Unit =
+      if !this.stack.isEmpty && this.innerStorage != null then
+        // save our changes
+        syncStackWithStorage()
+      this.stack = stack
+      this.filter =
+        stack.getOrDefault(PastelDataComponentTypes.ITEM_STORAGE, ItemStorage.Component.DEFAULT).reference()
+      this.isVoiding = EnchantmentHelper.hasTag(stack, PastelEnchantmentTags.DELETES_OVERFLOW)
+      this.powerLevel = EnchantmentHelper.getItemEnchantmentLevel(level.registryAccess().lookup(Registries.ENCHANTMENT)
+        .flatMap(impl => impl.get(Enchantments.POWER)).orElse(null), stack)
+      syncStorageWithStack()
 
 
 
-      filter.isBlank || filter == resource
+    def permits(stored: ItemReference, resource: ItemReference): Boolean =
+      if !stored.isEmpty && !filter.isEmpty && filter != stored then
+        SpectrumStorage.Logger.debug("player must have modified the bundle manually, updating filter")
 
-    def bundle: Option[ItemStack] =
-      val thingie = BottomlessStorageBlockEntity.this.items.get(slot)
-      Option.when(thingie.is(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem()))(thingie)
+      if !stored.isEmpty then
+        filter = stored
 
-    override def insert(resource: ItemVariant, maxAmount: Long, transaction: TransactionContext): Long =
-      StoragePreconditions.notBlankNotNegative(resource, maxAmount)
+      filter.isEmpty || filter == resource
 
-      this.bundle match
-        case None => 0L
-        case Some(bundle) =>
-          val builder = BundleHelper.buildFromStack(bundle)
+    override def getSlots: Int = 1
 
+    override def getStackInSlot(i: Int): ItemStack =
+      if innerStorage != null && !this.stack.isEmpty then
+        innerStorage.stack(math.min(innerStorage.getCount, innerStorage.stackSize()).toInt)
+      else
+        ItemStack.EMPTY
 
-          if validVariant(builder.template, resource) then
-            this.updateSnapshots(transaction)
-            val inserted = builder.insert(resource, maxAmount)
-            builder.buildAndSet(bundle)
+    override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack =
+      if !this.stack.isEmpty && this.innerStorage != null && slot == 0 then
+        val change = innerStorage.insert(stack)
+        val remainder = stack.copyWithCount(stack.getCount - change)
 
-            inserted
+        if simulate then
+          innerStorage.extractPure(change)
+          return remainder
+
+        syncStackWithStorage()
+        setChanged()
+        if isVoiding then
+          ItemStack.EMPTY
+        else
+          remainder
+      else
+        stack
+
+    override def extractItem(slot: Int, amount: Int, simulate: Boolean): ItemStack =
+      if !this.stack.isEmpty && this.innerStorage != null && slot == 0 then
+        val result = innerStorage.extract(amount)
+
+        if simulate then
+          innerStorage.increment(result.getCount)
+        else
+          setChanged()
+          // TODO: avoid doing this
+          syncStackWithStorage()
+        result
+      else
+        ItemStack.EMPTY
+
+    override def getSlotLimit(slot: Int): Int =
+      if !this.stack.isEmpty then
+        BottomlessBundleItem.getMaxStoredAmount(powerLevel).toInt
+      else
+        0
+
+    override def isItemValid(slot: Int, itemStack: ItemStack): Boolean =
+      true
+
+  }
+
+  class FluidStorages extends IFluidHandler {
+    val storages = Vector.fill(capacity)(new BottleFluidStorageHandler)
+
+    def unsetSlot(slot: Int): Unit =
+      storages(slot).unset()
+
+    def setSlot(slot: Int, stack: ItemStack): Unit =
+      storages(slot).set(stack)
+
+    override def getTanks: Int = capacity
+
+    override def getFluidInTank(slot: Int): FluidStack =
+      storages(slot).getFluidInTank(0)
+
+    override def getTankCapacity(slot: Int): Int =
+      storages(slot).getTankCapacity(0)
+
+    override def isFluidValid(slot: Int, fluidStack: FluidStack): Boolean =
+      storages(slot).isFluidValid(0, fluidStack)
+
+    override def fill(resource: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
+      var i = 0
+      var toFill = resource.getAmount
+      var amountFill = 0
+      while i < capacity do
+        val storage = storages(i)
+        val amount = storage.fill(resource.copyWithAmount(toFill), fluidAction)
+        toFill -= amount
+        amountFill += amount
+        if toFill == 0 then
+          return amountFill
+
+        i += 1
+
+      amountFill
+
+    override def drain(resource: FluidStack, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      var i = 0
+      var toDrain = resource.getAmount
+      var amountDrained = 0
+      while i < capacity do
+        val storage = storages(i)
+        val result = storage.drain(resource.copyWithAmount(toDrain), fluidAction)
+        toDrain -= result.getAmount
+        amountDrained += result.getAmount
+        if toDrain == 0 then
+          return resource.copyWithAmount(amountDrained)
+        
+        i += 1
+      resource.copyWithAmount(amountDrained)
+    
+    override def drain(maxDrain: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      var i = 0
+      var template = FluidResource.EMPTY
+      var toDrain = maxDrain
+      var amountDrained = 0
+      while i < capacity do
+        val storage = storages(i)
+        val result =
+          if template.isBlank then
+            val r = storage.drain(toDrain, fluidAction)
+            if !r.isEmpty then
+              template = FluidResource.ofStack(r) 
+            r
           else
-            0L
+            storage.drain(template.makeStack(toDrain), fluidAction)
+        
+        toDrain -= result.getAmount
+        amountDrained += result.getAmount
+        
+        if toDrain == 0 then
+          return template.makeStack(amountDrained)
+        
+        i += 1
+      if template.isBlank then
+        FluidStack.EMPTY
+      else
+        template.makeStack(amountDrained)
+          
+        
+  }
 
-    override def extract(resource: ItemVariant, maxAmount: Long, transaction: TransactionContext): Long =
-      StoragePreconditions.notBlankNotNegative(resource, maxAmount)
+  class BottleFluidStorageHandler extends IFluidHandler {
+    var stack: ItemStack = ItemStack.EMPTY
+    var powerLevel: Int = 0
 
-      this.bundle match
-        case None => 0L
-        case Some(bundle) =>
-          val builder = BundleHelper.buildFromStack(bundle)
+    var filter: FluidResource = FluidResource.EMPTY
 
-          if validVariant(builder.template, resource) then
-            this.updateSnapshots(transaction)
-            val extracted = builder.extract(resource, maxAmount)
-            builder.buildAndSet(bundle)
+    def unset(): Unit =
+      filter = FluidResource.EMPTY
+      stack = ItemStack.EMPTY
 
-            extracted
-          else
-            0L
+    def set(stack: ItemStack): Unit =
+      this.stack = stack
+      val component = stack.getOrDefault(SpectrumStorageComponents.BottomlessBottleContentsComponent, SimpleFluidContent.EMPTY)
+      val fluidStack = component.copy()
+      this.filter = FluidResource.of(component.getFluid, fluidStack.getComponentsPatch)
+      this.powerLevel = EnchantmentHelper.getItemEnchantmentLevel(level.registryAccess().lookup(Registries.ENCHANTMENT)
+                                                                       .flatMap(impl => impl.get(Enchantments.POWER)).orElse(null), stack)
 
-    override def isResourceBlank: Boolean =
-      this.bundle.forall: stack =>
-        val contents = BundleHelper.contentsFromStack(stack).handler()
-        contents.count() == 0L || contents.variant().isEmpty
+    override def getTanks: Int = 1
 
-    override def getResource: ItemVariant =
-      this.bundle match
-        case None => ItemVariant.blank()
-        case Some(bundle) => ItemVariant.of(BundleHelper.contentsFromStack(bundle).handler().variant)
+    override def getFluidInTank(slot: Int): FluidStack =
+      if !stack.isEmpty then
+        val component = stack.getOrDefault(SpectrumStorageComponents.BottomlessBottleContentsComponent, SimpleFluidContent.EMPTY)
+        component.copy()
+      else
+        FluidStack.EMPTY
 
-    override def getAmount: Long =
-      this.bundle match
-        case None => 0L
-        case Some(bundle) => BundleHelper.contentsFromStack(bundle).handler().count
+    override def getTankCapacity(slot: Int): Int =
+      if !stack.isEmpty then
+        FluidConverter.dropletToMb(BottomlessBottleItem.maxAllowed(powerLevel))
+      else
+        0
 
-    override def getCapacity: Long =
-      this.bundle match
-        case None => 0L
-        case Some(bundle) => BottomlessComponent
-          .getMaxStoredAmount(SpectrumStorageEnchantmentHelper.getLevel(level.registryAccess(), Enchantments.POWER, bundle))
+    override def isFluidValid(slot: Int, fluidStack: FluidStack): Boolean = true
 
-    override def createSnapshot(): ResourceAmount[ItemVariant] =
-      this.bundle match
-        case None => ResourceAmount(ItemVariant.blank(), 0L)
-        case Some(bundle) =>
-          val contents = BundleHelper.contentsFromStack(bundle).handler()
-          ResourceAmount(ItemVariant.of(contents.variant), contents.count)
+    override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
+      if !stack.isEmpty then
+        val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(stack)
+        val count = builder.insert(FluidResource.ofStack(fluidStack), fluidStack.getAmount)
 
-    override def readSnapshot(snapshot: ResourceAmount[ItemVariant]): Unit =
-      this.bundle match
-        case None => ()
-        case Some(bundle) =>
-          val builder = BundleHelper.buildFromStack(bundle)
-          builder.set(snapshot.resource(), snapshot.amount())
-          builder.buildAndSet(bundle)
+        if fluidAction.execute() then
+          builder.buildAndSet(stack)
+          setChanged()
 
-    override def onFinalCommit(): Unit =
-      // better safe than soggy...
-      BottomlessStorageBlockEntity.this.setChanged()
+        count
+      else
+        0
 
-  class BottleFluidStorageWrapper(val slot: Int) extends SnapshotParticipant[ResourceAmount[FluidVariant]], SingleSlotStorage[FluidVariant]:
-    var filter: FluidVariant = FluidVariant.blank()
+    override def drain(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      if !stack.isEmpty then
+        val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(stack)
+        val count = builder.extract(FluidResource.ofStack(fluidStack), fluidStack.getAmount)
 
+        if fluidAction.execute() then
+          builder.buildAndSet(stack)
+          setChanged()
 
-    def resetVariant(): Unit = filter = FluidVariant.blank()
+        fluidStack.copyWithAmount(count)
+      else
+        FluidStack.EMPTY
 
-    def bottle: Option[ItemStack] =
-      val thingie = BottomlessStorageBlockEntity.this.items.get(slot)
-      Option.when(thingie.is(SpectrumStorageItems.bottomlessBottle))(thingie)
+    override def drain(maxDrain: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      if !stack.isEmpty then
+        val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(stack)
+        val resource = builder.template
+        val count = builder.extract(resource, maxDrain)
 
-    def validVariant(storedVariant: FluidVariant, resource: FluidVariant): Boolean =
-      if filter.isBlank && !storedVariant.isBlank then
-        filter = storedVariant
+        if fluidAction.execute() then
+          builder.buildAndSet(stack)
+          setChanged()
 
-      // This assertion still works for fluids because players cant manipulate the bottle without removing and reinserting it,
-      // and when they do that the filter will be reinspected anyway
-      if !storedVariant.isBlank then
-        assert(storedVariant == filter)
+        resource.makeStack(count)
+      else
+        FluidStack.EMPTY
 
-      filter.isBlank || filter == resource
-
-    override def insert(resource: FluidVariant, maxAmount: Long, transaction: TransactionContext): Long = {
-      StoragePreconditions.notBlankNotNegative(resource, maxAmount)
-
-      this.bottle match
-        case None => 0L
-        case Some(bottle) =>
-          val builder = BottomlessBottleItem.BottomlessBottleContents.Builder.of(BottomlessStorageBlockEntity.this.level, bottle)
-
-          if validVariant(builder.template, resource) then
-            this.updateSnapshots(transaction)
-            val inserted = builder.insert(resource, maxAmount)
-            BottomlessBottleItem.BottomlessBottleContents.replaceInStack(bottle, builder.build)
-            //StasisCoolerBlockEntity.this.setItem(slot, bottle)
-
-            inserted
-          else
-            0L
-    }
-
-    override def extract(resource: FluidVariant, maxAmount: Long, transaction: TransactionContext): Long = {
-      StoragePreconditions.notBlankNotNegative(resource, maxAmount)
-
-      this.bottle match
-        case None => 0L
-        case Some(bottle) =>
-          val builder = BottomlessBottleItem.BottomlessBottleContents.Builder.of(BottomlessStorageBlockEntity.this.level, bottle)
-
-          if validVariant(builder.template, resource) then
-            this.updateSnapshots(transaction)
-            val extracted = builder.extract(resource, maxAmount)
-            BottomlessBottleItem.BottomlessBottleContents.replaceInStack(bottle, builder.build)
-            //StasisCoolerBlockEntity.this.setItem(slot, bottle)
-
-            extracted
-          else
-            0L
-    }
-
-    override def getResource: FluidVariant =
-      this.bottle match
-        case None => FluidVariant.blank()
-        case Some(b) => BottomlessBottleItem.BottomlessBottleContents.getFromStack(b).variant
-
-    override def isResourceBlank: Boolean = getResource.isBlank
-
-    override def getAmount: Long =
-      this.bottle match
-        case None => 0L
-        case Some(bottle) =>
-          BottomlessBottleItem.BottomlessBottleContents.getFromStack(bottle).amount
-
-    override def getCapacity: Long =
-      this.bottle match
-        case None => 0L
-        case Some(bottle) =>
-          BottomlessBottleItem.getMaxStack(bottle)
-
-    override def createSnapshot(): ResourceAmount[FluidVariant] =
-      this.bottle match
-        case None => ResourceAmount(FluidVariant.blank(), 0L)
-        case Some(bottle) =>
-          val contents = BottomlessBottleItem.BottomlessBottleContents.getFromStack(bottle)
-          ResourceAmount(contents.variant, contents.amount)
-
-    override def readSnapshot(t: ResourceAmount[FluidVariant]): Unit =
-      this.bottle match
-        case None => ()
-        case Some(bottle) =>
-          val contents = BottomlessBottleItem.BottomlessBottleContents(t.resource(), t.amount())
-          BottomlessBottleItem.BottomlessBottleContents.replaceInStack(bottle, contents)
-
-    override def onFinalCommit(): Unit =
-      // better safe than soggy...
-      BottomlessStorageBlockEntity.this.setChanged()
+  }
 
   override def loadAdditional(tag: CompoundTag, lookup: HolderLookup.Provider): Unit =
     super.loadAdditional(tag, lookup)
@@ -272,14 +356,14 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   protected def updateSlot(slot: Int): Unit =
     val stack = this.items.get(slot)
     if stack.is(SpectrumStorageItems.bottomlessBottle) then
-      itemStorage.parts.get(slot).resetVariant()
-      fluidStorage.parts.get(slot).filter = BottomlessBottleItem.BottomlessBottleContents.getFromStack(stack).variant
-    else if stack.is(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem()) then
-      fluidStorage.parts.get(slot).resetVariant()
-      itemStorage.parts.get(slot).filter = ItemVariant.of(BundleHelper.contentsFromStack(stack).handler().variant)
+      itemStorage.storages(slot).unset()
+      fluidStorage.storages(slot).set(stack)
+    else if stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
+      fluidStorage.storages(slot).unset()
+      itemStorage.storages(slot).set(stack)
     else
-      fluidStorage.parts.get(slot).resetVariant()
-      itemStorage.parts.get(slot).resetVariant()
+      fluidStorage.storages(slot).unset()
+      itemStorage.storages(slot).unset()
 
   protected def updateSlotShown(slot: Int): Unit = ()
 
@@ -290,8 +374,9 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       val j = compound.getByte("Slot").toInt
       if j >= 0 && j < capacity then
         // if error then will auto return blankie wankie
-        val variant = ItemVariant.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
-        itemStorage.parts.get(j).filter = variant.getFirst
+        val variant = ItemReference.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
+        updateSlot(j)
+        itemStorage.storages(j).filter = variant.getFirst
 
   def loadFluidFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = tag.getList(BottomlessStorageBlockEntity.tagFluidFilters, 10)
@@ -299,29 +384,29 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       val compound = listTag.getCompound(i)
       val j = compound.getByte("Slot").toInt
       if j >= 0 && j < capacity then
-
-        val variant = FluidVariant.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow().getFirst
-        fluidStorage.parts.get(j).filter = variant
+        val variant = FluidResource.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow().getFirst
+        updateSlot(j)
+        fluidStorage.storages(j).filter = variant
 
   def saveItemFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = ListTag()
     for i <- 0 until capacity do
-      val filter = itemStorage.parts.get(i).filter
-      if !filter.isBlank then
+      val filter = itemStorage.storages(i).filter
+      if !filter.isEmpty then
         val compound = CompoundTag()
         compound.putByte("Slot", i.toByte)
-        val compound2 = ItemVariant.CODEC.encode(filter, provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
+        val compound2 = ItemReference.CODEC.encode(filter, provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
         listTag.add(compound2)
     tag.put(BottomlessStorageBlockEntity.tagItemFilters, listTag)
 
   def saveFluidFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = ListTag()
     for i <- 0 until 6 do
-      val filter = fluidStorage.parts.get(i).filter
+      val filter = fluidStorage.storages(i).filter
       if !filter.isBlank then
         val compound = CompoundTag()
         compound.putByte("Slot", i.toByte)
-        val compound2 = FluidVariant.CODEC.encode(filter, provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
+        val compound2 = FluidResource.CODEC.encode(filter, provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
         listTag.add(compound2)
     tag.put(BottomlessStorageBlockEntity.tagFluidFilters, listTag)
 
@@ -339,7 +424,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   def removeItemNoUpdate(slot: Int): ItemStack = this.removeItem(slot, 1)
 
   def setItem(slot: Int, stack: ItemStack): Unit =
-    if stack.is(SpectrumStorageItems.bottomlessBottle) || stack.is(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem()) then
+    if stack.is(SpectrumStorageItems.bottomlessBottle) || stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
       this.items.set(slot, stack)
       this.updateSlot(slot)
       this.updateSlotShown(slot)
@@ -488,76 +573,6 @@ object BottomlessStorageBlockEntity:
 
 
 
-  object BundleHelper:
-
-
-    def contentsFromStack(stack: ItemStack): BottomlessComponent =
-      stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessComponent.DEFAULT)
-
-    def buildFromStack(stack: ItemStack): Builder =
-      val prev = stack.getOrDefault(SpectrumDataComponentTypes.BOTTOMLESS_STACK, BottomlessComponent.DEFAULT)
-      val max =
-        val access = SpectrumStorage.getRegistryAccess
-        if access == null then
-          BottomlessComponent.getMaxStoredAmount(0)
-        else
-          BottomlessComponent.getMaxStoredAmount(SpectrumStorageEnchantmentHelper.getLevel(access, Enchantments.POWER, stack))
-      val voiding = EnchantmentHelper.hasTag(stack, SpectrumEnchantmentTags.DELETES_OVERFLOW_IN_INVENTORY)
-      val locked = stack.has(DataComponents.LOCK)
-      new Builder(prev, max, voiding, locked)
-
-    final class Builder(prev: BottomlessComponent, val max: Long, val voiding: Boolean, val locked: Boolean):
-      var amount: Long = prev.handler().count
-      var template: ItemVariant = ItemVariant.of(prev.handler().variant)
-
-      def isEmpty: Boolean =
-        template.isBlank || amount == 0L
-      
-      def getMaxAllowed(variant: ItemVariant, amount: Long): Long =
-        if variant.isBlank || amount <= 0 || (!this.isEmpty && template != variant) then
-          0
-        else if voiding then
-          Int.MaxValue
-        else
-          this.max - this.amount
-
-      def insert(variant: ItemVariant, amount: Long): Long =
-        val added =
-
-          math.min(amount, getMaxAllowed(variant, amount))
-        if added == 0 then
-          return 0
-        if this.isEmpty then
-          this.template = variant
-
-        this.amount += added
-        added
-
-      def extract(variant: ItemVariant, amount: Long): Long =
-        if variant != template then
-          0
-        else
-          val toRemove = math.min(this.amount, amount)
-          this.amount -= toRemove
-          if this.amount == 0 then
-            this.template = ItemVariant.blank()
-
-          toRemove
-          
-      def set(variant: ItemVariant, amount: Long): Unit =
-        if variant.isBlank || amount == 0 then
-          this.template = ItemVariant.blank()
-          this.amount = 0
-        else
-          this.template = variant
-          this.amount = amount
-          
-      def buildAndSet(stack: ItemStack): Unit =
-        if this.isEmpty then
-          stack.remove(SpectrumDataComponentTypes.BOTTOMLESS_STACK)
-        else
-          stack.set(SpectrumDataComponentTypes.BOTTOMLESS_STACK, new BottomlessComponent(BottomlessItemHandler(max, voiding, locked, template.toStack, amount)))
-
   def dropContents(level: Level, pos: BlockPos, entity: BottomlessStorageBlockEntity): Unit =
     (0 until entity.capacity).foreach: slot =>
       val item = entity.getItem(slot)
@@ -589,10 +604,10 @@ object BottomlessStorageBlockEntity:
         ev.registerBlockEntity(
           Capabilities.ItemHandler.BLOCK,
           entity,
-          (en, side) => SlottedItemStorageItemHandler(en.itemStorage)
+          (en, side) => en.itemStorage
         )
         ev.registerBlockEntity(
           Capabilities.FluidHandler.BLOCK,
           entity,
-          (en, side) => FluidStorageFluidHandler(en.fluidStorage)
+          (en, side) => en.fluidStorage
         )

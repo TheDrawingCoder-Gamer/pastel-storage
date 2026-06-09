@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage.screen
 
-import de.dafuqs.spectrum.api.block.FilterConfigurable
-import de.dafuqs.spectrum.inventories.slots.ShadowSlot
+import earth.terrarium.pastel.api.block.FilterConfigurable
+import earth.terrarium.pastel.inventories.slots.ShadowSlot
 import gay.menkissing.spectrumstorage.content.block.entity.FilterChestBlockEntity
 import gay.menkissing.spectrumstorage.registries.SpectrumStorageScreens
 import io.netty.buffer.ByteBuf

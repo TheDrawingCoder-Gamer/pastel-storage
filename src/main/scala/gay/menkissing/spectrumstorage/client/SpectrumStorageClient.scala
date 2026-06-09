@@ -1,6 +1,6 @@
 package gay.menkissing.spectrumstorage.client
 
-import de.dafuqs.spectrum.inventories.ScreenBackgroundVariant
+import earth.terrarium.pastel.inventories.ScreenBackgroundVariant
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.client.gui.{FilterChestGui, SharedContainerGui, ToolContainerGui}
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks

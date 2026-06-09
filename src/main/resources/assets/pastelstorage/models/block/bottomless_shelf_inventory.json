@@ -1,9 +1,9 @@
 {
   "parent": "block/block",
   "textures": {
-    "top": "spectrumstorage:block/bottomless_shelf_top",
-    "side": "spectrumstorage:block/bottomless_shelf_side",
-    "front": "spectrumstorage:block/bottomless_shelf_empty",
+    "top": "pastelstorage:block/bottomless_shelf_top",
+    "side": "pastelstorage:block/bottomless_shelf_side",
+    "front": "pastelstorage:block/bottomless_shelf_empty",
     "particle": "#top"
   },
   "elements": [

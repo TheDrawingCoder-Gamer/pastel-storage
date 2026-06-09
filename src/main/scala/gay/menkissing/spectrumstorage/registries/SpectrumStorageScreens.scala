@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage.registries
 
 import com.mojang.serialization.Codec
-import de.dafuqs.spectrum.api.block.FilterConfigurable
+import earth.terrarium.pastel.api.block.FilterConfigurable
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.screen.ToolContainerMenu.ToolContainerData
 import gay.menkissing.spectrumstorage.screen.{BottomlessStorageMenu, FilterChestMenu, ToolContainerMenu}
@@ -40,7 +40,7 @@ object SpectrumStorageScreens:
   val filterChest =
     registry.register(
       "filter_chest",
-      () => extendedWrapper(FilterChestMenu.fromNetwork, FilterConfigurable.ExtendedDataWithPos.PACKET_CODEC)
+      () => extendedWrapper(FilterChestMenu.fromNetwork, FilterConfigurable.ExtendedDataWithPos.STREAM_CODEC)
     )
 
   def extendedWrapper[R <: AbstractContainerMenu, T](constructor: (Int, Inventory, T) => R, codec: StreamCodec[? >: RegistryFriendlyByteBuf, T]): MenuType[R] =

@@ -1,0 +1,29 @@
+{
+  "type": "pastel:pedestal",
+  "time": 240,
+  "tier": "complex",
+  "colors": {
+    "pastel:magenta": 0,
+    "pastel:yellow": 0,
+    "pastel:cyan": 6,
+    "pastel:black": 2,
+    "pastel:white": 2
+  },
+  "experience": 2.0,
+  "pattern": [
+    "CSC",
+    "QAQ",
+    "QCQ"
+  ],
+  "key": {
+    "Q": "pastel:quitoxic_powder",
+    "S": "pastel:stratine_gem",
+    "A": "#pastel:noxwood_amphoras",
+    "C": "pastel:cyan_pigment"
+  },
+  "result": {
+    "id": "pastelstorage:bottomless_amphora",
+    "count": 1
+  },
+  "required_advancement": "pastelstorage:unlocks/blocks/bottomless_amphora"
+}

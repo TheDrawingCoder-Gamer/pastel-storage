@@ -2,7 +2,7 @@ package gay.menkissing.spectrumstorage.util
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import net.minecraft.core.component.DataComponentPatch
+import net.minecraft.core.component.{DataComponentMap, DataComponentPatch}
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
 import net.minecraft.network.RegistryFriendlyByteBuf
 import net.minecraft.network.codec.{ByteBufCodecs, StreamCodec}
@@ -63,7 +63,7 @@ object FluidResource:
 
   def of(fluid: Fluid): FluidResource =
     of(fluid, DataComponentPatch.EMPTY)
-  
+
   def of(fluid: Fluid, components: DataComponentPatch): FluidResource =
     Objects.requireNonNull(fluid, "Fluid may not be null")
     Objects.requireNonNull(components, "Components may not be null")

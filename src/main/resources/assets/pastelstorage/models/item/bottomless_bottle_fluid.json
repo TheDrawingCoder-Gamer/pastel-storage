@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "spectrumstorage:item/bottomless_bottle"
+    "layer0": "pastelstorage:item/bottomless_bottle"
   }
 }

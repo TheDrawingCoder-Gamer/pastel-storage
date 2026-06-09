@@ -1,6 +1,6 @@
 package gay.menkissing.spectrumstorage.datagen.providers
 
-import de.dafuqs.spectrum.registries.SpectrumItems
+import earth.terrarium.pastel.registries.PastelItems
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.registries.SpectrumStorageTags
 import net.minecraft.core.HolderLookup
@@ -33,16 +33,17 @@ class SpectrumStorageItemTagsProvider
       .add(Items.SPYGLASS)
       .add(Items.CLOCK)
       .add(Items.FLINT_AND_STEEL)
-      .add(SpectrumItems.OMNI_ACCELERATOR.get())
-      .add(SpectrumItems.CRESCENT_CLOCK.get())
-      .add(SpectrumItems.RADIANCE_STAFF.get())
-      .add(SpectrumItems.NATURES_STAFF.get())
-      .add(SpectrumItems.STAFF_OF_REMEMBRANCE.get())
-      .add(SpectrumItems.CONSTRUCTORS_STAFF.get())
-      .add(SpectrumItems.EXCHANGING_STAFF.get())
-      .add(SpectrumItems.BLOCK_FLOODER.get())
-      .add(SpectrumItems.CELESTIAL_POCKETWATCH.get())
-      .add(SpectrumItems.PAINTBRUSH.get())
+      .add(PastelItems.TUNING_STAMP.get())
+      .add(PastelItems.OMNI_ACCELERATOR.get())
+      .add(PastelItems.CRESCENT_CLOCK.get())
+      .add(PastelItems.RADIANCE_STAFF.get())
+      .add(PastelItems.NATURES_STAFF.get())
+      .add(PastelItems.STAFF_OF_REMEMBRANCE.get())
+      .add(PastelItems.CONSTRUCTORS_STAFF.get())
+      .add(PastelItems.EXCHANGING_STAFF.get())
+      .add(PastelItems.BLOCK_FLOODER.get())
+      .add(PastelItems.CELESTIAL_POCKETWATCH.get())
+      .add(PastelItems.PAINTBRUSH.get())
       .addOptional(ResourceLocation.fromNamespaceAndPath("botania", "twig_wand"))
       .addOptional(ResourceLocation.fromNamespaceAndPath("botania", "dreamwood_wand"))
       .addTag(ItemTags.COMPASSES)

@@ -1,6 +1,5 @@
 package gay.menkissing.spectrumstorage.registries
 
-import de.dafuqs.spectrum.registries.SpectrumItems
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import net.minecraft.core.registries.Registries
 import net.minecraft.resources.ResourceLocation

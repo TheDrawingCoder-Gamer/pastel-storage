@@ -3,7 +3,7 @@ package gay.menkissing.spectrumstorage.datagen.providers
 import com.klikli_dev.modonomicon.api.datagen.book.BookEntryModel
 import com.klikli_dev.modonomicon.api.datagen.book.condition.BookAdvancementConditionModel
 import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel, BookTextPageModel}
-import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumEnchantmentKeys, SpectrumItems}
+import earth.terrarium.pastel.registries.{PastelBlocks, PastelEnchantments, PastelItems}
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
 import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation}
@@ -100,13 +100,13 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
     // HACK : (
     // dummy out this so MAYBE it works
     val powerEnchant = enchantLookup.getOrThrow(Enchantments.POWER)
-    val voidingEnchant = enchantLookup.getOrThrow(SpectrumEnchantmentKeys.VOIDING)
+    val voidingEnchant = enchantLookup.getOrThrow(PastelEnchantments.VOIDING)
 
     val powerVStack =
       ItemStack(SpectrumStorageItems.bottomlessBottle.get())
     powerVStack.enchant(powerEnchant, 5)
     val voidingBundle =
-      ItemStack(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem())
+      ItemStack(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
     voidingBundle.enchant(voidingEnchant, 1)
 
     val buildEnchanter = BookAdvancementConditionModel.create().withAdvancementId("spectrum:midgame/build_enchanting_structure")
@@ -116,7 +116,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
         .create()
         .withCondition(buildEnchanter)
         .withItem(voidingBundle)
-        .withTitle("enchantment.spectrum.voiding")
+        .withTitle("enchantment.pastel.voiding")
         .withText(
           text
         )
@@ -134,7 +134,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
           .withCondition(itemUnlock("bottomless_bottle"))
           .addPage(trans =>
             pedestalPage(
-              "spectrumstorage:pedestal/tier2/bottomless_bottle",
+              "pastelstorage:pedestal/tier2/bottomless_bottle",
               trans.text("Right-click picks up liquid, while sneak right-click places it.")
             )
           )
@@ -168,7 +168,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
                 ))
             )
             .addPage(trans =>
-              pedestalPage("spectrumstorage:pedestal/tier2/tool_container",
+              pedestalPage("pastelstorage:pedestal/tier2/tool_container",
                 trans.text("*Don't ask how they all fit*"))
             )
       }
@@ -192,7 +192,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
                 ))
             )
             .addPage(trans =>
-              pedestalPage("spectrumstorage:pedestal/tier4/bottomless_amphora",
+              pedestalPage("pastelstorage:pedestal/tier4/bottomless_amphora",
                 trans.text("*This is getting absurd*")
               )
             )
@@ -238,7 +238,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
               )
             ).addPage(trans =>
               pedestalPage(
-                "spectrumstorage:pedestal/tier3/bottomless_barrel",
+                "pastelstorage:pedestal/tier3/bottomless_barrel",
                 trans.text("*That's a lot of stuff*")
               )
             ).addPage(trans =>

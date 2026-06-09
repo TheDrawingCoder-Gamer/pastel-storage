@@ -1,6 +1,7 @@
 package gay.menkissing.spectrumstorage.content.block.entity
 
-import de.dafuqs.spectrum.api.block.FilterConfigurable
+import earth.terrarium.pastel.api.block.FilterConfigurable
+import earth.terrarium.pastel.api.item.ItemReference
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks
 import gay.menkissing.spectrumstorage.screen.FilterChestMenu
 import gay.menkissing.spectrumstorage.util.network.SpectrumStorageNetworking.GayScreenHandler
@@ -24,8 +25,8 @@ import java.util.stream.IntStream
 import scala.annotation.nowarn
 
 @nowarn("msg=unstable")
-class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity.get(), pos, state), WorldlyContainer, FilterConfigurable, GayScreenHandler[FilterConfigurable.ExtendedDataWithPos](FilterConfigurable.ExtendedDataWithPos.PACKET_CODEC):
-  val filterItems: NonNullList[ItemStack] = NonNullList.withSize(FilterChestBlockEntity.filterCount, ItemStack.EMPTY)
+class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends RandomizableContainerBlockEntity(SpectrumStorageBlocks.filterChestBlockEntity.get(), pos, state), WorldlyContainer, FilterConfigurable, GayScreenHandler[FilterConfigurable.ExtendedDataWithPos](FilterConfigurable.ExtendedDataWithPos.STREAM_CODEC):
+  val filterItems: NonNullList[ItemReference] = NonNullList.withSize(FilterChestBlockEntity.filterCount, ItemReference.empty())
   var items: NonNullList[ItemStack] = NonNullList.withSize(FilterChestBlockEntity.inventorySize, ItemStack.EMPTY)
   val openersCounter: ContainerOpenersCounter =
     new ContainerOpenersCounter:
@@ -89,7 +90,7 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
     if stack.isEmpty then
       false
     else
-      filterItems.stream().anyMatch(it => !it.isEmpty && stack.is(it.getItem)) ||
+      filterItems.stream().anyMatch(it => !it.isEmpty && it.permits(stack)) ||
         filterItems.stream().allMatch(_.isEmpty)
 
   override def canPlaceItemThroughFace(i: Int, stack: ItemStack, direction: Direction): Boolean =
@@ -102,19 +103,19 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
 
   override def getContainerSize: Int = FilterChestBlockEntity.inventorySize
 
-  override def getItemFilters: util.List[ItemStack] = filterItems
+  override def getItemFilters: NonNullList[ItemReference] = filterItems
 
-  override def setFilterItem(slot: Int, item: ItemStack): Unit = filterItems.set(slot, item)
+  override def setFilterItem(slot: Int, item: ItemStack): Unit = filterItems.set(slot, ItemReference.of(item))
 
   override def saveAdditional(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     super.saveAdditional(tag, provider)
     ContainerHelper.saveAllItems(tag, items, provider)
-    FilterConfigurable.writeFilterNbt(tag, filterItems)
+    FilterConfigurable.writeFilterNbt(tag, filterItems, provider)
 
   override def loadAdditional(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     super.loadAdditional(tag, provider)
     ContainerHelper.loadAllItems(tag, items, provider)
-    FilterConfigurable.readFilterNbt(tag, filterItems)
+    FilterConfigurable.readFilterNbt(tag, filterItems, provider)
 
   override def getOpeningData(player: ServerPlayer): FilterConfigurable.ExtendedDataWithPos  =
     FilterConfigurable.ExtendedDataWithPos(worldPosition, this)

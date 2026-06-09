@@ -16,8 +16,8 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks
 import org.slf4j.{Logger, LoggerFactory}
 
 object SpectrumStorage:
-  inline val ModId = "spectrumstorage"
-  val Logger: Logger = LoggerFactory.getLogger("spectrumstorage")
+  inline val ModId = "pastelstorage"
+  val Logger: Logger = LoggerFactory.getLogger("pastelstorage")
 
   def locate(id: String): ResourceLocation = ResourceLocation.fromNamespaceAndPath(ModId, id)
 

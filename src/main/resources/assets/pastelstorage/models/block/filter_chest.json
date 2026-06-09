@@ -3,14 +3,14 @@
 	"parent": "minecraft:block/block",
 	"render_type": "cutout",
 	"textures": {
-		"0": "spectrumstorage:block/filter_chest_top",
-		"1": "spectrumstorage:block/filter_chest_bottom",
-		"2": "spectrumstorage:block/filter_chest_outside",
-		"3": "spectrumstorage:block/filter_chest_inside",
-		"4": "spectrumstorage:block/filter_chest_rim_top",
-		"5": "spectrumstorage:block/filter_chest_rim_bottom",
-		"6": "spectrumstorage:block/filter_chest_top_rim_inside",
-		"particle": "spectrumstorage:block/filter_chest_top"
+		"0": "pastelstorage:block/filter_chest_top",
+		"1": "pastelstorage:block/filter_chest_bottom",
+		"2": "pastelstorage:block/filter_chest_outside",
+		"3": "pastelstorage:block/filter_chest_inside",
+		"4": "pastelstorage:block/filter_chest_rim_top",
+		"5": "pastelstorage:block/filter_chest_rim_bottom",
+		"6": "pastelstorage:block/filter_chest_top_rim_inside",
+		"particle": "pastelstorage:block/filter_chest_top"
 	},
 	"elements": [
 		{

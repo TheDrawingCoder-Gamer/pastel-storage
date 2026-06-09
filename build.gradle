@@ -14,7 +14,6 @@ base {
 neoForge {
     version = project.neo_version
 
-    // TODO: parchment
     runs {
         client {
             client()
@@ -54,14 +53,19 @@ repositories {
     mavenCentral()
     // for more information about repositories.
     maven { url = "https://jitpack.io" } // Spectrum, Arrowhead, Dimensional Reverb, Step Height Entity Attribute
-    maven { url = "https://maven.is-immensely.gay/releases" }
+    // maven { url = "https://maven.is-immensely.gay/releases" }
     maven { url = "https://maven.shedaniel.me/" } // Cloth Config, REI
     maven { url = "https://maven.terraformersmc.com/" } // Modmenu, EMI, Trinkets
     maven { url = "https://maven.nucleoid.xyz/" } // Common Protection API
     maven { url = "https://maven.blamejared.com" } // Patchouli
     maven { url = "https://maven.ladysnake.org/releases" } // Cardinal Components API
     maven { url = "https://maven.jamieswhiteshirt.com/libs-release/" } // Entity Reach Attribute
-    maven { url = "https://api.modrinth.com/maven" } // Revelationary, Additional Entity Attributes, Fractal Lib, Colorful Hearts
+    maven {
+        url = "https://api.modrinth.com/maven"
+        content {
+            includeGroup("maven.modrinth")
+        }
+    }
     maven { url = "https://dl.cloudsmith.io/public/klikli-dev/mods/maven/" } // Modonomicon
 
     maven { url = "https://maven.theillusivec4.top/" } // curios
@@ -78,10 +82,18 @@ repositories {
             includeModule("org.typelevel", "cats-free_3")
         }
     }
+    maven {
+        url "https://maven.resourcefulbees.com/repository/maven-public/"
+        content {
+            includeGroup("earth.terrarium")
+        }
+    }
     // FF API
     maven {
         url "https://maven.su5ed.dev/releases"
     }
+
+    maven { url = "https://maven.ryanhcode.dev/releases" } // sable
 }
 
 dependencies {
@@ -96,11 +108,19 @@ dependencies {
     runtimeOnly("maven.modrinth:create:6.0.10+mc1.21.1") {
         transitive(false)
     }
+    runtimeOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1")
     // modLocalRuntime "gay.menkissing:bulby-language-scala:${project.kls_version}+scala.${project.scala_runtime}"
 
-    implementation "de.dafuqs:Spectrum:${project.spectrum_version}-neo"
+    // Have to include pastel's dependencies because SOMEONE didnt publish a recent maven version
+
+    implementation("me.shedaniel.cloth:cloth-config-neoforge:15.0.140")
+    implementation("maven.modrinth:databank:1.2.2")
+    implementation("maven.modrinth:exclusions-lib:1.1.0-NEO")
+    implementation("maven.modrinth:additionalentityattributes:2.0.0+1.21.1-neoforge")
+    implementation("dev.ryanhcode.sable-companion:sable-companion-common-1.21.1:1.6.0")
+
+    implementation "maven.modrinth:pastel-mod:${project.pastel_version}"
     implementation("com.klikli_dev:modonomicon-${project.minecraft_version}-neoforge:${project.modonomicon_version}")
-    implementation "de.dafuqs:Fractal:${project.fractal_version}"
     implementation "org.sinytra.forgified-fabric-api:forgified-fabric-api:${project.fabric_api_version}"
 
     // Item viewer
@@ -146,7 +166,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             version: version,
             minecraft_version: minecraft_version,
             neoforge_version_range: neo_version_range,
-            spectrum_version_range: spectrum_version_range
+            pastel_version_range: pastel_version_range
     ]
     inputs.properties replaceProperties
     expand replaceProperties

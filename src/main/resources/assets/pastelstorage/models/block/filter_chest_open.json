@@ -1,0 +1,6 @@
+{
+	"parent": "pastelstorage:block/filter_chest",
+    "textures": {
+      "0": "pastelstorage:block/filter_chest_top_open"
+    }
+}

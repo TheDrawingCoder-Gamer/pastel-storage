@@ -1,7 +1,7 @@
 package gay.menkissing.spectrumstorage.content.block
 
 import com.mojang.serialization.MapCodec
-import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumItems}
+import earth.terrarium.pastel.registries.{PastelItems, PastelBlocks}
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity}
 import net.minecraft.core.{BlockPos, Direction}
@@ -48,7 +48,7 @@ class BottomlessShelfBlock(props: BlockBehaviour.Properties) extends BaseEntityB
                , player: Player, hand: InteractionHand, hitResult: BlockHitResult): ItemInteractionResult =
     level.getBlockEntity(pos) match
       case blockEntity: BottomlessShelfBlockEntity =>
-        if !stack.is(SpectrumStorageItems.bottomlessBottle) && !stack.is(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem()) then
+        if !stack.is(SpectrumStorageItems.bottomlessBottle) && !stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
           ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
         else
           this.getHitSlot(hitResult, state) match

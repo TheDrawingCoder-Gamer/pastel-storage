@@ -1,7 +1,6 @@
 package gay.menkissing.spectrumstorage.content
 
-import de.dafuqs.fractal.api.CreativeSubTabEvent
-import de.dafuqs.spectrum.api.item_group.ItemGroupIDs
+import earth.terrarium.pastel.registries.PastelItemGroups
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.block.BottomlessStorageBlock.{BottomlessAmphoraBlock, BottomlessBarrelBlock}
 import gay.menkissing.spectrumstorage.content.block.{BottomlessShelfBlock, FilterChestBlock}
@@ -17,6 +16,7 @@ import net.minecraft.world.level.block.entity.{BlockEntity, BlockEntityType}
 import net.minecraft.world.level.block.state.BlockBehaviour
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.common.NeoForge
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent
 import net.neoforged.neoforge.registries.{DeferredBlock, DeferredHolder, DeferredItem, DeferredRegister}
 
 import scala.collection.mutable
@@ -45,7 +45,7 @@ object SpectrumStorageBlocks:
     it
 
   val bottomlessShelf: DeferredBlock[Block] =
-    register("bottomless_shelf", ItemGroupIDs.SUBTAB_FUNCTIONAL, BottomlessShelfBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
+    register("bottomless_shelf", PastelItemGroups.INSTRUMENTS_ID, BottomlessShelfBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
     /*
     InfoCollector.instance.block(SpectrumStorage.locate("bottomless_shelf"),
       BottomlessShelfBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
@@ -60,7 +60,7 @@ object SpectrumStorageBlocks:
      */
 
   val bottomlessBarrel =
-    register("bottomless_barrel", ItemGroupIDs.SUBTAB_FUNCTIONAL, BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
+    register("bottomless_barrel", PastelItemGroups.INSTRUMENTS_ID, BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
 
     /*
     InfoCollector.instance.block(SpectrumStorage.locate("bottomless_barrel"),
@@ -73,7 +73,7 @@ object SpectrumStorageBlocks:
                  .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
     */
   val bottomlessAmphora =
-    register("bottomless_amphora", ItemGroupIDs.SUBTAB_FUNCTIONAL, BottomlessAmphoraBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f)))
+    register("bottomless_amphora", PastelItemGroups.INSTRUMENTS_ID, BottomlessAmphoraBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f)))
   /*
     InfoCollector.instance.block(SpectrumStorage.locate("bottomless_amphora"),
       BottomlessAmphoraBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f)))
@@ -85,7 +85,7 @@ object SpectrumStorageBlocks:
                  .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
     */
   val filterChest =
-    register("filter_chest", ItemGroupIDs.SUBTAB_FUNCTIONAL, FilterChestBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f).noOcclusion()))
+    register("filter_chest", PastelItemGroups.INSTRUMENTS_ID, FilterChestBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f).noOcclusion()))
     /*
     InfoCollector.instance.block(SpectrumStorage.locate("filter_chest"),
       FilterChestBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f).noOcclusion()))
@@ -108,11 +108,10 @@ object SpectrumStorageBlocks:
   val filterChestBlockEntity =
     makeEntity("filter_chest", (a, b) => FilterChestBlockEntity(a, b), filterChest.get())
 
-  def addItemsToSubTabs(it: CreativeSubTabEvent): Unit =
-    val subgroup = it.subGroup()
-    blockItems.get(subgroup.getIdentifier).foreach { items =>
-      val builder = it.getItemDisplayBuilder
-      items.foreach(builder.accept)
+  def addItemsToTabs(it: BuildCreativeModeTabContentsEvent): Unit =
+    val group = it.getTab
+    blockItems.get(it.getTabKey.location()).foreach { items =>
+      items.foreach(it.accept)
     }
 
   def submit(register: IEventBus): Unit =
@@ -120,7 +119,6 @@ object SpectrumStorageBlocks:
     blockRegistrar.register(register)
     blockItemRegistrar.register(register)
     blockEntityRegister.register(register)
-
-    NeoForge.EVENT_BUS.addListener(addItemsToSubTabs)
+    register.addListener(addItemsToTabs)
 
 

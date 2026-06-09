@@ -1,6 +1,6 @@
 package gay.menkissing.spectrumstorage.screen
 
-import de.dafuqs.spectrum.registries.{SpectrumBlocks, SpectrumItems}
+import earth.terrarium.pastel.registries.{PastelBlocks}
 import gay.menkissing.spectrumstorage.content.SpectrumStorageItems
 import gay.menkissing.spectrumstorage.registries.SpectrumStorageScreens
 import net.minecraft.world.entity.player.{Inventory, Player}
@@ -64,7 +64,7 @@ class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows:
     transferredItemStack
 
   def isValidItem(item: ItemStack): Boolean =
-    item.is(SpectrumBlocks.BOTTOMLESS_BUNDLE.asItem()) || item.is(SpectrumStorageItems.bottomlessBottle)
+    item.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) || item.is(SpectrumStorageItems.bottomlessBottle)
   override def stillValid(player: Player): Boolean =
     container.stillValid(player)
 

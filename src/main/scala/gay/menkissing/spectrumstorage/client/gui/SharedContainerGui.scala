@@ -1,6 +1,6 @@
 package gay.menkissing.spectrumstorage.client.gui
 
-import de.dafuqs.spectrum.inventories.ScreenBackgroundVariant
+import earth.terrarium.pastel.inventories.ScreenBackgroundVariant
 import net.neoforged.api.distmarker.{Dist, OnlyIn}
 // import net.fabricmc.api.{EnvType, Environment}
 import net.minecraft.client.gui.GuiGraphics

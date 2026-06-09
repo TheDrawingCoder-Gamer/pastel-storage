@@ -3,28 +3,28 @@ loaderVersion="[1,)"
 license="mit"
 
 [[mods]]
-modId="spectrumstorage"
+modId="pastelstorage"
 version="${version}"
-displayName="Spectrum Storage"
-logoFile="assets/spectrumstorage/icon.png"
+displayName="Pastel Storage"
+logoFile="assets/pastelstorage/icon.png"
 authors="BulbyVR"
-description='''Storage addons for Spectrum'''
+description='''Storage addons for Pastel'''
 
-[[dependencies.spectrumstorage]]
+[[dependencies.pastelstorage]]
 modId="neoforge"
 type="required"
 versionRange="${neoforge_version_range}"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.spectrumstorage]]
-modId="spectrum"
+[[dependencies.pastelstorage]]
+modId="pastel"
 type="required"
-versionRange="${spectrum_version_range}"
+versionRange="${pastel_version_range}"
 ordering="AFTER"
 side="BOTH"
 
-[[dependencies.spectrumstorage]]
+[[dependencies.pastelstorage]]
 modId="minecraft"
 type="required"
 versionRange="[${minecraft_version}]"
