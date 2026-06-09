@@ -22,7 +22,7 @@ import scala.jdk.CollectionConverters.*
 
 object PastelStorageItems:
   val registrar: DeferredRegister.Items = DeferredRegister.createItems(PastelStorage.ModId)
-  
+
   def register[T <: Item](name: String, item: => T): DeferredItem[T] =
     registrar.register(name, () => item)
 
@@ -51,13 +51,3 @@ object PastelStorageItems:
         },
         bottomlessBottle.get()
       )
-
-    // LATER:tm:
-    /*
-    bus.addListener: (ev: RegisterCapabilitiesEvent) =>
-      ev.registerItem(
-        Capabilities.FluidHandler.ITEM,
-        (stack, ctx) => BottomlessBottleItem.BottomlessBottleContents.BottomlessBottleStorage(())
-      )
-
-     */
