@@ -3,6 +3,7 @@ package gay.menkissing.spectrumstorage.content.block.entity
 import earth.terrarium.pastel.api.block.FilterConfigurable
 import earth.terrarium.pastel.api.item.ItemReference
 import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageTranslationKeys
 import gay.menkissing.spectrumstorage.screen.FilterChestMenu
 import gay.menkissing.spectrumstorage.util.network.SpectrumStorageNetworking.GayScreenHandler
 import net.minecraft.core.{BlockPos, Direction, HolderLookup, NonNullList}
@@ -99,7 +100,7 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
   override def canTakeItemThroughFace(i: Int, itemStack: ItemStack, direction: Direction): Boolean = true
 
 
-  override def getDefaultName: Component = Component.translatable("container.spectrumstorage.filter_chest")
+  override def getDefaultName: Component = SpectrumStorageTranslationKeys.container.filterChest
 
   override def getContainerSize: Int = FilterChestBlockEntity.inventorySize
 

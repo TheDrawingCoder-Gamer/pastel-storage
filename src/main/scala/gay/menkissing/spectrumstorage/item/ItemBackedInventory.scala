@@ -20,7 +20,3 @@ class ItemBackedInventory(val stack: ItemStack, expectedSize: Int) extends Simpl
    
     val contents = ItemContainerContents.fromItems(getItems)
     stack.set(DataComponents.CONTAINER, contents)
-
-object ItemBackedInventory:
-  val ItemsTag = "Items"
-  

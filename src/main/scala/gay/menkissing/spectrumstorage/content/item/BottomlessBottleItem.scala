@@ -30,7 +30,7 @@ import net.minecraft.world.level.material.{Fluid, Fluids}
 import net.minecraft.world.phys.{BlockHitResult, HitResult}
 import net.neoforged.neoforge.client.model.IDynamicBakedModel
 import net.neoforged.neoforge.common.SoundActions
-import net.neoforged.neoforge.fluids.{FluidStack, FluidType, SimpleFluidContent}
+import net.neoforged.neoforge.fluids.{FluidStack, FluidType, FluidUtil, SimpleFluidContent}
 
 import java.util
 import java.util.function
@@ -64,42 +64,16 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
     if sound != null then
       level.playSound(player, pos, sound, SoundSource.BLOCKS, 1f, 1f)
 
-  def placeFluid(player: Player | Null, level: Level, pos: BlockPos, hitResult: BlockHitResult, thisStack: ItemStack): Boolean =
+  def placeFluid(player: Player | Null, level: Level, pos: BlockPos, hitResult: BlockHitResult, thisStack: ItemStack, hand: InteractionHand): InteractionResultHolder[ItemStack] =
     val contents = thisStack.get(SpectrumStorageComponents.BottomlessBottleContentsComponent)
-    if contents.isEmpty || contents.getAmount < FluidType.BUCKET_VOLUME then
-      return false
-
-    val blockState = level.getBlockState(pos)
-    val canPlace = blockState.canBeReplaced(contents.getFluid)
-
-    if
-      !blockState.isAir && !canPlace && (
-        blockState.getBlock match
-          case liquidBlock: LiquidBlockContainer => !liquidBlock.canPlaceLiquid(player, level, pos, blockState, contents.getFluid)
-          case _ => true
-      )
-    then
-      hitResult != null && this.placeFluid(player, level, hitResult.getBlockPos.relative(hitResult.getDirection), null, thisStack)
-    else
-      if level.dimensionType().ultraWarm() && contents.getFluid.is(FluidTags.WATER) then
-        val i = pos.getX
-        val j = pos.getY
-        val k = pos.getZ
-        level.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5f, 2.6f + (level.random.nextFloat() - level.random.nextFloat()) * 0.8f)
-        (0 until 8).foreach: _ =>
-          level.addParticle(ParticleTypes.LARGE_SMOKE, i.toDouble + math.random(), j.toDouble + math.random(), k.toDouble + math.random(), 0d, 0d, 0d)
+    FluidUtil.getFluidHandler(thisStack).map: handler =>
+      val res = FluidUtil.tryPlaceFluid(player, level, hand, pos, handler, contents.copy().copyWithAmount(FluidType.BUCKET_VOLUME))
+      if res then
+        InteractionResultHolder.success(thisStack)
       else
-        blockState.getBlock match
-          case liquidBlockContainer: LiquidBlockContainer if contents.getFluid == Fluids.WATER =>
-            if liquidBlockContainer.placeLiquid(level, pos, blockState, Fluids.WATER.getSource(false)) then
-              this.playEmptyingSound(player, level, pos, contents.getFluidType)
-          case _ =>
-            if !level.isClientSide && canPlace && !blockState.liquid() then
-              level.removeBlock(pos, true)
+        InteractionResultHolder.fail(thisStack)
+    .orElse(InteractionResultHolder.fail(thisStack))
 
-            this.playEmptyingSound(player, level, pos, contents.getFluidType)
-            level.setBlock(pos, contents.getFluid.defaultFluidState().createLegacyBlock(), 11)
-      true
 
   override def use(level: Level, player: Player, usedHand: InteractionHand): InteractionResultHolder[ItemStack] =
     val stack = player.getItemInHand(usedHand)
@@ -118,37 +92,15 @@ class BottomlessBottleItem(props: Item.Properties) extends Item(props):
           val hitState = level.getBlockState(hitPos)
           val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(stack)
           if player.isShiftKeyDown then
-            // placing
-            if builder.extract(builder.template, FluidType.BUCKET_VOLUME) != FluidType.BUCKET_VOLUME then
-              return InteractionResultHolder.fail(stack)
-
             val targetPos = if hitState.getBlock.isInstanceOf[LiquidBlockContainer] then hitPos else placePos
-            if this.placeFluid(player, level, targetPos, blockHitResult, stack) then
-              if player.getAbilities.instabuild then
-                return InteractionResultHolder.success(stack)
-
-              val newStack = stack.copy()
-              builder.buildAndSet(newStack)
-              return InteractionResultHolder.success(newStack)
+            placeFluid(player, level, targetPos, blockHitResult, stack, usedHand)
           else
             // pickup
-            if builder.max - builder.amount >= FluidType.BUCKET_VOLUME then
-              val fluid = level.getFluidState(hitPos)
-
-              if fluid != null && (builder.isEmpty || builder.template.fluid == fluid.getType) then
-                if builder.insert(FluidResource.of(fluid.getType), FluidType.BUCKET_VOLUME) == FluidType.BUCKET_VOLUME then
-                  hitState.getBlock match
-                    case bucketPickup: BucketPickup =>
-                      if !bucketPickup.pickupBlock(player, level, hitPos, hitState).isEmpty then
-                        val sound = fluid.getFluidType.getSound(player, level, hitPos, SoundActions.BUCKET_FILL)
-                        if sound != null then
-                          level.playSound(player, hitPos, sound, SoundSource.BLOCKS, 1f, 1f)
-
-                        val newStack = stack.copy()
-                        builder.buildAndSet(newStack)
-                        return InteractionResultHolder.success(newStack)
-                    case _ => ()
-        InteractionResultHolder.fail(stack)
+            val res = FluidUtil.tryPickUpFluid(stack, player, level, hitPos, null)
+            if res.isSuccess then
+              InteractionResultHolder.success(res.getResult)
+            else
+              InteractionResultHolder.fail(stack)
 
 object BottomlessBottleItem:
   val baseMax: Int = FluidType.BUCKET_VOLUME * 256
@@ -213,7 +165,7 @@ object BottomlessBottleItem:
         ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
     else
       ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
-  
+
 
 
   // Max MUST be long due to our maximum possible being outside the int range

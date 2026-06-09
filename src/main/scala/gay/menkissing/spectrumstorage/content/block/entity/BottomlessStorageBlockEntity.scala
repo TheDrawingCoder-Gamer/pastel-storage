@@ -8,7 +8,7 @@ import gay.menkissing.spectrumstorage.content.SpectrumStorageBlocks.bottomlessBa
 import gay.menkissing.spectrumstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.spectrumstorage.content.item.BottomlessBottleItem
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
-import gay.menkissing.spectrumstorage.registries.SpectrumStorageComponents
+import gay.menkissing.spectrumstorage.registries.{SpectrumStorageComponents, SpectrumStorageTranslationKeys}
 import gay.menkissing.spectrumstorage.screen.BottomlessStorageMenu
 import gay.menkissing.spectrumstorage.util.{FluidResource, SpectrumStorageEnchantmentHelper}
 import net.minecraft.core.component.DataComponents
@@ -578,14 +578,14 @@ object BottomlessStorageBlockEntity:
   val tagFluidFilters = "fluid_filters"
   val tagItemFilters = "item_filters"
   final class BottomlessBarrelBlockEntity(pos: BlockPos, state: BlockState) extends ContainerBottomlessStorageBlockEntity(BottomlessStorageMenu.barrelContainerSize, SpectrumStorageBlocks.bottomlessBarrelBlockEntity.get(), pos, state):
-    override def defaultName: Component = Component.translatable("container.spectrumstorage.bottomless_barrel")
+    override def defaultName: Component = SpectrumStorageTranslationKeys.container.bottomlessBarrel
 
     override def createMenu(windowId: Int, inventory: Inventory, player: Player): AbstractContainerMenu =
       BottomlessStorageMenu.barrelServer(windowId, inventory, containerView)
 
 
   final class BottomlessAmphoraBlockEntity(pos: BlockPos, state: BlockState) extends ContainerBottomlessStorageBlockEntity(BottomlessStorageMenu.amphoraContainerSize, SpectrumStorageBlocks.bottomlessAmphoraBlockEntity.get(), pos, state):
-    override def defaultName: Component = Component.translatable("container.spectrumstorage.bottomless_amphora")
+    override def defaultName: Component = SpectrumStorageTranslationKeys.container.bottomlessAmphora
 
     override def createMenu(windowId: Int, inventory: Inventory, player: Player): AbstractContainerMenu =
       BottomlessStorageMenu.amphoraServer(windowId, inventory, containerView)

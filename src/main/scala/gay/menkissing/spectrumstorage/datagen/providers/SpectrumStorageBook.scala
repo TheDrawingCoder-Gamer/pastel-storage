@@ -6,6 +6,7 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel,
 import earth.terrarium.pastel.registries.{PastelBlocks, PastelEnchantments, PastelItems}
 import gay.menkissing.spectrumstorage.SpectrumStorage
 import gay.menkissing.spectrumstorage.content.{SpectrumStorageBlocks, SpectrumStorageItems}
+import gay.menkissing.spectrumstorage.registries.SpectrumStorageTranslationKeys
 import gay.menkissing.spectrumstorage.util.registry.book.{BookEntry, EntryLocation}
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.SpectrumStorageBaseBookProvider
 import gay.menkissing.spectrumstorage.util.registry.provider.generators.book.BookPedestalPageModel
@@ -42,7 +43,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
     addTooltip(SpectrumStorageItems.bottomlessBottle, "count_mb", "%1$s mB / %2$s buckets")
     addItem(SpectrumStorageItems.toolContainer, "Tool Container")
 
-    add("book.pastelstorage.added_by_spectrumstorage", "§oAdded by Pastel Storage")
+    add(SpectrumStorageTranslationKeys.keys.addedByPastelStorage, "§oAdded by Pastel Storage")
 
     List(
       "bottomless_barrel" -> "Bottomless Barrel",
@@ -50,6 +51,8 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
       "filter_chest" -> "Filter Chest"
     ).foreach: (k, v) =>
       add(s"container.pastelstorage.$k", v)
+      
+    add("tag.item.pastelstorage.valid_tools", "Valid Tools")
 
 
 
@@ -57,7 +60,7 @@ final class SpectrumStorageBook(output: PackOutput, lookup: CompletableFuture[Ho
     val spectrumBook = ResourceLocation.fromNamespaceAndPath("pastel", "guidebook")
     val magicalCategory = ResourceLocation.fromNamespaceAndPath("pastel", "magical_blocks")
     val equipCategory = ResourceLocation.fromNamespaceAndPath("pastel", "equipment")
-    val commonDesc = "book.pastelstorage.added_by_spectrumstorage"
+    val commonDesc = SpectrumStorageTranslationKeys.keys.addedByPastelStorage
 
     def itemUnlock(id: String): BookAdvancementConditionModel =
       BookAdvancementConditionModel
