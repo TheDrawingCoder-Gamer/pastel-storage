@@ -69,7 +69,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       storages(slot).insertItem(0, stack, simulated)
 
     override def extractItem(slot: Int, amount: Int, simulated: Boolean): ItemStack =
-      storages(slot).extractItem(slot, amount, simulated)
+      storages(slot).extractItem(0, amount, simulated)
 
     override def isItemValid(slot: Int, stack: ItemStack): Boolean = true
   }
