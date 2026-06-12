@@ -2,7 +2,7 @@ package gay.menkissing.pastelstorage.screen
 
 import earth.terrarium.pastel.registries.PastelBlocks
 import gay.menkissing.pastelstorage.content.PastelStorageItems
-import gay.menkissing.pastelstorage.registries.PastelStorageScreens
+import gay.menkissing.pastelstorage.registries.{PastelStorageScreens, PastelStorageTags}
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, MenuType, Slot}
 import net.minecraft.world.item.ItemStack
@@ -64,7 +64,7 @@ class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows:
     transferredItemStack
 
   def isValidItem(item: ItemStack): Boolean =
-    item.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) || item.is(PastelStorageItems.bottomlessBottle)
+    item.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) || item.is(PastelStorageItems.bottomlessBottle) || item.is(PastelStorageTags.item.deletesItemsWhenInsertedInto)
   override def stillValid(player: Player): Boolean =
     container.stillValid(player)
 

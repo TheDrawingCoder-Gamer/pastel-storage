@@ -54,4 +54,6 @@ class PastelStorageItemTagsProvider
       .addOptionalTag(ResourceLocation.fromNamespaceAndPath("botania", "rods"))
       .addOptionalTag(ResourceLocation.fromNamespaceAndPath("hexcasting", "staves"))
     
-    
+    tag(PastelStorageTags.item.deletesItemsWhenInsertedInto)
+      .add(Items.LAVA_BUCKET)
+      .add(Items.CACTUS) // : 3

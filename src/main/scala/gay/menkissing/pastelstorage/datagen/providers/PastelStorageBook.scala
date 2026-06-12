@@ -16,7 +16,7 @@ import net.minecraft.core.{Holder, HolderLookup, HolderOwner}
 import net.minecraft.data.PackOutput
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.world.item.{Item, ItemStack}
+import net.minecraft.world.item.{Item, ItemStack, Items}
 import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.item.enchantment.{Enchantment, Enchantments, ItemEnchantments}
 import net.minecraft.world.level.ItemLike
@@ -44,6 +44,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
     addItem(PastelStorageItems.toolContainer, "Tool Container")
 
     add(PastelStorageTranslationKeys.keys.addedByPastelStorage, "§oAdded by Pastel Storage")
+    add(PastelStorageTranslationKeys.keys.voidWithLava, "Voiding with Lava")
 
     List(
       "bottomless_barrel" -> "Bottomless Barrel",
@@ -122,6 +123,13 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
         .withText(
           text
         )
+
+    def voidingLavaPage(text: String): BookSpotlightPageModel =
+      BookSpotlightPageModel
+        .create()
+        .withItem(Items.LAVA_BUCKET)
+        .withTitle(PastelStorageTranslationKeys.keys.voidWithLava)
+        .withText(text)
 
     this.addEntry(entryLoc("equipment/bottomless_bottle"), equipCategory, PastelStorageItems.bottomlessBottle.get().location) {
       entry =>
@@ -217,6 +225,18 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
                 )
               )
             )
+            .addPage(trans =>
+              voidingLavaPage(
+                trans.text(
+                  """
+                    |Like with the bottomless barrel, I can place a lava bucket into my amphora to void any excess items. 
+                    |
+                    |Be careful, if it's placed before an actual bundle or bottle it will end up voiding items and fluids before they can be stored!
+                    |There may be other items that work in my amphora... maybe I should try placing some sharp items in it!
+                    |""".stripMargin
+                )
+              )
+            )
       }
     this.addEntry(entryLoc("magical_blocks/bottomless_barrel"), magicalCategory, PastelStorageBlocks.bottomlessBarrel.get().location) {
         entry =>
@@ -263,6 +283,17 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
                     // ^ im not having a 200 character long line
                   )
                 )
+            )
+            .addPage(trans =>
+              voidingLavaPage(
+                trans.text(
+                  """
+                    |With the ability to open my barrels inventory, I can now put a lava bucket into it to void any excess items.
+                    |
+                    |Be careful, if it's placed before an actual bundle or bottle it will end up voiding items and fluids before they can be stored!
+                    |""".stripMargin
+                )
+              )
             )
       }
     this.addEntry(entryLoc("magical_blocks/bottomless_shelf"), magicalCategory, PastelStorageBlocks.bottomlessShelf.get().location) {

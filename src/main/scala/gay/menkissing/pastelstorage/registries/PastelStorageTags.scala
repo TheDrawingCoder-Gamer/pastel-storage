@@ -18,3 +18,6 @@ object PastelStorageTags:
 
     val validToolTag: TagKey[Item] =
       TagKey.create(Registries.ITEM, PastelStorage.locate("valid_tools"))
+    
+    val deletesItemsWhenInsertedInto: TagKey[Item] =
+      TagKey.create(Registries.ITEM, PastelStorage.locate("deletes_items_when_inserted_into"))

@@ -37,6 +37,7 @@ object PastelStorageTranslationKeys:
       val bottomlessBarrel: String = make(PastelStorageBlocks.bottomlessBarrel)
   
     val addedByPastelStorage: String = "book.pastelstorage.added_by_pastelstorage"
+    val voidWithLava: String = "book.pastelstorage.void_with_lava"
   
   object container:
     val bottomlessAmphora: Component = Component.translatable(keys.container.bottomlessAmphora)

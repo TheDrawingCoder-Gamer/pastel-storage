@@ -8,7 +8,7 @@ import gay.menkissing.pastelstorage.content.PastelStorageBlocks.bottomlessBarrel
 import gay.menkissing.pastelstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.pastelstorage.content.item.BottomlessBottleItem
 import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageItems}
-import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageTranslationKeys}
+import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
 import gay.menkissing.pastelstorage.util.{FluidResource, PastelStorageEnchantmentHelper}
 import net.minecraft.core.component.DataComponents
@@ -75,13 +75,14 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   }
 
   class BundleItemStorageHandler(val slot: Int) extends IItemHandler {
+    import BottomlessStorageBlockEntity.StorageTests
     def stack: ItemStack = items.get(slot)
 
     def isVoidingStack(stack: ItemStack): Boolean =
       EnchantmentHelper.hasTag(stack, PastelEnchantmentTags.DELETES_OVERFLOW)
 
     def isValidStack(stack: ItemStack): Boolean =
-      stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
+      StorageTests.isBundle(stack)
 
     def stackMax(stack: ItemStack): Int =
       if isValidStack(stack) then
@@ -104,6 +105,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
 
     def permits(stored: ItemReference, resource: ItemReference): Boolean =
+      // assume(!this.isGarbageStack(this.stack))
       if !stored.isEmpty && !filter.isEmpty && filter != stored then
         PastelStorage.Logger.info("player must have modified the bundle manually, updating filter")
 
@@ -125,7 +127,9 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack =
       val bundle = this.stack
-      if isValidStack(bundle) && slot == 0 then
+      if StorageTests.isGarbage(bundle) then
+        ItemStack.EMPTY
+      else if isValidStack(bundle) && slot == 0 then
         val storage = ItemStorage.load(bundle)
         if !permits(storage.getReference, ItemReference.of(stack)) then
           return stack
@@ -146,6 +150,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def extractItem(slot: Int, amount: Int, simulate: Boolean): ItemStack =
       val bundle = this.stack
+      // no special casing for garbage here
       if isValidStack(stack) && slot == 0 then
         val storage = ItemStorage.load(bundle)
         val result = storage.extract(amount)
@@ -252,10 +257,11 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   }
 
   class BottleFluidStorageHandler(val slot: Int) extends IFluidHandler {
+    import BottomlessStorageBlockEntity.StorageTests
     def stack: ItemStack = items.get(slot)
 
     def isValidStack(stack: ItemStack): Boolean =
-      stack.is(PastelStorageItems.bottomlessBottle)
+      StorageTests.isBottle(stack)
 
     def stackMax(stack: ItemStack): Int =
       if isValidStack(stack) then
@@ -306,7 +312,9 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
       val bottle = stack
-      if isValidStack(bottle) then
+      if StorageTests.isGarbage(bottle) then
+        fluidStack.getAmount
+      else if isValidStack(bottle) then
         val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(bottle)
         if !permits(builder.template, FluidResource.ofStack(fluidStack)) then
           return 0
@@ -443,7 +451,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   def removeItemNoUpdate(slot: Int): ItemStack = this.removeItem(slot, 1)
 
   def setItem(slot: Int, stack: ItemStack): Unit =
-    if stack.is(PastelStorageItems.bottomlessBottle) || stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
+    if BottomlessStorageBlockEntity.StorageTests.isAccepted(stack) then
       this.items.set(slot, stack)
       this.updateSlot(slot)
       this.updateSlotShown(slot)
@@ -609,7 +617,18 @@ object BottomlessStorageBlockEntity:
 
       level.gameEvent(player, GameEvent.BLOCK_CHANGE, pos)
 
-  final class BottomlessStorageIFluidProvider
+  object StorageTests:
+    def isAccepted(stack: ItemStack): Boolean =
+      isBundle(stack) || isBottle(stack) || isGarbage(stack)
+    
+    def isBundle(stack: ItemStack): Boolean =
+      stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
+    
+    def isBottle(stack: ItemStack): Boolean =
+      stack.is(PastelStorageItems.bottomlessBottle)
+    
+    def isGarbage(stack: ItemStack): Boolean =
+      stack.is(PastelStorageTags.item.deletesItemsWhenInsertedInto)
 
   def registerStorages(bus: IEventBus): Unit =
     import PastelStorageBlocks.{
