@@ -3,7 +3,7 @@ package gay.menkissing.pastelstorage
 import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageItems}
 import gay.menkissing.pastelstorage.datagen.PastelStorageDatagen
 import gay.menkissing.pastelstorage.datagen.providers.PastelStorageBook
-import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageScreens, PastelStorageTags}
+import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageScreens, PastelStorageTags}
 import net.minecraft.core.RegistryAccess
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.MinecraftServer
@@ -41,4 +41,5 @@ class PastelStorage(modBus: IEventBus):
   PastelStorageComponents.submit(modBus)
   PastelStorageScreens.submit(modBus)
   PastelStorageDatagen.submit(modBus)
+  PastelStorageCriteria.register(modBus)
   // InfoCollector.instance.addBookRegister(SpectrumStorageBook.init)

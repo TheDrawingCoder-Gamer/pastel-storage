@@ -2,13 +2,14 @@ package gay.menkissing.pastelstorage.content.block.entity
 
 import earth.terrarium.pastel.blocks.bottomless_bundle.BottomlessBundleItem
 import earth.terrarium.pastel.api.item.{ItemReference, ItemStorage}
+import earth.terrarium.pastel.helpers.Support
 import earth.terrarium.pastel.registries.{PastelBlocks, PastelDataComponentTypes, PastelEnchantmentTags, PastelEnchantments}
 import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.content.PastelStorageBlocks.bottomlessBarrel
 import gay.menkissing.pastelstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.pastelstorage.content.item.BottomlessBottleItem
 import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageItems}
-import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageTags, PastelStorageTranslationKeys}
+import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
 import gay.menkissing.pastelstorage.util.{FluidResource, PastelStorageEnchantmentHelper}
 import net.minecraft.core.component.DataComponents
@@ -17,6 +18,8 @@ import net.minecraft.core.{BlockPos, Direction, HolderLookup, NonNullList, Vec3i
 import net.minecraft.nbt.{CompoundTag, ListTag, NbtOps, Tag}
 import net.minecraft.network.chat.Component
 import net.minecraft.network.chat.Component.Serializer
+import net.minecraft.resources.ResourceLocation
+import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.{SoundEvent, SoundEvents, SoundSource}
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, ChestMenu}
@@ -34,7 +37,7 @@ import net.neoforged.neoforge.fluids.{FluidStack, SimpleFluidContent}
 import net.neoforged.neoforge.fluids.capability.IFluidHandler
 import net.neoforged.neoforge.items.IItemHandler
 
-import java.util.Objects
+import java.util.{Objects, Optional}
 import scala.jdk.CollectionConverters.*
 
 abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BlockEntity(baseEntity, pos, state):
@@ -46,6 +49,15 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
   val itemStorage: ItemStorages = new ItemStorages
   val fluidStorage: FluidStorages = new FluidStorages
+
+  def tryTriggerVoidObjective(stack: ItemStack): Unit =
+    if !stack.isEmpty then
+      level match
+        case sl: ServerLevel =>
+          Support
+            .areaCriterion(sl, 5, getBlockPos, ResourceLocation.fromNamespaceAndPath("pastel", "midgame/pastel_midgame"), p => PastelStorageCriteria.BARREL_VOIDING
+                                                                                                         .trigger(p, stack))
+        case _ => ()
 
   class ItemStorages extends IItemHandler {
     val storages = Vector.tabulate(capacity)(new BundleItemStorageHandler(_))
@@ -128,6 +140,8 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack =
       val bundle = this.stack
       if StorageTests.isGarbage(bundle) then
+        if !simulate && !stack.isEmpty then
+          tryTriggerVoidObjective(bundle)
         ItemStack.EMPTY
       else if isValidStack(bundle) && slot == 0 then
         val storage = ItemStorage.load(bundle)
@@ -313,6 +327,8 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
       val bottle = stack
       if StorageTests.isGarbage(bottle) then
+        if fluidAction.execute() && !fluidStack.isEmpty then
+          tryTriggerVoidObjective(bottle)
         fluidStack.getAmount
       else if isValidStack(bottle) then
         val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(bottle)
@@ -620,13 +636,13 @@ object BottomlessStorageBlockEntity:
   object StorageTests:
     def isAccepted(stack: ItemStack): Boolean =
       isBundle(stack) || isBottle(stack) || isGarbage(stack)
-    
+
     def isBundle(stack: ItemStack): Boolean =
       stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
-    
+
     def isBottle(stack: ItemStack): Boolean =
       stack.is(PastelStorageItems.bottomlessBottle)
-    
+
     def isGarbage(stack: ItemStack): Boolean =
       stack.is(PastelStorageTags.item.deletesItemsWhenInsertedInto)
 

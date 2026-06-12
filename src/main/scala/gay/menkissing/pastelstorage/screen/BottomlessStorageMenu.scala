@@ -1,8 +1,10 @@
 package gay.menkissing.pastelstorage.screen
 
 import earth.terrarium.pastel.registries.PastelBlocks
+import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.content.PastelStorageItems
-import gay.menkissing.pastelstorage.registries.{PastelStorageScreens, PastelStorageTags}
+import gay.menkissing.pastelstorage.registries.{PastelStorageCriteria, PastelStorageScreens, PastelStorageTags}
+import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, MenuType, Slot}
 import net.minecraft.world.item.ItemStack
@@ -21,6 +23,11 @@ class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows:
       addSlot(new Slot(container, j + i * BottomlessStorageMenu.columns, 8 + j * 18, 18 + i * 18) {
         override def mayPlace(itemStack: ItemStack): Boolean =
           isValidItem(itemStack)
+
+        override def setByPlayer(stack : ItemStack): Unit =
+          super.setByPlayer(stack)
+          if stack.is(PastelStorageTags.item.deletesItemsWhenInsertedInto) then
+            tryTriggerInsertCriterion(stack)
       })
 
     for
@@ -33,7 +40,14 @@ class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows:
       i <- 0 until ScreenCommon.playerColumns
     do
       addSlot(new Slot(playerInv, i, 8 + i * 18, 161 + k))
-  
+
+  def tryTriggerInsertCriterion(stack: ItemStack): Unit =
+    playerInv.player match
+      case sp: ServerPlayer =>
+        PastelStorage.Logger.debug(s"triggering insert for stack ${stack.getItemHolder.getKey.location()}")
+        PastelStorageCriteria.INSERT_INTO_VOIDING_BARREL.trigger(sp, stack)
+      case _ => ()
+
   override def quickMoveStack(player: Player, i: Int): ItemStack =
     // ported from scala 1.21 code that was
     // ported from java code that was ported from scala code that was ported from java code
@@ -42,7 +56,7 @@ class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows:
     if slot.hasItem then
       val slotStack = slot.getItem
       transferredItemStack = slotStack.copy()
-      val boxStart = 0
+      val boxStart = BottomlessStorageMenu.startSlot
       val boxEnd = boxStart + BottomlessStorageMenu.columns * rows
       val invEnd = boxEnd + 36
       if i < boxEnd then
@@ -69,6 +83,7 @@ class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows:
     container.stillValid(player)
 
 object BottomlessStorageMenu:
+  val startSlot = 0
   val amphoraRows = 6
   val barrelRows = 3
   val columns = 9

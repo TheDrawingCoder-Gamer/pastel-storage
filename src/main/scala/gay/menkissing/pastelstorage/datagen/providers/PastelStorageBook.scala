@@ -54,6 +54,11 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
       add(s"container.pastelstorage.$k", v)
       
     add("tag.item.pastelstorage.valid_tools", "Valid Tools")
+    add("advancements.pastelstorage.black_ink_as_voider.title", "I guess it IS 'Void'")
+    add("advancements.pastelstorage.black_ink_as_voider.description", "Use black pigment to void your items in a bottomless barrel.")
+
+    add("advancements.pastelstorage.lava_in_voider.title", "There goes my stuff")
+    add("advancements.pastelstorage.lava_in_voider.description", "Use a lava bucket to void your items in a bottomless barrel")
 
 
 
