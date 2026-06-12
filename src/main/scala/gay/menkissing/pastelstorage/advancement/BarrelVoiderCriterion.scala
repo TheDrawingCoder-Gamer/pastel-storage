@@ -3,6 +3,8 @@ package gay.menkissing.pastelstorage.advancement
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import gay.menkissing.pastelstorage.PastelStorage
+import gay.menkissing.pastelstorage.registries.PastelStorageCriteria
+import net.minecraft.advancements.Criterion
 import net.minecraft.advancements.critereon.{ContextAwarePredicate, EntityPredicate, ItemPredicate, SimpleCriterionTrigger}
 import net.minecraft.core.BlockPos
 import net.minecraft.server.level.{ServerLevel, ServerPlayer}
@@ -22,6 +24,9 @@ final class BarrelVoiderCriterion extends SimpleCriterionTrigger[BarrelVoiderCri
 object BarrelVoiderCriterion:
   val Id = PastelStorage.locate("barrel_voider")
 
+  def instance(player: ContextAwarePredicate | Null, voidType: ItemPredicate): Criterion[Conditions] =
+    PastelStorageCriteria.BARREL_VOIDING.createCriterion(Conditions(Optional.ofNullable(player), voidType))
+  
   final case class Conditions(player: Optional[ContextAwarePredicate], voidType: ItemPredicate) extends SimpleCriterionTrigger.SimpleInstance:
     def matches(voider: ItemStack): Boolean =
       voidType.test(voider)

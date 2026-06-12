@@ -1,7 +1,7 @@
 package gay.menkissing.pastelstorage.datagen
 
 import earth.terrarium.pastel.registries.PastelEnchantments
-import gay.menkissing.pastelstorage.datagen.providers.{PastelStorageBlockStateGenerator, PastelStorageBlockTagsProvider, PastelStorageBook, PastelStorageItemModelGenerator, PastelStorageItemTagsProvider, PastelStorageLootTableProvider}
+import gay.menkissing.pastelstorage.datagen.providers.{PastelStorageAdvancementProvider, PastelStorageBlockStateGenerator, PastelStorageBlockTagsProvider, PastelStorageBook, PastelStorageItemModelGenerator, PastelStorageItemTagsProvider, PastelStorageLootTableProvider}
 import gay.menkissing.pastelstorage.util.registry.provider.generators.PastelStorageBaseBookProvider
 import net.minecraft.core.registries.Registries
 import net.minecraft.core.{HolderLookup, RegistrySetBuilder}
@@ -39,5 +39,6 @@ object PastelStorageDatagen:
       event.addProvider(blockTagProvider)
       event.addProvider(PastelStorageItemTagsProvider(output, lookupProvider, blockTagProvider.contentsGetter, existingFileHelper))
       event.createProvider(PastelStorageLootTableProvider.apply)
+      event.addProvider(PastelStorageAdvancementProvider(output, lookupProvider, existingFileHelper))
 
 

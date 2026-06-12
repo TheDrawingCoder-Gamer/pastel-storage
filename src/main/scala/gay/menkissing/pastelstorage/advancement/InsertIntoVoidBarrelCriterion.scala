@@ -3,6 +3,8 @@ package gay.menkissing.pastelstorage.advancement
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
 import gay.menkissing.pastelstorage.PastelStorage
+import gay.menkissing.pastelstorage.registries.PastelStorageCriteria
+import net.minecraft.advancements.Criterion
 import net.minecraft.advancements.critereon.{ContextAwarePredicate, EntityPredicate, ItemPredicate, SimpleCriterionTrigger}
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerPlayer
@@ -19,6 +21,9 @@ final class InsertIntoVoidBarrelCriterion extends SimpleCriterionTrigger[InsertI
 
 object InsertIntoVoidBarrelCriterion:
   val ID: ResourceLocation = PastelStorage.locate("insert_into_void_barrel")
+  
+  def instance(player: ContextAwarePredicate | Null, inserted: ItemPredicate): Criterion[Conditions] =
+    PastelStorageCriteria.INSERT_INTO_VOIDING_BARREL.createCriterion(Conditions(Optional.ofNullable(player), inserted))
   
   final case class Conditions(
                              player: Optional[ContextAwarePredicate],
