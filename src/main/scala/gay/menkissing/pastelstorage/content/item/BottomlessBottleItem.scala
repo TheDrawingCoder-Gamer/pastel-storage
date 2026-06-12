@@ -6,7 +6,8 @@ import net.minecraft.world.item.{Item, ItemDisplayContext, ItemStack, TooltipFla
 import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.content.PastelStorageItems
 import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageTranslationKeys}
-import gay.menkissing.pastelstorage.util.{FluidResource, PastelStorageEnchantmentHelper}
+import gay.menkissing.pastelstorage.util.PastelStorageEnchantmentHelper
+import gay.menkissing.pastelstorage.api.fluid.FluidResource
 import net.minecraft.core.{BlockPos, Direction, Holder, HolderLookup}
 import net.minecraft.core.cauldron.CauldronInteraction
 import net.minecraft.core.particles.ParticleTypes
@@ -129,14 +130,14 @@ object BottomlessBottleItem:
   def emptyBottleInteraction(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
     val contents = SimpleFluidContentBuilder.fromStack(stack)
 
-    if contents.template.fluid == Fluids.WATER then
+    if contents.template.getFluid == Fluids.WATER then
       if contents.extract(FluidResource.of(Fluids.WATER), FluidType.BUCKET_VOLUME) == FluidType.BUCKET_VOLUME then
         level.setBlockAndUpdate(blockPos, Blocks.WATER_CAULDRON.defaultBlockState()
           .setValue(LayeredCauldronBlock.LEVEL, LayeredCauldronBlock.MAX_FILL_LEVEL))
         level.playSound(player, blockPos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1f, 1f)
         contents.buildAndSet(stack)
         return ItemInteractionResult.SUCCESS
-    else if contents.template.fluid == Fluids.LAVA then
+    else if contents.template.getFluid == Fluids.LAVA then
       if contents.extract(FluidResource.of(Fluids.LAVA), FluidType.BUCKET_VOLUME) == FluidType.BUCKET_VOLUME then
         level.setBlockAndUpdate(blockPos, Blocks.LAVA_CAULDRON.defaultBlockState())
         level.playSound(player, blockPos, SoundEvents.BUCKET_EMPTY_LAVA, SoundSource.BLOCKS, 1f, 1f)
@@ -146,7 +147,7 @@ object BottomlessBottleItem:
 
   def fillBottleInteraction(fluid: Fluid)(blockState: BlockState, level: Level, blockPos: BlockPos, player: Player, usedHand: InteractionHand, stack: ItemStack): ItemInteractionResult =
     val contents = SimpleFluidContentBuilder.fromStack(stack)
-    if contents.isEmpty || contents.template.fluid.isSame(fluid) then
+    if contents.isEmpty || contents.template.getFluid.isSame(fluid) then
       // Thou shalt convert thine Integer to Int unless thy want sadness
       val amount = blockState.getOptionalValue(LayeredCauldronBlock.LEVEL).orElse(3).toInt
       if amount != 3 then
@@ -156,7 +157,7 @@ object BottomlessBottleItem:
       else if contents.insert(FluidResource.of(fluid), FluidType.BUCKET_VOLUME) == FluidType.BUCKET_VOLUME then
         contents.buildAndSet(stack)
         level.setBlockAndUpdate(blockPos, Blocks.CAULDRON.defaultBlockState())
-        val emptySound = contents.template.fluid.getFluidType.getSound(player, level, blockPos, SoundActions.BUCKET_EMPTY)
+        val emptySound = contents.template.getFluid.getFluidType.getSound(player, level, blockPos, SoundActions.BUCKET_EMPTY)
         if emptySound != null then
           level.playSound(player, blockPos, emptySound, SoundSource
             .BLOCKS, 1f, 1f)
@@ -174,7 +175,7 @@ object BottomlessBottleItem:
       template.isBlank || amount == 0
 
     def result(): SimpleFluidContent =
-      SimpleFluidContent.copyOf(FluidStack(template.fluid.builtInRegistryHolder(), amount, template.components))
+      SimpleFluidContent.copyOf(FluidStack(template.getFluid.builtInRegistryHolder(), amount, template.getComponents))
 
     def buildAndSet(stack: ItemStack): Unit =
       val res = result()

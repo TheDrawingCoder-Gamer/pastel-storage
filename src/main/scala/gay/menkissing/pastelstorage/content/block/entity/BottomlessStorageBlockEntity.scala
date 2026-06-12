@@ -11,7 +11,8 @@ import gay.menkissing.pastelstorage.content.item.BottomlessBottleItem
 import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageItems}
 import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
-import gay.menkissing.pastelstorage.util.{FluidResource, PastelStorageEnchantmentHelper}
+import gay.menkissing.pastelstorage.api.fluid.FluidResource
+import gay.menkissing.pastelstorage.util.PastelStorageEnchantmentHelper
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
 import net.minecraft.core.{BlockPos, Direction, HolderLookup, NonNullList, Vec3i}
