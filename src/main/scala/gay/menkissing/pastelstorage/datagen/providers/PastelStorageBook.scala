@@ -6,7 +6,7 @@ import com.klikli_dev.modonomicon.api.datagen.book.page.{BookSpotlightPageModel,
 import earth.terrarium.pastel.registries.{PastelBlocks, PastelEnchantments, PastelItems}
 import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageItems}
-import gay.menkissing.pastelstorage.registries.PastelStorageTranslationKeys
+import gay.menkissing.pastelstorage.registries.{PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.util.registry.book.{BookEntry, EntryLocation}
 import gay.menkissing.pastelstorage.util.registry.provider.generators.PastelStorageBaseBookProvider
 import gay.menkissing.pastelstorage.util.registry.provider.generators.book.BookPedestalPageModel
@@ -30,6 +30,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
     val key = s"${it.getDescriptionId}.tooltip.$sub"
     add(key, value)
 
+  
   override def addTranslations(): Unit =
     addBlock(PastelStorageBlocks.bottomlessBarrel, "Bottomless Barrel")
     addBlock(PastelStorageBlocks.bottomlessAmphora, "Bottomless Amphora")
@@ -53,7 +54,8 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
     ).foreach: (k, v) =>
       add(s"container.pastelstorage.$k", v)
       
-    add("tag.item.pastelstorage.valid_tools", "Valid Tools")
+    add(PastelStorageTags.item.validToolTag, "Valid Tools")
+    add(PastelStorageTags.item.deletesItemsWhenInsertedInto, "Voids items inside Bottomless Barrel")
     add("advancements.pastelstorage.black_ink_as_voider.title", "I guess it IS 'Void'")
     add("advancements.pastelstorage.black_ink_as_voider.description", "Use black pigment to void your items in a bottomless barrel.")
 
