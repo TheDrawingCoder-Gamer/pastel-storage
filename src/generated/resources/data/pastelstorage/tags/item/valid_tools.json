@@ -1,0 +1,40 @@
+{
+  "values": [
+    "#c:tools",
+    "minecraft:spyglass",
+    "minecraft:clock",
+    "minecraft:flint_and_steel",
+    "pastel:tuning_stamp",
+    "pastel:omni_accelerator",
+    "pastel:crescent_clock",
+    "pastel:radiance_staff",
+    "pastel:natures_staff",
+    "pastel:staff_of_remembrance",
+    "pastel:constructors_staff",
+    "pastel:exchanging_staff",
+    "pastel:block_flooder",
+    "pastel:celestial_pocketwatch",
+    "pastel:paintbrush",
+    {
+      "id": "botania:twig_wand",
+      "required": false
+    },
+    {
+      "id": "botania:dreamwood_wand",
+      "required": false
+    },
+    "#minecraft:compasses",
+    "#c:tools/wrench",
+    "#c:tools/shear",
+    "#c:tools/bow",
+    "#c:tools/fishing_rod",
+    {
+      "id": "#botania:rods",
+      "required": false
+    },
+    {
+      "id": "#hexcasting:staves",
+      "required": false
+    }
+  ]
+}

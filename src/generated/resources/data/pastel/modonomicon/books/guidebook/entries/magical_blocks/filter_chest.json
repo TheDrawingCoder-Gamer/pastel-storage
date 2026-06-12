@@ -1,0 +1,42 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "pastel:magical_blocks",
+  "condition": {
+    "type": "modonomicon:advancement",
+    "advancement_id": "pastelstorage:unlocks/blocks/filter_chest"
+  },
+  "description": "book.pastelstorage.added_by_pastelstorage",
+  "hide_while_locked": true,
+  "icon": {
+    "item": "pastelstorage:filter_chest"
+  },
+  "name": "block.pastelstorage.filter_chest",
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "item": {
+        "item": "pastelstorage:filter_chest"
+      },
+      "text": "book.pastelstorage.guidebook.filter_chest.page1.text",
+      "title": "block.pastelstorage.filter_chest"
+    },
+    {
+      "type": "pastel:pedestal_crafting",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id": "pastelstorage:pedestal/tier3/filter_chest",
+      "text": "book.pastelstorage.guidebook.filter_chest.page2.text",
+      "title": "container.pastel.rei.pedestal_recipe"
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "x": 0,
+  "y": 4
+}

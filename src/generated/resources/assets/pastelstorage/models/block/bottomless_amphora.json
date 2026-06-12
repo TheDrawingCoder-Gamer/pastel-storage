@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "bottom": "pastelstorage:block/bottomless_amphora_bottom",
+    "side": "pastelstorage:block/bottomless_amphora_side",
+    "top": "pastelstorage:block/bottomless_amphora_top"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "criteria": {
+    "collected_quitoxic_reeds": {
+      "conditions": {
+        "advancement": "pastel:collect_quitoxic_reeds"
+      },
+      "trigger": "databank:has_advancement"
+    }
+  },
+  "requirements": [
+    [
+      "collected_quitoxic_reeds"
+    ]
+  ]
+}

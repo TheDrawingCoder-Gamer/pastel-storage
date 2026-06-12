@@ -1,0 +1,745 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf",
+        "uvlock": true
+      },
+      "when": {
+        "facing": "north"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_left"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_0_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_left"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_0_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_left"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_0_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_mid"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_1_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_mid"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_1_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_mid"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_1_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_right"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_2_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_right"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_2_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_right"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_2_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_left"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_3_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_left"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_3_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_left"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_3_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_mid"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_4_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_mid"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_4_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_mid"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_4_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_right"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_5_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_right"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_5_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_right"
+      },
+      "when": {
+        "facing": "north",
+        "shelf_slot_5_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf",
+        "uvlock": true,
+        "y": 90
+      },
+      "when": {
+        "facing": "east"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_0_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_0_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_0_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_mid",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_1_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_mid",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_1_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_mid",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_1_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_2_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_2_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_2_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_3_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_3_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_left",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_3_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_mid",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_4_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_mid",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_4_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_mid",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_4_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_5_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_5_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_right",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "shelf_slot_5_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf",
+        "uvlock": true,
+        "y": 180
+      },
+      "when": {
+        "facing": "south"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_0_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_0_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_0_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_mid",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_1_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_mid",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_1_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_mid",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_1_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_2_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_2_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_2_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_3_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_3_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_left",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_3_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_mid",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_4_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_mid",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_4_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_mid",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_4_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_5_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_5_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_right",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "shelf_slot_5_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf",
+        "uvlock": true,
+        "y": 270
+      },
+      "when": {
+        "facing": "west"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_0_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_0_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_0_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_mid",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_1_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_mid",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_1_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_mid",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_1_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_top_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_2_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_top_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_2_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_top_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_2_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_3_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_3_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_left",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_3_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_mid",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_4_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_mid",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_4_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_mid",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_4_occupied_by": "bundle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_empty_bottom_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_5_occupied_by": "empty"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bottle_bottom_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_5_occupied_by": "bottle"
+      }
+    },
+    {
+      "apply": {
+        "model": "pastelstorage:block/bottomless_shelf_bundle_bottom_right",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "shelf_slot_5_occupied_by": "bundle"
+      }
+    }
+  ]
+}

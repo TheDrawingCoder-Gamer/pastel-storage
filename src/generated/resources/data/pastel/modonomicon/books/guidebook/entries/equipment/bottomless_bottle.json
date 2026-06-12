@@ -1,0 +1,63 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "pastel:equipment",
+  "condition": {
+    "type": "modonomicon:advancement",
+    "advancement_id": "pastelstorage:unlocks/items/bottomless_bottle"
+  },
+  "description": "book.pastelstorage.added_by_pastelstorage",
+  "hide_while_locked": true,
+  "icon": {
+    "item": "pastelstorage:bottomless_bottle"
+  },
+  "name": "item.pastelstorage.bottomless_bottle",
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "item": {
+        "item": "pastelstorage:bottomless_bottle"
+      },
+      "text": "book.pastelstorage.guidebook.bottomless_bottle.page1.text",
+      "title": "item.pastelstorage.bottomless_bottle"
+    },
+    {
+      "type": "pastel:pedestal_crafting",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id": "pastelstorage:pedestal/tier2/bottomless_bottle",
+      "text": "book.pastelstorage.guidebook.bottomless_bottle.page2.text",
+      "title": "container.pastel.rei.pedestal_recipe"
+    },
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:advancement",
+        "advancement_id": "pastel:midgame/build_enchanting_structure"
+      },
+      "item": {
+        "components": {
+          "minecraft:enchantments": {
+            "levels": {
+              "minecraft:power": 5
+            }
+          }
+        },
+        "count": 1,
+        "item": "pastelstorage:bottomless_bottle"
+      },
+      "text": "book.pastelstorage.guidebook.bottomless_bottle.page3.text",
+      "title": "enchantment.minecraft.power"
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "x": 3,
+  "y": 4
+}

@@ -1,0 +1,74 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "pastel:magical_blocks",
+  "condition": {
+    "type": "modonomicon:advancement",
+    "advancement_id": "pastelstorage:unlocks/blocks/bottomless_shelf"
+  },
+  "description": "book.pastelstorage.added_by_pastelstorage",
+  "hide_while_locked": true,
+  "icon": {
+    "item": "pastelstorage:bottomless_shelf"
+  },
+  "name": "block.pastelstorage.bottomless_shelf",
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "item": {
+        "item": "pastelstorage:bottomless_shelf"
+      },
+      "text": "book.pastelstorage.guidebook.bottomless_shelf.page1.text",
+      "title": "block.pastelstorage.bottomless_shelf"
+    },
+    {
+      "type": "pastel:pedestal_crafting",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id": "pastelstorage:pedestal/tier2/bottomless_shelf",
+      "text": "book.pastelstorage.guidebook.bottomless_shelf.page2.text",
+      "title": "container.pastel.rei.pedestal_recipe"
+    },
+    {
+      "type": "modonomicon:text",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "show_title_separator": true,
+      "text": "book.pastelstorage.guidebook.bottomless_shelf.page3.text",
+      "title": "",
+      "use_markdown_in_title": false
+    },
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:advancement",
+        "advancement_id": "pastel:midgame/build_enchanting_structure"
+      },
+      "item": {
+        "components": {
+          "minecraft:enchantments": {
+            "levels": {
+              "pastel:voiding": 1
+            }
+          }
+        },
+        "count": 1,
+        "item": "pastel:bottomless_bundle"
+      },
+      "text": "book.pastelstorage.guidebook.bottomless_shelf.page4.text",
+      "title": "enchantment.pastel.voiding"
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "x": 1,
+  "y": 4
+}

@@ -1,0 +1,42 @@
+{
+  "background_u_index": 0,
+  "background_v_index": 0,
+  "category": "pastel:equipment",
+  "condition": {
+    "type": "modonomicon:advancement",
+    "advancement_id": "pastelstorage:unlocks/items/tool_container"
+  },
+  "description": "book.pastelstorage.added_by_pastelstorage",
+  "hide_while_locked": true,
+  "icon": {
+    "item": "pastelstorage:tool_container"
+  },
+  "name": "item.pastelstorage.tool_container",
+  "pages": [
+    {
+      "type": "modonomicon:spotlight",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "item": {
+        "item": "pastelstorage:tool_container"
+      },
+      "text": "book.pastelstorage.guidebook.tool_container.page1.text",
+      "title": "item.pastelstorage.tool_container"
+    },
+    {
+      "type": "pastel:pedestal_crafting",
+      "anchor": "",
+      "condition": {
+        "type": "modonomicon:none"
+      },
+      "recipe_id": "pastelstorage:pedestal/tier2/tool_container",
+      "text": "book.pastelstorage.guidebook.tool_container.page2.text",
+      "title": "container.pastel.rei.pedestal_recipe"
+    }
+  ],
+  "show_when_any_parent_unlocked": false,
+  "x": 4,
+  "y": 4
+}
