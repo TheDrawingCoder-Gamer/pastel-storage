@@ -12,7 +12,7 @@ import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageI
 import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
 import gay.menkissing.pastelstorage.api.fluid.FluidResource
-import gay.menkissing.pastelstorage.content.block.entity.BottomlessStorageBlockEntity.HasItemFilterable
+import gay.menkissing.pastelstorage.content.block.entity.BottomlessStorageBlockEntity.{HasFluidFilterable, HasItemFilterable}
 import gay.menkissing.pastelstorage.util.PastelStorageEnchantmentHelper
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
@@ -36,7 +36,7 @@ import net.minecraft.world.level.gameevent.GameEvent
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
 import net.neoforged.neoforge.fluids.{FluidStack, SimpleFluidContent}
-import net.neoforged.neoforge.fluids.capability.IFluidHandler
+import net.neoforged.neoforge.fluids.capability.{IFluidHandler, IFluidHandlerItem}
 import net.neoforged.neoforge.items.IItemHandler
 
 import java.util.{Objects, Optional}
@@ -72,11 +72,15 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     def removeSlot(slot: Int): Unit =
       storages(slot) = BottomlessStorageBlockEntity.EmptyItemSlot
 
-    def setBundleSlot(slot: Int): Unit =
-      storages(slot) = new BundleItemStorageHandler(items.get(slot))
+    def loadBundleSlot(slot: Int): Unit =
+      val stack = items.get(slot)
+      val storage = new BundleItemStorageHandler(stack)
+      val filter = stack.getOrDefault(PastelDataComponentTypes.ITEM_STORAGE, ItemStorage.Component.DEFAULT)
+      storage.setFilter(filter.reference())
+      storages(slot) = storage
 
     def setVoidingSlot(slot: Int): Unit =
-      storages(slot) = VoidingItemSlot
+      storages(slot) = VoidingItemSlot(items.get(slot))
 
     def setSlotFilter(slot: Int, stack: ItemReference): Unit =
       storages(slot).setFilter(stack)
@@ -98,7 +102,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     override def isItemValid(slot: Int, stack: ItemStack): Boolean = true
   }
 
-  object VoidingItemSlot extends IItemHandler, HasItemFilterable {
+  final class VoidingItemSlot(val voider: ItemStack) extends IItemHandler, HasItemFilterable {
 
     override def getSlots: Int = 1
 
@@ -106,7 +110,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def insertItem(i: Int, itemStack: ItemStack, simulate: Boolean): ItemStack =
       if !itemStack.isEmpty && !simulate then
-        tryTriggerVoidObjective(itemStack)
+        tryTriggerVoidObjective(voider)
       ItemStack.EMPTY
 
     override def extractItem(i: Int, i1: Int, b: Boolean): ItemStack =
@@ -223,13 +227,19 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   }
 
   class FluidStorages extends IFluidHandler {
-    val storages = Vector.tabulate(capacity)(new BottleFluidStorageHandler(_))
+    val storages: Array[IFluidHandler & HasFluidFilterable] = Array.fill(capacity)(BottomlessStorageBlockEntity.EmptyFluidSlot)
 
-    def unsetSlot(slot: Int): Unit =
-      storages(slot).unset()
+    def removeSlot(slot: Int): Unit =
+      storages(slot) = BottomlessStorageBlockEntity.EmptyFluidSlot
 
-    def setSlotFilterFromStack(slot: Int, stack: ItemStack): Unit =
-      storages(slot).setFilterFromStack(stack)
+    def loadBottleSlot(slot: Int): Unit =
+      val bottle = items.get(slot)
+      val storage = new BottleFluidStorageHandler(bottle)
+      storage.setFilterFromStack(bottle)
+      storages(slot) = storage
+
+    def setVoidingSlot(slot: Int): Unit =
+      storages(slot) = new VoidingFluidHandler(items.get(slot))
 
     override def getTanks: Int = capacity
 
@@ -304,9 +314,34 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
   }
 
-  class BottleFluidStorageHandler(val slot: Int) extends IFluidHandler {
+  final class VoidingFluidHandler(val voider: ItemStack) extends IFluidHandler, HasFluidFilterable:
+    override def getTanks: Int = 1
+
+    override def getFluidInTank(i: Int): FluidStack = FluidStack.EMPTY
+
+    override def getTankCapacity(i: Int): Int = 0
+
+    override def isFluidValid(i: Int, fluidStack: FluidStack): Boolean = true
+
+    override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
+      if !fluidStack.isEmpty && fluidAction.execute() then
+        tryTriggerVoidObjective(voider)
+      fluidStack.getAmount
+
+    override def drain(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      FluidStack.EMPTY
+
+    override def drain(i: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      FluidStack.EMPTY
+
+    override def setFilter(filter: FluidResource): Unit = ()
+
+    override def getFilter: FluidResource = FluidResource.EMPTY
+
+    override def unset(): Unit = ()
+
+  class BottleFluidStorageHandler(val stack: ItemStack) extends IFluidHandler, HasFluidFilterable {
     import BottomlessStorageBlockEntity.StorageTests
-    def stack: ItemStack = items.get(slot)
 
     def isValidStack(stack: ItemStack): Boolean =
       StorageTests.isBottle(stack)
@@ -318,6 +353,8 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
         0
 
     var filter: FluidResource = FluidResource.EMPTY
+
+    override def getFilter: FluidResource = filter
 
     def unset(): Unit =
       filter = FluidResource.EMPTY
@@ -360,11 +397,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
       val bottle = stack
-      if StorageTests.isGarbage(bottle) then
-        if fluidAction.execute() && !fluidStack.isEmpty then
-          tryTriggerVoidObjective(bottle)
-        fluidStack.getAmount
-      else if isValidStack(bottle) then
+      if isValidStack(bottle) then
         val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(bottle)
         if !permits(builder.template, FluidResource.ofStack(fluidStack)) then
           return 0
@@ -412,6 +445,8 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   override def loadAdditional(tag: CompoundTag, lookup: HolderLookup.Provider): Unit =
     super.loadAdditional(tag, lookup)
     ContainerHelper.loadAllItems(tag, items, lookup)
+    // need to update it here so the correct kind is selected _before_ we start applying filters
+    (0 until capacity).foreach(updateSlot)
     this.loadItemFilters(tag, lookup)
     this.loadFluidFilters(tag, lookup)
     this.lastInteractedSlot = tag.getInt("last_interacted_slot")
@@ -433,17 +468,15 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     val stack = this.items.get(slot)
     if stack.is(PastelStorageItems.bottomlessBottle) then
       itemStorage.removeSlot(slot)
-      fluidStorage.storages(slot).setFilterFromStack(stack)
+      fluidStorage.loadBottleSlot(slot)
     else if stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
-      fluidStorage.storages(slot).unset()
-      val filter = stack.getOrDefault(PastelDataComponentTypes.ITEM_STORAGE, ItemStorage.Component.DEFAULT)
-      itemStorage.setBundleSlot(slot)
-      itemStorage.storages(slot).setFilter(filter.reference())
+      fluidStorage.removeSlot(slot)
+      itemStorage.loadBundleSlot(slot)
     else if stack.is(PastelStorageTags.item.deletesItemsWhenInsertedInto) then
-      fluidStorage.storages(slot).unset()
+      fluidStorage.setVoidingSlot(slot)
       itemStorage.setVoidingSlot(slot)
     else
-      fluidStorage.storages(slot).unset()
+      fluidStorage.removeSlot(slot)
       itemStorage.removeSlot(slot)
 
   protected def updateSlotShown(slot: Int): Unit = ()
@@ -456,7 +489,6 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       if j >= 0 && j < capacity then
         // if error then will auto return blankie wankie
         val variant = ItemReference.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
-        updateSlot(j)
         itemStorage.storages(j).setFilter(variant.getFirst)
 
   def loadFluidFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
@@ -466,8 +498,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       val j = compound.getByte("Slot").toInt
       if j >= 0 && j < capacity then
         val variant = FluidResource.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow().getFirst
-        updateSlot(j)
-        fluidStorage.storages(j).filter = variant
+        fluidStorage.storages(j).setFilter(variant)
 
   def saveItemFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = ListTag()
@@ -483,7 +514,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   def saveFluidFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = ListTag()
     for i <- 0 until 6 do
-      val filter = fluidStorage.storages(i).filter
+      val filter = fluidStorage.storages(i).getFilter
       if !filter.isBlank then
         val compound = CompoundTag()
         compound.putByte("Slot", i.toByte)
@@ -682,6 +713,30 @@ object BottomlessStorageBlockEntity:
 
     override def getFilter: ItemReference = ItemReference.empty()
   }
+
+  object EmptyFluidSlot extends IFluidHandler, HasFluidFilterable:
+    override def setFilter(filter: FluidResource): Unit = ()
+
+    override def getFilter: FluidResource = FluidResource.EMPTY
+
+    override def unset(): Unit = ()
+
+    override def getTanks: Int = 1
+
+    override def getFluidInTank(i: Int): FluidStack = FluidStack.EMPTY
+
+    override def getTankCapacity(i: Int): Int = 0
+
+    override def isFluidValid(i: Int, fluidStack: FluidStack): Boolean = true
+
+    override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
+      0
+
+    override def drain(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      FluidStack.EMPTY
+
+    override def drain(i: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
+      FluidStack.EMPTY
 
 
 
