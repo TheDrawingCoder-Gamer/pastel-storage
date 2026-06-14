@@ -36,7 +36,7 @@ import net.minecraft.world.level.gameevent.GameEvent
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
 import net.neoforged.neoforge.fluids.{FluidStack, SimpleFluidContent}
-import net.neoforged.neoforge.fluids.capability.{IFluidHandler, IFluidHandlerItem}
+import net.neoforged.neoforge.fluids.capability.IFluidHandler
 import net.neoforged.neoforge.items.IItemHandler
 
 import java.util.{Objects, Optional}
@@ -45,7 +45,7 @@ import scala.jdk.CollectionConverters.*
 abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BlockEntity(baseEntity, pos, state):
 
 
-  protected val items = NonNullList.withSize(capacity, ItemStack.EMPTY)
+  protected val items: NonNullList[ItemStack] = NonNullList.withSize(capacity, ItemStack.EMPTY)
   protected var lastInteractedSlot: Int = -1
 
 
@@ -61,9 +61,27 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
                                                                                                          .trigger(p, stack))
         case _ => ()
 
+  object StorageManager:
+    def removeSlot(slot: Int): Unit =
+      itemStorage.removeSlot(slot)
+      fluidStorage.removeSlot(slot)
+
+    def loadBundleSlot(slot: Int): Unit =
+      fluidStorage.removeSlot(slot)
+      itemStorage.loadBundleSlot(slot)
+
+    def loadBottleSlot(slot: Int): Unit =
+      itemStorage.removeSlot(slot)
+      fluidStorage.loadBottleSlot(slot)
+
+    def setVoidingSlot(slot: Int): Unit =
+      fluidStorage.setVoidingSlot(slot)
+      itemStorage.setVoidingSlot(slot)
+
+
   // TODO: Optimize these storages so they don't need to constantly recheck the stack
 
-  class ItemStorages extends IItemHandler {
+  final class ItemStorages extends IItemHandler {
     val storages: Array[IItemHandler & HasItemFilterable] = Array.fill(capacity)(BottomlessStorageBlockEntity.EmptyItemSlot)
 
     def unsetSlot(slot: Int): Unit =
@@ -127,7 +145,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     override def unset(): Unit = ()
   }
 
-  class BundleItemStorageHandler(val stack: ItemStack) extends IItemHandler, HasItemFilterable {
+  final class BundleItemStorageHandler(val stack: ItemStack) extends IItemHandler, HasItemFilterable {
     import BottomlessStorageBlockEntity.StorageTests
     // def stack: ItemStack = items.get(slot)
 
@@ -340,7 +358,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def unset(): Unit = ()
 
-  class BottleFluidStorageHandler(val stack: ItemStack) extends IFluidHandler, HasFluidFilterable {
+  final class BottleFluidStorageHandler(val stack: ItemStack) extends IFluidHandler, HasFluidFilterable {
     import BottomlessStorageBlockEntity.StorageTests
 
     def isValidStack(stack: ItemStack): Boolean =
@@ -442,7 +460,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
   }
 
-  override def loadAdditional(tag: CompoundTag, lookup: HolderLookup.Provider): Unit =
+  override protected def loadAdditional(tag: CompoundTag, lookup: HolderLookup.Provider): Unit =
     super.loadAdditional(tag, lookup)
     ContainerHelper.loadAllItems(tag, items, lookup)
     // need to update it here so the correct kind is selected _before_ we start applying filters
@@ -467,17 +485,13 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   protected def updateSlot(slot: Int): Unit =
     val stack = this.items.get(slot)
     if stack.is(PastelStorageItems.bottomlessBottle) then
-      itemStorage.removeSlot(slot)
-      fluidStorage.loadBottleSlot(slot)
+      StorageManager.loadBottleSlot(slot)
     else if stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
-      fluidStorage.removeSlot(slot)
-      itemStorage.loadBundleSlot(slot)
+      StorageManager.loadBundleSlot(slot)
     else if stack.is(PastelStorageTags.item.deletesItemsWhenInsertedInto) then
-      fluidStorage.setVoidingSlot(slot)
-      itemStorage.setVoidingSlot(slot)
+      StorageManager.setVoidingSlot(slot)
     else
-      fluidStorage.removeSlot(slot)
-      itemStorage.removeSlot(slot)
+      StorageManager.removeSlot(slot)
 
   protected def updateSlotShown(slot: Int): Unit = ()
 
@@ -559,9 +573,6 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
   val containerView = new ContainerForBottomlessStorage()
 
 
-
-
-
   private val openersCounter: ContainerOpenersCounter =
     new ContainerOpenersCounter:
       override def onOpen(level: Level, blockPos: BlockPos, blockState: BlockState): Unit =
@@ -615,7 +626,9 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
       if !ContainerBottomlessStorageBlockEntity.this.remove && !player.isSpectator then
         decrementOpeners(player)
 
-    override def clearContent(): Unit = items.clear()
+    override def clearContent(): Unit =
+      items.clear()
+      (0 until capacity).foreach(StorageManager.removeSlot)
 
     override def getItem(i: Int): ItemStack =
       items.get(i)
