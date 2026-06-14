@@ -12,6 +12,7 @@ import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageI
 import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
 import gay.menkissing.pastelstorage.api.fluid.FluidResource
+import gay.menkissing.pastelstorage.content.block.entity.BottomlessStorageBlockEntity.HasItemFilterable
 import gay.menkissing.pastelstorage.util.PastelStorageEnchantmentHelper
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
@@ -60,14 +61,24 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
                                                                                                          .trigger(p, stack))
         case _ => ()
 
+  // TODO: Optimize these storages so they don't need to constantly recheck the stack
+
   class ItemStorages extends IItemHandler {
-    val storages = Vector.tabulate(capacity)(new BundleItemStorageHandler(_))
+    val storages: Array[IItemHandler & HasItemFilterable] = Array.fill(capacity)(BottomlessStorageBlockEntity.EmptyItemSlot)
 
     def unsetSlot(slot: Int): Unit =
       storages(slot).unset()
 
+    def removeSlot(slot: Int): Unit =
+      storages(slot) = BottomlessStorageBlockEntity.EmptyItemSlot
+
+    def setBundleSlot(slot: Int): Unit =
+      storages(slot) = new BundleItemStorageHandler(items.get(slot))
+
+    def setVoidingSlot(slot: Int): Unit =
+      storages(slot) = VoidingItemSlot
+
     def setSlotFilter(slot: Int, stack: ItemReference): Unit =
-      assert(stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()))
       storages(slot).setFilter(stack)
 
     override def getSlots: Int = capacity
@@ -87,9 +98,34 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     override def isItemValid(slot: Int, stack: ItemStack): Boolean = true
   }
 
-  class BundleItemStorageHandler(val slot: Int) extends IItemHandler {
+  object VoidingItemSlot extends IItemHandler, HasItemFilterable {
+
+    override def getSlots: Int = 1
+
+    override def getStackInSlot(i: Int): ItemStack = ItemStack.EMPTY
+
+    override def insertItem(i: Int, itemStack: ItemStack, simulate: Boolean): ItemStack =
+      if !itemStack.isEmpty && !simulate then
+        tryTriggerVoidObjective(itemStack)
+      ItemStack.EMPTY
+
+    override def extractItem(i: Int, i1: Int, b: Boolean): ItemStack =
+      ItemStack.EMPTY
+
+    override def getSlotLimit(i: Int): Int = 0
+
+    override def isItemValid(i: Int, itemStack: ItemStack): Boolean = true
+
+    override def setFilter(filter: ItemReference): Unit = ()
+
+    override def getFilter: ItemReference = ItemReference.empty()
+
+    override def unset(): Unit = ()
+  }
+
+  class BundleItemStorageHandler(val stack: ItemStack) extends IItemHandler, HasItemFilterable {
     import BottomlessStorageBlockEntity.StorageTests
-    def stack: ItemStack = items.get(slot)
+    // def stack: ItemStack = items.get(slot)
 
     def isVoidingStack(stack: ItemStack): Boolean =
       EnchantmentHelper.hasTag(stack, PastelEnchantmentTags.DELETES_OVERFLOW)
@@ -115,6 +151,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     def setFilter(filter: ItemReference): Unit =
       this.filter = filter
 
+    def getFilter: ItemReference = filter
 
 
     def permits(stored: ItemReference, resource: ItemReference): Boolean =
@@ -140,11 +177,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
     override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack =
       val bundle = this.stack
-      if StorageTests.isGarbage(bundle) then
-        if !simulate && !stack.isEmpty then
-          tryTriggerVoidObjective(bundle)
-        ItemStack.EMPTY
-      else if isValidStack(bundle) && slot == 0 then
+      if isValidStack(bundle) && slot == 0 then
         val storage = ItemStorage.load(bundle)
         if !permits(storage.getReference, ItemReference.of(stack)) then
           return stack
@@ -399,15 +432,19 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   protected def updateSlot(slot: Int): Unit =
     val stack = this.items.get(slot)
     if stack.is(PastelStorageItems.bottomlessBottle) then
-      itemStorage.storages(slot).unset()
+      itemStorage.removeSlot(slot)
       fluidStorage.storages(slot).setFilterFromStack(stack)
     else if stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
       fluidStorage.storages(slot).unset()
       val filter = stack.getOrDefault(PastelDataComponentTypes.ITEM_STORAGE, ItemStorage.Component.DEFAULT)
+      itemStorage.setBundleSlot(slot)
       itemStorage.storages(slot).setFilter(filter.reference())
+    else if stack.is(PastelStorageTags.item.deletesItemsWhenInsertedInto) then
+      fluidStorage.storages(slot).unset()
+      itemStorage.setVoidingSlot(slot)
     else
       fluidStorage.storages(slot).unset()
-      itemStorage.storages(slot).unset()
+      itemStorage.removeSlot(slot)
 
   protected def updateSlotShown(slot: Int): Unit = ()
 
@@ -420,7 +457,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
         // if error then will auto return blankie wankie
         val variant = ItemReference.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
         updateSlot(j)
-        itemStorage.storages(j).filter = variant.getFirst
+        itemStorage.storages(j).setFilter(variant.getFirst)
 
   def loadFluidFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = tag.getList(BottomlessStorageBlockEntity.tagFluidFilters, 10)
@@ -435,7 +472,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   def saveItemFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = ListTag()
     for i <- 0 until capacity do
-      val filter = itemStorage.storages(i).filter
+      val filter = itemStorage.storages(i).getFilter
       if !filter.isEmpty then
         val compound = CompoundTag()
         compound.putByte("Slot", i.toByte)
@@ -614,6 +651,38 @@ object BottomlessStorageBlockEntity:
 
     override def createMenu(windowId: Int, inventory: Inventory, player: Player): AbstractContainerMenu =
       BottomlessStorageMenu.amphoraServer(windowId, inventory, containerView)
+
+  trait HasItemFilterable:
+    def setFilter(filter: ItemReference): Unit
+    def getFilter: ItemReference
+    def unset(): Unit
+
+  trait HasFluidFilterable:
+    def setFilter(filter: FluidResource): Unit
+    def getFilter: FluidResource
+    def unset(): Unit
+
+  object EmptyItemSlot extends IItemHandler, HasItemFilterable {
+    override def getSlots: Int = 1
+
+    override def getStackInSlot(i: Int): ItemStack = ItemStack.EMPTY
+
+    override def insertItem(i: Int, itemStack: ItemStack, b: Boolean): ItemStack =
+      itemStack
+
+    override def extractItem(i: Int, i1: Int, b: Boolean): ItemStack = ItemStack.EMPTY
+
+    override def getSlotLimit(i: Int): Int = 0
+
+    override def isItemValid(i: Int, itemStack: ItemStack): Boolean = true
+
+    override def setFilter(filter: ItemReference): Unit = ()
+
+    override def unset(): Unit = ()
+
+    override def getFilter: ItemReference = ItemReference.empty()
+  }
+
 
 
 
