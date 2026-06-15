@@ -1,5 +1,6 @@
 package gay.menkissing.pastelstorage.content.block.entity
 
+import com.google.common.primitives.Ints
 import earth.terrarium.pastel.blocks.bottomless_bundle.BottomlessBundleItem
 import earth.terrarium.pastel.api.item.{ItemReference, ItemStorage}
 import earth.terrarium.pastel.helpers.Support
@@ -7,7 +8,7 @@ import earth.terrarium.pastel.registries.{PastelBlocks, PastelDataComponentTypes
 import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.content.PastelStorageBlocks.bottomlessBarrel
 import gay.menkissing.pastelstorage.content.block.BottomlessShelfBlock
-import gay.menkissing.pastelstorage.content.item.BottomlessBottleItem
+import gay.menkissing.pastelstorage.content.item.{BottomlessBatteryItem, BottomlessBottleItem}
 import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageItems}
 import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
@@ -35,6 +36,7 @@ import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.gameevent.GameEvent
 import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.capabilities.{Capabilities, RegisterCapabilitiesEvent}
+import net.neoforged.neoforge.energy.{EmptyEnergyStorage, IEnergyStorage}
 import net.neoforged.neoforge.fluids.{FluidStack, SimpleFluidContent}
 import net.neoforged.neoforge.fluids.capability.IFluidHandler
 import net.neoforged.neoforge.items.IItemHandler
@@ -51,6 +53,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
   val itemStorage: ItemStorages = new ItemStorages
   val fluidStorage: FluidStorages = new FluidStorages
+  val energyStorage: EnergyStorages = new EnergyStorages
 
   def tryTriggerVoidObjective(stack: ItemStack): Unit =
     if !stack.isEmpty then
@@ -65,18 +68,29 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     def removeSlot(slot: Int): Unit =
       itemStorage.removeSlot(slot)
       fluidStorage.removeSlot(slot)
+      energyStorage.removeSlot(slot)
 
     def loadBundleSlot(slot: Int): Unit =
       fluidStorage.removeSlot(slot)
+      energyStorage.removeSlot(slot)
       itemStorage.loadBundleSlot(slot)
 
     def loadBottleSlot(slot: Int): Unit =
       itemStorage.removeSlot(slot)
+      energyStorage.removeSlot(slot)
       fluidStorage.loadBottleSlot(slot)
+
+    def loadBatterySlot(slot: Int): Unit =
+      itemStorage.removeSlot(slot)
+      fluidStorage.removeSlot(slot)
+      energyStorage.loadBattery(slot)
+
 
     def setVoidingSlot(slot: Int): Unit =
       fluidStorage.setVoidingSlot(slot)
       itemStorage.setVoidingSlot(slot)
+      // No voiding for energy, at least not in the same way as item/fluid
+      energyStorage.removeSlot(slot)
 
 
   // TODO: Optimize these storages so they don't need to constantly recheck the stack
@@ -460,6 +474,77 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
   }
 
+  final class EnergyStorages extends IEnergyStorage:
+    val storages: Array[IEnergyStorage] = Array.fill(capacity)(EmptyEnergyStorage.INSTANCE)
+
+    def removeSlot(slot: Int): Unit =
+      storages(slot) = EmptyEnergyStorage.INSTANCE
+
+    def loadBattery(slot: Int): Unit =
+      val stack = items.get(slot)
+      storages(slot) = BottomlessBatteryItem.getStorage(stack)
+
+    override def receiveEnergy(toReceive: Int, simulate: Boolean): Int =
+      var i = 0
+      var remReceive = toReceive
+      var received = 0
+
+      while i < capacity do
+        val storage = storages(i)
+        val amount = storage.receiveEnergy(remReceive, simulate)
+        remReceive -= amount
+        received += amount
+        if remReceive == 0 then
+          if !simulate then
+            setChanged()
+          return received
+
+        i += 1
+
+      if received != 0 && !simulate then
+        setChanged()
+
+      received
+
+
+
+    override def extractEnergy(toExtract: Int, simulated: Boolean): Int =
+      var i = 0
+      var remExtract = toExtract
+      var extracted = 0
+      while i < capacity do
+        val storage = storages(i)
+        val amount = storage.extractEnergy(remExtract, simulated)
+        remExtract -= amount
+        extracted += amount
+        if remExtract == 0 then
+          if !simulated then
+            setChanged()
+          return extracted
+
+        i += 1
+
+      if extracted != 0 && !simulated then
+        setChanged()
+      extracted
+
+    override def getEnergyStored: Int =
+      Ints.saturatedCast(energyStoredLong)
+
+    def energyStoredLong: Long =
+      storages.foldLeft(0L)((x, s) => x + s.getEnergyStored.toLong)
+
+    override def getMaxEnergyStored: Int =
+      Ints.saturatedCast(capacityLong)
+
+    def capacityLong: Long =
+      storages.foldLeft(0L)((x, s) => x + s.getMaxEnergyStored.toLong)
+
+    override def canExtract: Boolean = true
+
+    override def canReceive: Boolean = true
+
+
   override protected def loadAdditional(tag: CompoundTag, lookup: HolderLookup.Provider): Unit =
     super.loadAdditional(tag, lookup)
     ContainerHelper.loadAllItems(tag, items, lookup)
@@ -488,6 +573,8 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       StorageManager.loadBottleSlot(slot)
     else if stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
       StorageManager.loadBundleSlot(slot)
+    else if stack.is(PastelStorageItems.bottomlessBattery) then
+      StorageManager.loadBatterySlot(slot)
     else if stack.is(PastelStorageTags.item.deletesItemsWhenInsertedInto) then
       StorageManager.setVoidingSlot(slot)
     else
@@ -673,7 +760,7 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
     )
 
   def updateBlockState(state: BlockState, open: Boolean): Unit =
-    this.level.setBlock(this.getBlockPos, state.setValue(BarrelBlock.OPEN, open), 3)
+    this.level.setBlockAndUpdate(this.getBlockPos, state.setValue(BarrelBlock.OPEN, open))
 
   override def getDisplayName: Component = getName
 
@@ -751,8 +838,18 @@ object BottomlessStorageBlockEntity:
     override def drain(i: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
       FluidStack.EMPTY
 
+  object VoidingEnergySlot extends IEnergyStorage:
+    override def receiveEnergy(toReceive: Int, b: Boolean): Int = toReceive
 
+    override def extractEnergy(i: Int, b: Boolean): Int = 0
 
+    override def getEnergyStored: Int = 0
+
+    override def getMaxEnergyStored: Int = 0
+
+    override def canExtract: Boolean = false
+
+    override def canReceive: Boolean = true
 
   def dropContents(level: Level, pos: BlockPos, entity: BottomlessStorageBlockEntity): Unit =
     (0 until entity.capacity).foreach: slot =>
@@ -773,7 +870,10 @@ object BottomlessStorageBlockEntity:
 
   object StorageTests:
     def isAccepted(stack: ItemStack): Boolean =
-      isBundle(stack) || isBottle(stack) || isGarbage(stack)
+      isBundle(stack) || isBottle(stack) || isBattery(stack) || isGarbage(stack)
+
+    def isBattery(stack: ItemStack): Boolean =
+      stack.is(PastelStorageItems.bottomlessBattery)
 
     def isBundle(stack: ItemStack): Boolean =
       stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
@@ -802,4 +902,9 @@ object BottomlessStorageBlockEntity:
           Capabilities.FluidHandler.BLOCK,
           entity,
           (en, side) => en.fluidStorage
+        )
+        ev.registerBlockEntity(
+          Capabilities.EnergyStorage.BLOCK,
+          entity,
+          (en, side) => en.energyStorage
         )

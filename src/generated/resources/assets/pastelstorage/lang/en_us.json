@@ -33,6 +33,8 @@
   "container.pastelstorage.bottomless_amphora": "Bottomless Amphora",
   "container.pastelstorage.bottomless_barrel": "Bottomless Barrel",
   "container.pastelstorage.filter_chest": "Filter Chest",
+  "item.pastelstorage.bottomless_battery": "Bottomless Battery",
+  "item.pastelstorage.bottomless_battery.tooltip.count_fe": "%1$s / %2$s",
   "item.pastelstorage.bottomless_bottle": "Bottomless Bottle",
   "item.pastelstorage.bottomless_bottle.tooltip.count_mb": "%1$s mB / %2$s buckets",
   "item.pastelstorage.bottomless_bottle.tooltip.empty": "Empty",

@@ -17,6 +17,10 @@ object PastelStorageTranslationKeys:
         val empty: String = PastelStorageItems.bottomlessBottle.get().getDescriptionId + ".tooltip.empty"
         
         val countMB: String = PastelStorageItems.bottomlessBottle.get().getDescriptionId + ".tooltip.count_mb"
+    
+    object bottomlessBattery:
+      object tooltip:
+        val countFE: String = PastelStorageItems.bottomlessBattery.get().getDescriptionId + ".tooltip.count_fe"
 
     object container:
       def make(name: String): String =
@@ -52,4 +56,8 @@ object PastelStorageTranslationKeys:
       val empty: Component = Component.translatable(keys.bottomlessBottle.tooltip.empty)
       def countMB(amount: Int, max: Int): Component =
         Component.translatable(keys.bottomlessBottle.tooltip.countMB, PastelStorageNumberFormatting.formatMB(amount), PastelStorageNumberFormatting.formatFluidMax(max))
-        
+  
+  object bottomlessBattery:
+    object tooltip:
+      def countFE(amount: Int, max: Int): Component =
+        Component.translatable(keys.bottomlessBattery.tooltip.countFE, PastelStorageNumberFormatting.formatFE(amount), PastelStorageNumberFormatting.formatFE(max))

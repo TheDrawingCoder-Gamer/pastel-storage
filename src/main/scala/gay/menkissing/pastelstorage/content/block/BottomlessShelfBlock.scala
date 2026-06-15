@@ -48,7 +48,7 @@ class BottomlessShelfBlock(props: BlockBehaviour.Properties) extends BaseEntityB
                , player: Player, hand: InteractionHand, hitResult: BlockHitResult): ItemInteractionResult =
     level.getBlockEntity(pos) match
       case blockEntity: BottomlessShelfBlockEntity =>
-        if !stack.is(PastelStorageItems.bottomlessBottle) && !stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) then
+        if !BottomlessShelfBlock.mayBeInsertedIntoShelf(stack) then
           ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION
         else
           this.getHitSlot(hitResult, state) match
@@ -107,7 +107,7 @@ object BottomlessShelfBlock:
   val CODEC: MapCodec[BottomlessShelfBlock] = BlockBehaviour.simpleCodec(BottomlessShelfBlock.apply)
   
   enum ShelfSlotOccupiedBy extends Enum[ShelfSlotOccupiedBy], StringRepresentable:
-    case Empty, Bottle, Bundle
+    case Empty, Bottle, Bundle, Battery
 
     def isEmpty: Boolean = this == Empty
 
@@ -116,9 +116,15 @@ object BottomlessShelfBlock:
         case Empty => "empty"
         case Bottle => "bottle"
         case Bundle => "bundle"
+        case Battery => "battery"
     end getSerializedName
   end ShelfSlotOccupiedBy
 
+  def mayBeInsertedIntoShelf(stack: ItemStack): Boolean =
+    stack.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
+      || stack.is(PastelStorageItems.bottomlessBattery)
+      || stack.is(PastelStorageItems.bottomlessBottle)
+  
   private def makeProp(idx: Int): EnumProperty[ShelfSlotOccupiedBy] =
     EnumProperty.create(s"shelf_slot_${idx}_occupied_by", classOf[ShelfSlotOccupiedBy])
 

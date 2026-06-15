@@ -4,6 +4,7 @@ import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.content.block.BottomlessShelfBlock
 import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageItems}
 import net.minecraft.core.BlockPos
+import net.minecraft.world.level.block.Block
 import net.minecraft.world.level.block.state.BlockState
 import net.minecraft.world.level.gameevent.GameEvent
 
@@ -24,10 +25,12 @@ class BottomlessShelfBlockEntity(pos: BlockPos, state: BlockState) extends Botto
             BottomlessShelfBlock.ShelfSlotOccupiedBy.Empty
           else if item.is(PastelStorageItems.bottomlessBottle) then
             BottomlessShelfBlock.ShelfSlotOccupiedBy.Bottle
+          else if item.is(PastelStorageItems.bottomlessBattery) then
+            BottomlessShelfBlock.ShelfSlotOccupiedBy.Battery
           else
             BottomlessShelfBlock.ShelfSlotOccupiedBy.Bundle
         blockState = blockState.setValue(prop, kind)
-      Objects.requireNonNull(this.level).setBlock(this.worldPosition, blockState, 3)
+      Objects.requireNonNull(this.level).setBlockAndUpdate(this.worldPosition, blockState)
       this.level.gameEvent(GameEvent.BLOCK_CHANGE, this.worldPosition, GameEvent.Context.of(blockState))
     else
       PastelStorage.Logger.error("Expected slot to be 0-5, got {}", slot)

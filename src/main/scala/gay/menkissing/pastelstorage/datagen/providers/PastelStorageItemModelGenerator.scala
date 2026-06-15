@@ -13,6 +13,7 @@ class PastelStorageItemModelGenerator(output: PackOutput, existingFileHelper: Ex
     // Spectrum right now doesn't render the item inside a bundle, so I'll just not bother for now
     basicItem(PastelStorageItems.bottomlessBottle.get())
     basicItem(PastelStorageItems.toolContainer.get())
+    basicItem(PastelStorageItems.bottomlessBattery.get())
 
     withExistingParent(PastelStorageBlocks.bottomlessShelf.getId.toString, modLoc("block/bottomless_shelf_inventory"))
 

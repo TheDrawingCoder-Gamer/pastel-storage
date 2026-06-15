@@ -107,6 +107,9 @@ dependencies {
     runtimeOnly("maven.modrinth:create:6.0.10+mc1.21.1") {
         transitive(false)
     }
+    runtimeOnly("maven.modrinth:createaddition:neoforge-1.21.1-1.6.0") {
+        transitive(false)
+    }
     runtimeOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1")
     // modLocalRuntime "gay.menkissing:bulby-language-scala:${project.kls_version}+scala.${project.scala_runtime}"
 

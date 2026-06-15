@@ -78,7 +78,10 @@ class BottomlessStorageMenu(menuType: MenuType[BottomlessStorageMenu], val rows:
     transferredItemStack
 
   def isValidItem(item: ItemStack): Boolean =
-    item.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) || item.is(PastelStorageItems.bottomlessBottle) || item.is(PastelStorageTags.item.deletesItemsWhenInsertedInto)
+    item.is(PastelBlocks.BOTTOMLESS_BUNDLE.asItem()) 
+      || item.is(PastelStorageItems.bottomlessBottle)
+      || item.is(PastelStorageItems.bottomlessBattery)
+      || item.is(PastelStorageTags.item.deletesItemsWhenInsertedInto)
   override def stillValid(player: Player): Boolean =
     container.stillValid(player)
 

@@ -54,6 +54,7 @@ final class PastelStorageBlockStateGenerator(output: PackOutput, existingFileHel
         freakyFunc(BottomlessShelfBlock.ShelfSlotOccupiedBy.Empty)
         freakyFunc(BottomlessShelfBlock.ShelfSlotOccupiedBy.Bottle)
         freakyFunc(BottomlessShelfBlock.ShelfSlotOccupiedBy.Bundle)
+        freakyFunc(BottomlessShelfBlock.ShelfSlotOccupiedBy.Battery)
 
     def generateBottomlessShelfModels(): Unit =
       val baseModel = models().getExistingFile(PastelStorage.locate("block/bottomless_shelf"))

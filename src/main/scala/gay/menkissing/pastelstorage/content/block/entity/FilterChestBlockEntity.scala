@@ -81,7 +81,7 @@ class FilterChestBlockEntity(pos: BlockPos, state: BlockState) extends Randomiza
     )
 
   def updateBlockState(state: BlockState, open: Boolean): Unit =
-    this.level.setBlock(this.getBlockPos, state.setValue(BarrelBlock.OPEN, open), 3)
+    this.level.setBlockAndUpdate(this.getBlockPos, state.setValue(BarrelBlock.OPEN, open))
 
 
   override def getSlotsForFace(direction: Direction): Array[Int] =

@@ -41,7 +41,7 @@ import scala.annotation.nowarn
 class BottomlessBottleItem(props: Item.Properties) extends Item(props):
   override def isEnchantable(stack: ItemStack): Boolean = true
 
-  override def getEnchantmentValue: Int = 5
+  override def getEnchantmentValue(stack: ItemStack): Int = 5
 
   override def supportsEnchantment(stack: ItemStack, enchantment: Holder[Enchantment]): Boolean =
     super.supportsEnchantment(stack, enchantment) || enchantment.is(Enchantments.POWER)

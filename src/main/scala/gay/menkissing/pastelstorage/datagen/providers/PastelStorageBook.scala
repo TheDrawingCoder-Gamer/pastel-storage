@@ -42,6 +42,10 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
     addTooltip(PastelStorageItems.bottomlessBottle, "usage_pickup", "Use to pickup")
     addTooltip(PastelStorageItems.bottomlessBottle, "usage_place", "Sneak-use to place")
     addTooltip(PastelStorageItems.bottomlessBottle, "count_mb", "%1$s mB / %2$s buckets")
+    
+    addItem(PastelStorageItems.bottomlessBattery, "Bottomless Battery")
+    addTooltip(PastelStorageItems.bottomlessBattery, "count_fe", "%1$s / %2$s")
+    
     addItem(PastelStorageItems.toolContainer, "Tool Container")
 
     add(PastelStorageTranslationKeys.keys.addedByPastelStorage, "§oAdded by Pastel Storage")
