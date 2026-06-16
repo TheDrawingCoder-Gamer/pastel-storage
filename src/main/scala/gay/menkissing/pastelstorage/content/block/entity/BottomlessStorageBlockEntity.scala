@@ -562,6 +562,7 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
     tag.putInt("last_interacted_slot", lastInteractedSlot)
 
   def clearContent(): Unit =
+    (0 until capacity).foreach(StorageManager.removeSlot)
     items.clear()
 
   def isEmpty: Boolean =

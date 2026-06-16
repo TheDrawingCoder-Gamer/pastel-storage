@@ -119,6 +119,11 @@ dependencies {
         transitive(false)
     }
     runtimeOnly("top.theillusivec4.curios:curios-neoforge:9.5.1+1.21.1")
+
+    compileOnly "maven.modrinth:jade:${project.jade_version}"
+    runtimeOnly("maven.modrinth:jade:${project.jade_version}") {
+        transitive(false)
+    }
     // modLocalRuntime "gay.menkissing:bulby-language-scala:${project.kls_version}+scala.${project.scala_runtime}"
 
     // Have to include pastel's dependencies because SOMEONE didnt publish a recent maven version
