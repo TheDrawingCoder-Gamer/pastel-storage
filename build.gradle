@@ -43,6 +43,14 @@ neoForge {
     }
 }
 
+sourceSets {
+    main {
+        java {
+            exclude "src/main/resources"
+        }
+    }
+}
+
 sourceSets.main.resources {
     srcDir 'src/generated/resources'
     exclude ".cache"
@@ -158,6 +166,8 @@ java {
 }
 
 jar {
+    duplicatesStrategy = DuplicatesStrategy.WARN
+
     from("LICENSE") {
         rename { "${it}_${project.archivesBaseName}" }
     }

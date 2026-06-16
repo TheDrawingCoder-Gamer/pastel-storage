@@ -26,7 +26,7 @@ import net.minecraft.server.level.ServerLevel
 import net.minecraft.sounds.{SoundEvent, SoundEvents, SoundSource}
 import net.minecraft.world.entity.player.{Inventory, Player}
 import net.minecraft.world.inventory.{AbstractContainerMenu, ChestMenu}
-import net.minecraft.world.{Container, ContainerHelper, Containers, MenuProvider, Nameable}
+import net.minecraft.world.{Clearable, Container, ContainerHelper, Containers, MenuProvider, Nameable}
 import net.minecraft.world.item.ItemStack
 import net.minecraft.world.item.enchantment.{EnchantmentHelper, Enchantments}
 import net.minecraft.world.level.Level
@@ -44,7 +44,7 @@ import net.neoforged.neoforge.items.IItemHandler
 import java.util.{Objects, Optional}
 import scala.jdk.CollectionConverters.*
 
-abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BlockEntity(baseEntity, pos, state):
+abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BlockEntity(baseEntity, pos, state), Clearable:
 
 
   protected val items: NonNullList[ItemStack] = NonNullList.withSize(capacity, ItemStack.EMPTY)
