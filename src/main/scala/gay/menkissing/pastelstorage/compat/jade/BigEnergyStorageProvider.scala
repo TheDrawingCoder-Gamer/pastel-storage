@@ -43,7 +43,6 @@ object BigEnergyStorageProvider extends IClientExtensionProvider[CompoundTag, En
               val tag = EnergyView.of(bsbe.energyStorage.energyStoredLong, bsbe.energyStorage.capacityLong)
               util.List.of(ViewGroup(util.List.of(tag)))
             else
-              PastelStorage.Logger.error("no ")
               util.List.of()
           case _ => util.List.of()
       case _ =>
