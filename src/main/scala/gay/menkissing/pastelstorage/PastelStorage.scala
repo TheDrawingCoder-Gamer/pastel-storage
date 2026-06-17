@@ -4,6 +4,7 @@ import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageI
 import gay.menkissing.pastelstorage.datagen.PastelStorageDatagen
 import gay.menkissing.pastelstorage.datagen.providers.PastelStorageBook
 import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageScreens, PastelStorageTags}
+import gay.menkissing.pastelstorage.util.BuiltinPackHelper
 import net.minecraft.core.RegistryAccess
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.ResourceLocation
@@ -44,21 +45,7 @@ object PastelStorage:
 
 @Mod(PastelStorage.ModId)
 class PastelStorage(modBus: IEventBus, container: ModContainer):
-  modBus.addListener: (ev: AddPackFindersEvent) =>
-    ev.getPackType match
-      case PackType.CLIENT_RESOURCES => ()
-      case PackType.SERVER_DATA =>
-        val modInfo = container.getModInfo
-        val resourcePath = modInfo.getOwningFile.getFile.findResource("data/pastelstorage/datapacks/enable_barrel_amphora")
-        val version = modInfo.getVersion
-        val pack =
-          Pack.readMetaAndCreate(
-            new PackLocationInfo("pastelstorage:enable_barrel_amphora", Component.translatable("datapacks.pastelstorage.enable_barrel_amphora"), PackSource.FEATURE, Optional.of(new KnownPack("pastelstorage", "enable_barrel_amphora", version.toString))),
-            BuiltInPackSource.fromName(path => PathPackResources(path, resourcePath)),
-            PackType.SERVER_DATA,
-            new PackSelectionConfig(false, Pack.Position.TOP, false)
-          )
-        ev.addRepositorySource(_.accept(pack))
+  BuiltinPackHelper.addDatapack(modBus, container, "enable_barrel_amphora")
 
   PastelStorageBlocks.submit(modBus)
   PastelStorageItems.submit(modBus)
