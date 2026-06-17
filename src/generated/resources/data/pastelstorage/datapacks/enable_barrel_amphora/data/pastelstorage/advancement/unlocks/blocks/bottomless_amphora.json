@@ -1,0 +1,33 @@
+{
+  "criteria": {
+    "collected_noxwood": {
+      "conditions": {
+        "advancement": "pastel:lategame/collect_noxwood"
+      },
+      "trigger": "databank:has_advancement"
+    },
+    "collected_quitoxic_reeds": {
+      "conditions": {
+        "advancement": "pastel:collect_quitoxic_reeds"
+      },
+      "trigger": "databank:has_advancement"
+    },
+    "collected_stratine": {
+      "conditions": {
+        "advancement": "pastel:midgame/collect_stratine"
+      },
+      "trigger": "databank:has_advancement"
+    }
+  },
+  "requirements": [
+    [
+      "collected_quitoxic_reeds"
+    ],
+    [
+      "collected_stratine"
+    ],
+    [
+      "collected_noxwood"
+    ]
+  ]
+}

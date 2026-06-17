@@ -4,8 +4,8 @@ import com.cmdpro.databank.advancement.criteria.HasAdvancementCriteria
 import com.cmdpro.databank.registry.CriteriaTriggerRegistry
 import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.advancement.{BarrelVoiderCriterion, InsertIntoVoidBarrelCriterion}
-import net.minecraft.advancements.critereon.ItemPredicate
-import net.minecraft.advancements.{Advancement, AdvancementHolder, AdvancementType, Criterion}
+import net.minecraft.advancements.critereon.{ImpossibleTrigger, ItemPredicate}
+import net.minecraft.advancements.{Advancement, AdvancementHolder, AdvancementType, CriteriaTriggers, Criterion}
 import net.minecraft.core.HolderLookup
 import net.minecraft.data.PackOutput
 import net.minecraft.data.advancements.AdvancementSubProvider
@@ -34,16 +34,14 @@ object PastelStorageAdvancementProvider:
       val collectedReeds = wrapHasAdvancement(ResourceLocation.fromNamespaceAndPath("pastel", "collect_quitoxic_reeds"))
       val collectedStratine = wrapHasAdvancement(ResourceLocation.fromNamespaceAndPath("pastel", "midgame/collect_stratine"))
       val collectedOnyx = wrapHasAdvancement(ResourceLocation.fromNamespaceAndPath("pastel", "create_onyx_shard"))
+      val impossible = CriteriaTriggers.IMPOSSIBLE.createCriterion(ImpossibleTrigger.TriggerInstance())
 
       Advancement.Builder.recipeAdvancement()
-                 .addCriterion("collected_quitoxic_reeds",collectedReeds)
-                 .addCriterion("collected_stratine",collectedStratine)
-                 .addCriterion("collected_noxwood", wrapHasAdvancement(ResourceLocation.fromNamespaceAndPath("pastel", "lategame/collect_noxwood")))
+                 .addCriterion("impossible", impossible)
                  .save(saver, PastelStorage.locate("unlocks/blocks/bottomless_amphora"), existingFileHelper)
 
       Advancement.Builder.recipeAdvancement()
-                 .addCriterion("collected_quitoxic_reeds", collectedReeds)
-                 .addCriterion("collected_stratine", collectedStratine)
+                 .addCriterion("impossible", impossible)
                  .save(saver, PastelStorage.locate("unlocks/blocks/bottomless_barrel"), existingFileHelper)
 
       Advancement.Builder.recipeAdvancement()

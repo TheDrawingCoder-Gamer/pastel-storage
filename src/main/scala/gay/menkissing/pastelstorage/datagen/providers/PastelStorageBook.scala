@@ -65,6 +65,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
 
     add("advancements.pastelstorage.lava_in_voider.title", "There goes my stuff")
     add("advancements.pastelstorage.lava_in_voider.description", "Use a lava bucket to void your items in a bottomless barrel")
+    add("datapacks.pastelstorage.enable_barrel_amphora", "Enable Bottomless Barrel/Amphora")
 
 
 
@@ -352,7 +353,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
               """
                 |My bottomless bottle seems to be too unstable to place down on its own - So why not put it on a shelf?
                 |
-                |The bottomless shelf can hold a mix of 6 bottomless bundles, bottles, or batteries.
+                |The bottomless shelf can hold a mix of 6 bottomless storage items, like bundles or bottles.
                 |""".stripMargin
           )
             .withLocation(1, 4)
