@@ -585,42 +585,46 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
   def loadItemFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = tag.getList(BottomlessStorageBlockEntity.tagItemFilters, 10)
+    val context = provider.createSerializationContext(NbtOps.INSTANCE)
     for i <- 0 until listTag.size() do
       val compound = listTag.getCompound(i)
       val j = compound.getByte("Slot").toInt
       if j >= 0 && j < capacity then
         // if error then will auto return blankie wankie
-        val variant = ItemReference.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
+        val variant = ItemReference.CODEC.decode(context, compound).getOrThrow()
         itemStorage.storages(j).setFilter(variant.getFirst)
 
   def loadFluidFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = tag.getList(BottomlessStorageBlockEntity.tagFluidFilters, 10)
+    val context = provider.createSerializationContext(NbtOps.INSTANCE)
     for i <- 0 until listTag.size() do
       val compound = listTag.getCompound(i)
       val j = compound.getByte("Slot").toInt
       if j >= 0 && j < capacity then
-        val variant = FluidResource.CODEC.decode(provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow().getFirst
+        val variant = FluidResource.CODEC.decode(context, compound).getOrThrow().getFirst
         fluidStorage.storages(j).setFilter(variant)
 
   def saveItemFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = ListTag()
+    val context = provider.createSerializationContext(NbtOps.INSTANCE)
     for i <- 0 until capacity do
       val filter = itemStorage.storages(i).getFilter
       if !filter.isEmpty then
         val compound = CompoundTag()
         compound.putByte("Slot", i.toByte)
-        val compound2 = ItemReference.CODEC.encode(filter, provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
+        val compound2 = ItemReference.CODEC.encode(filter, context, compound).getOrThrow()
         listTag.add(compound2)
     tag.put(BottomlessStorageBlockEntity.tagItemFilters, listTag)
 
   def saveFluidFilters(tag: CompoundTag, provider: HolderLookup.Provider): Unit =
     val listTag = ListTag()
+    val context = provider.createSerializationContext(NbtOps.INSTANCE)
     for i <- 0 until 6 do
       val filter = fluidStorage.storages(i).getFilter
       if !filter.isBlank then
         val compound = CompoundTag()
         compound.putByte("Slot", i.toByte)
-        val compound2 = FluidResource.CODEC.encode(filter, provider.createSerializationContext(NbtOps.INSTANCE), compound).getOrThrow()
+        val compound2 = FluidResource.CODEC.encode(filter, context, compound).getOrThrow()
         listTag.add(compound2)
     tag.put(BottomlessStorageBlockEntity.tagFluidFilters, listTag)
 
