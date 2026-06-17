@@ -119,6 +119,9 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
     val powerVStack =
       ItemStack(PastelStorageItems.bottomlessBottle.get())
     powerVStack.enchant(powerEnchant, 5)
+    val powerVBattery =
+      ItemStack(PastelStorageItems.bottomlessBattery.get())
+    powerVBattery.enchant(powerEnchant, 5)
     val voidingBundle =
       ItemStack(PastelBlocks.BOTTOMLESS_BUNDLE.asItem())
     voidingBundle.enchant(voidingEnchant, 1)
@@ -168,11 +171,46 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
               .withText(trans.text("Power increases its capacity fourfold each level."))
           )
     }
+    this.addEntry(entryLoc("equipment/bottomless_battery"), equipCategory, PastelStorageItems.bottomlessBattery.get().location) {
+      entry =>
+        entry
+          .withName(PastelStorageItems.bottomlessBattery.get().getDescriptionId)
+          .withLocation(4, 4)
+          .withDescription(commonDesc)
+          .withCondition(itemUnlock("bottomless_battery"))
+          .withIcon(PastelStorageItems.bottomlessBattery.get())
+          .withHideWhileLocked(true)
+          .addPage(trans =>
+            firstPage(
+              PastelStorageItems.bottomlessBattery.get(),
+              trans.text(
+                """
+                  |I find many of my energy storage solutions quite limiting.
+                  |
+                  |The bottomless battery comes to the rescue! By default, it stores up to 2MFE.
+                  |""".stripMargin
+              )
+
+            )
+          )
+          .addPage(trans =>
+            pedestalPage("pastelstorage:pedestal/tier2/bottomless_battery",
+              trans.text("*Quite electrifying*")
+            )
+          ).addPage(trans =>
+            BookSpotlightPageModel
+              .create()
+              .withItem(powerVBattery)
+              .withTitle("enchantment.minecraft.power")
+              .withCondition(buildEnchanter)
+              .withText(trans.text("Power increases its capacity fourfold each level."))
+          )
+    }
     this.addEntry(entryLoc("equipment/tool_container"), equipCategory, PastelStorageItems.toolContainer.get().location) {
         entry =>
           entry
             .withName(PastelStorageItems.toolContainer.get().getDescriptionId)
-            .withLocation(4, 4)
+            .withLocation(5, 4)
             .withDescription(commonDesc)
             .withCondition(itemUnlock("tool_container"))
             .withIcon(PastelStorageItems.toolContainer.get())
@@ -208,7 +246,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
                   """
                     |I had thought that barrels could store a lot, but amphoras can store double that. So if I make a bottomless amphora...
                     |
-                    |The bottomless amphora can store a whopping 54 bottomless bundles or bottles inside of it!
+                    |The bottomless amphora can store a whopping 54 bottomless storage items inside of it!
                     |""".stripMargin
                 ))
             )
@@ -265,7 +303,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
                     |While bottomless shelves are great, I find myself making complicated systems to access many of them.
                     |It would be nice if I could compact them even more.
                     |
-                    |The bottomless barrel does just that - it can hold up to 27 bottomless bundles or bottles.
+                    |The bottomless barrel does just that - it can hold up to 27 bottomless storage items.
                     |""".stripMargin
                 )
               )
@@ -302,6 +340,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
                     |With the ability to open my barrels inventory, I can now put a lava bucket into it to void any excess items.
                     |
                     |Be careful, if it's placed before an actual bundle or bottle it will end up voiding items and fluids before they can be stored!
+                    |This won't affect energy, thankfully.
                     |""".stripMargin
                 )
               )
@@ -313,7 +352,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
               """
                 |My bottomless bottle seems to be too unstable to place down on its own - So why not put it on a shelf?
                 |
-                |The bottomless shelf can hold 6 bottomless bundles or 6 bottomless bundles, or a mix of them.
+                |The bottomless shelf can hold a mix of 6 bottomless bundles, bottles, or batteries.
                 |""".stripMargin
           )
             .withLocation(1, 4)

@@ -1,0 +1,29 @@
+{
+  "type": "pastel:pedestal",
+  "time": 240,
+  "tier": "simple",
+  "colors": {
+    "pastel:magenta": 0,
+    "pastel:yellow": 2,
+    "pastel:cyan": 6,
+    "pastel:black": 0,
+    "pastel:white": 0
+  },
+  "experience": 2.0,
+  "pattern": [
+    "G I",
+    "CQC",
+    "CCC"
+  ],
+  "key": {
+    "Q": "pastel:quitoxic_powder",
+    "G": "minecraft:gold_ingot",
+    "C": "minecraft:copper_ingot",
+    "I": "minecraft:iron_ingot"
+  },
+  "result": {
+    "id": "pastelstorage:bottomless_battery",
+    "count": 1
+  },
+  "required_advancement": "pastelstorage:unlocks/items/bottomless_battery"
+}

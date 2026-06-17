@@ -60,6 +60,10 @@ object PastelStorageAdvancementProvider:
 
       Advancement.Builder.recipeAdvancement()
                  .addCriterion("collected_quitoxic_reeds", collectedReeds)
+                 .save(saver, PastelStorage.locate("unlocks/items/bottomless_battery"), existingFileHelper)
+
+      Advancement.Builder.recipeAdvancement()
+                 .addCriterion("collected_quitoxic_reeds", collectedReeds)
                  .save(saver, PastelStorage.locate("unlocks/items/tool_container"), existingFileHelper)
 
       // TODO: get this to work with the parent
