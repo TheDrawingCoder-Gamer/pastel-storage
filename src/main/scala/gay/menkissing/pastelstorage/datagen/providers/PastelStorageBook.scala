@@ -198,7 +198,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
             )
           )
           .addPage(trans =>
-            pedestalPage("pastelstorage:pedestal/tier2/bottomless_battery",
+            pedestalPage("pastelstorage:pedestal/tier3/bottomless_battery",
               trans.text("*Quite electrifying*")
             )
           ).addPage(trans =>

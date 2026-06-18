@@ -1,0 +1,27 @@
+{
+  "type": "pastel:pedestal",
+  "colors": {
+    "pastel:cyan": 8
+  },
+  "experience": 2.0,
+  "key": {
+    "G": {
+      "item": "minecraft:glass"
+    },
+    "Q": {
+      "item": "pastel:quitoxic_powder"
+    }
+  },
+  "pattern": [
+    "Q Q",
+    "GQG",
+    " G "
+  ],
+  "required_advancement": "pastelstorage:unlocks/items/bottomless_bottle",
+  "result": {
+    "count": 1,
+    "id": "pastelstorage:bottomless_bottle"
+  },
+  "tier": "simple",
+  "time": 240
+}

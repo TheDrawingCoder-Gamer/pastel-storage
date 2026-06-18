@@ -6,7 +6,7 @@ import earth.terrarium.pastel.recipe.pedestal.RawShapedPedestalRecipe
 import earth.terrarium.pastel.recipe.pedestal.ShapedPedestalRecipe
 import net.minecraft.data.recipes.RecipeOutput
 import net.minecraft.resources.ResourceLocation
-import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.{Item, ItemStack}
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters.*
@@ -26,6 +26,9 @@ class ShapedPedestalRecipeBuilder(result: ItemStack) extends PedestalRecipeBuild
   def key(c: Char, v: IngredientStack): this.type =
     keyMap(c) = v
     this
+    
+  def key(c: Char, v: Item): this.type =
+    key(c, IngredientStack.ofItems(v))
 
   override def save(output: RecipeOutput, id: ResourceLocation): Unit =
     val rawDoggie = RawShapedPedestalRecipe.create(keyMap.asJava.asInstanceOf[java.util.Map[Character, IngredientStack]], rows.asJava)

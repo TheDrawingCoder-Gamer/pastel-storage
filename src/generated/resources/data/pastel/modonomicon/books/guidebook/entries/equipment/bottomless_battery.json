@@ -31,7 +31,7 @@
       "condition": {
         "type": "modonomicon:none"
       },
-      "recipe_id": "pastelstorage:pedestal/tier2/bottomless_battery",
+      "recipe_id": "pastelstorage:pedestal/tier3/bottomless_battery",
       "text": "book.pastelstorage.guidebook.bottomless_battery.page2.text",
       "title": "container.pastel.rei.pedestal_recipe"
     },

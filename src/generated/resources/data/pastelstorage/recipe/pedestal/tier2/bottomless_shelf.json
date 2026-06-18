@@ -1,0 +1,27 @@
+{
+  "type": "pastel:pedestal",
+  "colors": {
+    "pastel:cyan": 4
+  },
+  "experience": 2.0,
+  "key": {
+    "Q": {
+      "item": "pastel:quitoxic_powder"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "pattern": [
+    "WWW",
+    "QQQ",
+    "WWW"
+  ],
+  "required_advancement": "pastelstorage:unlocks/blocks/bottomless_shelf",
+  "result": {
+    "count": 1,
+    "id": "pastelstorage:bottomless_shelf"
+  },
+  "tier": "simple",
+  "time": 240
+}
