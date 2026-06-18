@@ -235,6 +235,8 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
                 trans.text("*Don't ask how they all fit*"))
             )
       }
+
+
     this.addEntry(entryLoc("magical_blocks/bottomless_amphora"), magicalCategory, PastelStorageBlocks.bottomlessAmphora.get().location) {
         entry =>
           entry
@@ -391,6 +393,91 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
               )
             )
       }
+    this.addEntry(entryLoc("magical_blocks/bottomless_worm"), magicalCategory, PastelStorageBlocks.bottomlessWorm.get().location) {
+      entry =>
+        commonEntry(PastelStorageBlocks.bottomlessWorm.get(), entry)(
+          """
+            |My shelf is quite small, but I highly doubt I'll be able to fit that much more in a single block. But, that doesn't mean I can't have _multiple_ blocks!
+            |
+            |The bottomless worm can hold 9 bottomless storage items, but the real killer is that it considers the container in front of it as part of itself!
+            |""".stripMargin
+        )
+          .withLocation(0, 4)
+          .withCondition(blockUnlock("bottomless_worm"))
+          .addPage(trans =>
+            pedestalPage(
+              "pastelstorage:pedestal/tier3/bottomless_worm",
+              trans.text("*Quite wriggly*")
+            )
+          )
+          .addPage(trans =>
+            BookTextPageModel
+              .create()
+              .withTitle(trans.title("Chaining Worms"))
+              .withText(trans.text(
+                """
+                  |Worms can chain together, letting you make large storages for bottomless storage items!
+                  |At the end of the chain, you can place a normal storage that will end up where any misc. items will end up.
+                  |
+                  |You can also make Worm loops! The worm stops forwarding requests once it sees a worm that has already received the request.
+                  |With this, you can make large multiblocks that can be accessed from any block!
+                  |""".stripMargin
+              ))
+          )
+          .addPage(trans =>
+            BookTextPageModel
+              .create()
+              .withText(trans.text(
+                """
+                  |Just like the bottomless shelf, bundles and bottles will remember their stored contents, even if emptied.
+                  |""".stripMargin
+              ))
+          )
+          .addPage(trans =>
+            voidingPage(
+              trans.text(
+                """
+                  |Like the bottomless shelf, if I insert a bottomless bundle that has the Curse of the Void into
+                  |a bottomless worm, it will still keep its filter and won't accept any
+                  |arbitrary items. Any items inserted that overflow the bundle will be voided.
+                  |""".stripMargin.linesIterator.mkString(" ")
+                // ^ im not having a 200 character long line
+              )
+            )
+          )
+          .addPage(trans =>
+            voidingLavaPage(
+              trans.text(
+                """
+                  |With the ability to open the inventory of a bottomless worm, I can insert lava buckets into it!
+                  |
+                  |Lava buckets will void any item or fluid inserted once it reaches it.
+                  |""".stripMargin
+              )
+            )
+          )
+          .addPage(trans =>
+            val bigFuckYouTextBlock =
+              """
+                |Worms start at the rear (this is where I should access it from!).
+                |Any insert/extract requests that a worm can't fulfill will be passed on to the block in front of it.
+                |This continues until either the request is fulfilled, or there are no more worm blocks to forward the request.
+                |""".stripMargin.split("\n").mkString(" ")
+
+            BookTextPageModel
+              .create()
+              .withTitle(trans.title("Worm Ordering"))
+              .withText(
+                trans.text(
+                  s"""
+                    |With the lava bucket, it's important to know exactly how the ordering of the worm works.
+                    |
+                    |$bigFuckYouTextBlock
+                    |""".stripMargin
+                )
+              )
+          )
+    }
     this.addEntry(entryLoc("magical_blocks/filter_chest"), magicalCategory, PastelStorageBlocks.filterChest.get().location) {
         entry =>
           commonEntry(PastelStorageBlocks.filterChest.get(), entry)(
@@ -400,7 +487,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
               |The filter barrel can filter up to 18 unique items, but it can only hold 9 stacks of items. It will only allow insertion of items if they are in its filter.
               |""".stripMargin
           )
-          .withLocation(0, 4)
+          .withLocation(-1, 4)
           .withCondition(blockUnlock("filter_chest"))
           .addPage(trans =>
             pedestalPage(
