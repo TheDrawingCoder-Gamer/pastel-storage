@@ -7,6 +7,7 @@
 * By default, remove Barrels and Amphoras from survival progression.
   * There's a datapack, "pastelstorage:enable_barrel_amphora", that reenables the old progression.
 * Various internal improvements that shouldn't be player facing
+* Add bottomless worms, a block that holds 9 bottomless storage items and can forward requests to the block in front of it
 
 # Version 0.1.1
 
