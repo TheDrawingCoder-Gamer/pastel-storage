@@ -11,15 +11,14 @@
   },
   "experience": 2.0,
   "pattern": [
-    "G I",
+    "QSQ",
     "CQC",
-    "CCC"
+    "CSC"
   ],
   "key": {
     "Q": "pastel:quitoxic_powder",
-    "G": "minecraft:gold_ingot",
     "C": "minecraft:copper_ingot",
-    "I": "minecraft:iron_ingot"
+    "S": "pastel:storm_stone"
   },
   "result": {
     "id": "pastelstorage:bottomless_battery",

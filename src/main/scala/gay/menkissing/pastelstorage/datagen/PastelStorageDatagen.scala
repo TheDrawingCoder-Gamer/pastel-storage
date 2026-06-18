@@ -27,7 +27,7 @@ object PastelStorageDatagen:
     val lookupProvider = event.getLookupProvider
     val existingFileHelper = event.getExistingFileHelper
     val subGenerator = generator.getBuiltinDatapack(true, "pastelstorage", "enable_barrel_amphora")
-    
+
 
     event.createDatapackRegistryObjects(
       new RegistrySetBuilder().add(Registries.ENCHANTMENT, bootstrap => {
@@ -47,6 +47,7 @@ object PastelStorageDatagen:
            )
       subGenerator.addProvider(SubpackPastelStorageAdvancementProvider(_, lookupProvider, existingFileHelper))
       event.addProvider(blockTagProvider)
+      event.createProvider(PastelStorageRecipeProvider.apply)
       event.addProvider(PastelStorageItemTagsProvider(output, lookupProvider, blockTagProvider.contentsGetter, existingFileHelper))
       event.createProvider(PastelStorageLootTableProvider.apply)
       event.addProvider(PastelStorageAdvancementProvider(output, lookupProvider, existingFileHelper))

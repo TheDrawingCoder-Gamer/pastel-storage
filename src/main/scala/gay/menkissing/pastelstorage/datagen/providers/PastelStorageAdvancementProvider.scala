@@ -49,6 +49,11 @@ object PastelStorageAdvancementProvider:
                  .save(saver, PastelStorage.locate("unlocks/blocks/bottomless_shelf"), existingFileHelper)
 
       Advancement.Builder.recipeAdvancement()
+                 .addCriterion("collected_quitoxic_reeds", collectedReeds)
+                 .addCriterion("collected_storm_stone", wrapHasAdvancement(ResourceLocation.fromNamespaceAndPath("pastel", "midgame/collect_storm_stone")))
+                 .save(saver, PastelStorage.locate("unlocks/blocks/bottomless_worm"), existingFileHelper)
+
+      Advancement.Builder.recipeAdvancement()
                  .addCriterion("collected_onyx", collectedOnyx)
                  .save(saver, PastelStorage.locate("unlocks/blocks/filter_chest"), existingFileHelper)
 

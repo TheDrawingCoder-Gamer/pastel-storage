@@ -1,0 +1,24 @@
+{
+  "criteria": {
+    "collected_quitoxic_reeds": {
+      "conditions": {
+        "advancement": "pastel:collect_quitoxic_reeds"
+      },
+      "trigger": "databank:has_advancement"
+    },
+    "collected_storm_stone": {
+      "conditions": {
+        "advancement": "pastel:midgame/collect_storm_stone"
+      },
+      "trigger": "databank:has_advancement"
+    }
+  },
+  "requirements": [
+    [
+      "collected_quitoxic_reeds"
+    ],
+    [
+      "collected_storm_stone"
+    ]
+  ]
+}
