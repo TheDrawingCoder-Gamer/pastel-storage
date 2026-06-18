@@ -14,6 +14,7 @@ import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelS
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
 import gay.menkissing.pastelstorage.api.fluid.FluidResource
 import gay.menkissing.pastelstorage.content.block.entity.BottomlessStorageBlockEntity.{HasFluidFilterable, HasItemFilterable, TItemStorages}
+import gay.menkissing.pastelstorage.content.block.entity.bottomless_storage.{BLEnergyStorage, FluidStorages, VoidingFluidHandler}
 import gay.menkissing.pastelstorage.util.PastelStorageEnchantmentHelper
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
@@ -54,8 +55,8 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   val itemStorage: BottomlessStorageBlockEntity.TItemStorages = new TItemStorages {
     override def parent: BottomlessStorageBlockEntity = BottomlessStorageBlockEntity.this
   }
-  val fluidStorage: FluidStorages = new FluidStorages
-  val energyStorage: EnergyStorages = new EnergyStorages
+  val fluidStorage: FluidStorages = new FluidStorages(this)
+  val energyStorage: BLEnergyStorage = new BLEnergyStorage(this)
 
   def tryTriggerVoidObjective(stack: ItemStack): Unit =
     if !stack.isEmpty then
@@ -98,292 +99,6 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
 
 
-
-  class FluidStorages extends IFluidHandler {
-    val storages: Array[IFluidHandler & HasFluidFilterable] = Array.fill(capacity)(BottomlessStorageBlockEntity.EmptyFluidSlot)
-
-    def removeSlot(slot: Int): Unit =
-      storages(slot) = BottomlessStorageBlockEntity.EmptyFluidSlot
-
-    def loadBottleSlot(slot: Int): Unit =
-      val bottle = items.get(slot)
-      val storage = new BottleFluidStorageHandler(bottle)
-      storage.setFilterFromStack(bottle)
-      storages(slot) = storage
-
-    def setVoidingSlot(slot: Int): Unit =
-      storages(slot) = new VoidingFluidHandler(items.get(slot))
-
-    override def getTanks: Int = capacity
-
-    override def getFluidInTank(slot: Int): FluidStack =
-      storages(slot).getFluidInTank(0)
-
-    override def getTankCapacity(slot: Int): Int =
-      storages(slot).getTankCapacity(0)
-
-    override def isFluidValid(slot: Int, fluidStack: FluidStack): Boolean =
-      storages(slot).isFluidValid(0, fluidStack)
-
-    override def fill(resource: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
-      var i = 0
-      var toFill = resource.getAmount
-      var amountFill = 0
-      while i < capacity do
-        val storage = storages(i)
-        val amount = storage.fill(resource.copyWithAmount(toFill), fluidAction)
-        toFill -= amount
-        amountFill += amount
-        if toFill == 0 then
-          return amountFill
-
-        i += 1
-
-      amountFill
-
-    override def drain(resource: FluidStack, fluidAction: IFluidHandler.FluidAction): FluidStack =
-      var i = 0
-      var toDrain = resource.getAmount
-      var amountDrained = 0
-      while i < capacity do
-        val storage = storages(i)
-        val result = storage.drain(resource.copyWithAmount(toDrain), fluidAction)
-        toDrain -= result.getAmount
-        amountDrained += result.getAmount
-        if toDrain == 0 then
-          return resource.copyWithAmount(amountDrained)
-
-        i += 1
-      resource.copyWithAmount(amountDrained)
-
-    override def drain(maxDrain: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
-      var i = 0
-      var template = FluidResource.EMPTY
-      var toDrain = maxDrain
-      var amountDrained = 0
-      while i < capacity do
-        val storage = storages(i)
-        val result =
-          if template.isBlank then
-            val r = storage.drain(toDrain, fluidAction)
-            if !r.isEmpty then
-              template = FluidResource.ofStack(r)
-            r
-          else
-            storage.drain(template.makeStack(toDrain), fluidAction)
-
-        toDrain -= result.getAmount
-        amountDrained += result.getAmount
-
-        if toDrain == 0 then
-          return template.makeStack(amountDrained)
-
-        i += 1
-      if template.isBlank then
-        FluidStack.EMPTY
-      else
-        template.makeStack(amountDrained)
-
-
-  }
-
-  final class VoidingFluidHandler(val voider: ItemStack) extends IFluidHandler, HasFluidFilterable:
-    override def getTanks: Int = 1
-
-    override def getFluidInTank(i: Int): FluidStack = FluidStack.EMPTY
-
-    override def getTankCapacity(i: Int): Int = 0
-
-    override def isFluidValid(i: Int, fluidStack: FluidStack): Boolean = true
-
-    override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
-      if !fluidStack.isEmpty && fluidAction.execute() then
-        tryTriggerVoidObjective(voider)
-      fluidStack.getAmount
-
-    override def drain(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): FluidStack =
-      FluidStack.EMPTY
-
-    override def drain(i: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
-      FluidStack.EMPTY
-
-    override def setFilter(filter: FluidResource): Unit = ()
-
-    override def getFilter: FluidResource = FluidResource.EMPTY
-
-    override def unset(): Unit = ()
-
-  final class BottleFluidStorageHandler(val stack: ItemStack) extends IFluidHandler, HasFluidFilterable {
-    import BottomlessStorageBlockEntity.StorageTests
-
-    def isValidStack(stack: ItemStack): Boolean =
-      StorageTests.isBottle(stack)
-
-    def stackMax(stack: ItemStack): Int =
-      if isValidStack(stack) then
-        BottomlessBottleItem.getMaxStack(level, stack)
-      else
-        0
-
-    var filter: FluidResource = FluidResource.EMPTY
-
-    override def getFilter: FluidResource = filter
-
-    def unset(): Unit =
-      filter = FluidResource.EMPTY
-
-    def setFilter(filter: FluidResource): Unit =
-      this.filter = filter
-
-    def setFilterFromStack(stack: ItemStack): Unit =
-      val component = stack.getOrDefault(PastelStorageComponents.BottomlessBottleContentsComponent, SimpleFluidContent.EMPTY)
-      val fluidStack = component.copy()
-      this.filter = FluidResource.of(component.getFluid, fluidStack.getComponentsPatch)
-    def permits(stored: FluidResource, resource: FluidResource): Boolean =
-      if !stored.isBlank && !filter.isBlank && filter != stored then
-        PastelStorage.Logger.debug("Shouldn't be possible to see this due to filter jank")
-
-      if !stored.isBlank then
-        filter = stored
-        setChanged()
-
-      filter.isBlank || filter == resource
-
-    override def getTanks: Int = 1
-
-    override def getFluidInTank(slot: Int): FluidStack =
-      val bottle = stack
-      if isValidStack(bottle) then
-        val component = bottle.getOrDefault(PastelStorageComponents.BottomlessBottleContentsComponent, SimpleFluidContent.EMPTY)
-        component.copy()
-      else
-        FluidStack.EMPTY
-
-    override def getTankCapacity(slot: Int): Int =
-      val bottle = stack
-      if isValidStack(bottle) then
-        stackMax(bottle)
-      else
-        0
-
-    override def isFluidValid(slot: Int, fluidStack: FluidStack): Boolean = true
-
-    override def fill(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): Int =
-      val bottle = stack
-      if isValidStack(bottle) then
-        val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(bottle)
-        if !permits(builder.template, FluidResource.ofStack(fluidStack)) then
-          return 0
-        val count = builder.insert(FluidResource.ofStack(fluidStack), fluidStack.getAmount)
-
-        if fluidAction.execute() then
-          builder.buildAndSet(bottle)
-          setChanged()
-
-        count
-      else
-        0
-
-    override def drain(fluidStack: FluidStack, fluidAction: IFluidHandler.FluidAction): FluidStack =
-      val bottle = stack
-      if isValidStack(bottle) then
-        val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(bottle)
-        val count = builder.extract(FluidResource.ofStack(fluidStack), fluidStack.getAmount)
-
-        if fluidAction.execute() then
-          builder.buildAndSet(bottle)
-          setChanged()
-
-        fluidStack.copyWithAmount(count)
-      else
-        FluidStack.EMPTY
-
-    override def drain(maxDrain: Int, fluidAction: IFluidHandler.FluidAction): FluidStack =
-      val bottle = stack
-      if isValidStack(bottle) then
-        val builder = BottomlessBottleItem.SimpleFluidContentBuilder.fromStack(bottle)
-        val resource = builder.template
-        val count = builder.extract(resource, maxDrain)
-
-        if fluidAction.execute() then
-          builder.buildAndSet(bottle)
-          setChanged()
-
-        resource.makeStack(count)
-      else
-        FluidStack.EMPTY
-
-  }
-
-  final class EnergyStorages extends IEnergyStorage:
-    val storages: Array[IEnergyStorage] = Array.fill(capacity)(EmptyEnergyStorage.INSTANCE)
-
-    def removeSlot(slot: Int): Unit =
-      storages(slot) = EmptyEnergyStorage.INSTANCE
-
-    def loadBattery(slot: Int): Unit =
-      val stack = items.get(slot)
-      storages(slot) = BottomlessBatteryItem.getStorage(stack)
-
-    override def receiveEnergy(toReceive: Int, simulate: Boolean): Int =
-      var i = 0
-      var remReceive = toReceive
-      var received = 0
-
-      while i < capacity do
-        val storage = storages(i)
-        val amount = storage.receiveEnergy(remReceive, simulate)
-        remReceive -= amount
-        received += amount
-        if remReceive == 0 then
-          if !simulate then
-            setChanged()
-          return received
-
-        i += 1
-
-      if received != 0 && !simulate then
-        setChanged()
-
-      received
-
-
-
-    override def extractEnergy(toExtract: Int, simulated: Boolean): Int =
-      var i = 0
-      var remExtract = toExtract
-      var extracted = 0
-      while i < capacity do
-        val storage = storages(i)
-        val amount = storage.extractEnergy(remExtract, simulated)
-        remExtract -= amount
-        extracted += amount
-        if remExtract == 0 then
-          if !simulated then
-            setChanged()
-          return extracted
-
-        i += 1
-
-      if extracted != 0 && !simulated then
-        setChanged()
-      extracted
-
-    override def getEnergyStored: Int =
-      Ints.saturatedCast(energyStoredLong)
-
-    def energyStoredLong: Long =
-      storages.foldLeft(0L)((x, s) => x + s.getEnergyStored.toLong)
-
-    override def getMaxEnergyStored: Int =
-      Ints.saturatedCast(capacityLong)
-
-    def capacityLong: Long =
-      storages.foldLeft(0L)((x, s) => x + s.getMaxEnergyStored.toLong)
-
-    override def canExtract: Boolean = true
-
-    override def canReceive: Boolean = true
 
 
   override protected def loadAdditional(tag: CompoundTag, lookup: HolderLookup.Provider): Unit =
@@ -516,12 +231,12 @@ abstract class WithoutOpenContainerBottomlessStorageBlockEntity(capacity: Int, b
       0.5F,
       this.level.random.nextFloat * 0.1F + 0.9F
     )
-  
+
   val containerView: ContainerForBottomlessStorage = new ContainerForBottomlessStorage
 
   class ContainerForBottomlessStorage extends Container:
     def parent: WithoutOpenContainerBottomlessStorageBlockEntity = WithoutOpenContainerBottomlessStorageBlockEntity.this
-    
+
     def getContainerSize: Int = capacity
 
 
@@ -603,8 +318,8 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
       this.getBlockPos,
       this.getBlockState
     )
-  
-  
+
+
 
   def recheckOpen(): Unit =
     if !this.remove then
@@ -715,7 +430,8 @@ object BottomlessStorageBlockEntity:
       val bundle = this.stack
       if isValidStack(bundle) then
         val storage = ItemStorage.load(bundle)
-        storage.stack(math.min(storage.getCount, storage.stackSize()).toInt).copy()
+        // storage.stack(math.min(storage.getCount, storage.stackSize()).toInt).copy()
+        storage.unsafeStack()
       else
         ItemStack.EMPTY
 

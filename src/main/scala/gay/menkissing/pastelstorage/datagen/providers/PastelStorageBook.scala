@@ -36,6 +36,7 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
     addBlock(PastelStorageBlocks.bottomlessAmphora, "Bottomless Amphora")
     addBlock(PastelStorageBlocks.filterChest, "Filter Chest")
     addBlock(PastelStorageBlocks.bottomlessShelf, "Bottomless Shelf")
+    addBlock(PastelStorageBlocks.bottomlessWorm, "Bottomless Worm")
 
     addItem(PastelStorageItems.bottomlessBottle, "Bottomless Bottle")
     addTooltip(PastelStorageItems.bottomlessBottle, "empty", "Empty")
@@ -54,9 +55,11 @@ final class PastelStorageBook(output: PackOutput, lookup: CompletableFuture[Hold
     List(
       "bottomless_barrel" -> "Bottomless Barrel",
       "bottomless_amphora" -> "Bottomless Amphora",
-      "filter_chest" -> "Filter Chest"
+      "filter_chest" -> "Filter Chest",
     ).foreach: (k, v) =>
       add(s"container.pastelstorage.$k", v)
+
+    add(PastelStorageTranslationKeys.keys.container.bottomlessWorm, "Bottomless Worm")
       
     add(PastelStorageTags.item.validToolTag, "Valid Tools")
     add(PastelStorageTags.item.deletesItemsWhenInsertedInto, "Voids items inside Bottomless Barrel")
