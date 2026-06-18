@@ -39,6 +39,7 @@ object PastelStorageTranslationKeys:
       val bottomlessAmphora: String = make(PastelStorageBlocks.bottomlessAmphora)
       val filterChest: String = make(PastelStorageBlocks.filterChest)
       val bottomlessBarrel: String = make(PastelStorageBlocks.bottomlessBarrel)
+      val bottomlessWorm: String = make(PastelStorageBlocks.bottomlessWorm)
   
     val addedByPastelStorage: String = "book.pastelstorage.added_by_pastelstorage"
     val voidWithLava: String = "book.pastelstorage.void_with_lava"
@@ -47,6 +48,7 @@ object PastelStorageTranslationKeys:
     val bottomlessAmphora: Component = Component.translatable(keys.container.bottomlessAmphora)
     val filterChest: Component = Component.translatable(keys.container.filterChest)
     val bottomlessBarrel: Component = Component.translatable(keys.container.bottomlessBarrel)
+    val bottomlessWorm: Component = Component.translatable(keys.container.bottomlessWorm)
 
   object bottomlessBottle:
     object tooltip:

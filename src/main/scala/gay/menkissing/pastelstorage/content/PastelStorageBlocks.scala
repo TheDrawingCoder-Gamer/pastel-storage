@@ -3,8 +3,8 @@ package gay.menkissing.pastelstorage.content
 import earth.terrarium.pastel.registries.PastelItemGroups
 import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.content.block.BottomlessStorageBlock.{BottomlessAmphoraBlock, BottomlessBarrelBlock}
-import gay.menkissing.pastelstorage.content.block.{BottomlessShelfBlock, FilterChestBlock}
-import gay.menkissing.pastelstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity, FilterChestBlockEntity}
+import gay.menkissing.pastelstorage.content.block.{BottomlessShelfBlock, BottomlessWormBlock, FilterChestBlock}
+import gay.menkissing.pastelstorage.content.block.entity.{BottomlessShelfBlockEntity, BottomlessStorageBlockEntity, BottomlessWormBlockEntity, FilterChestBlockEntity}
 import gay.menkissing.pastelstorage.util.resources.{*, given}
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
@@ -46,57 +46,25 @@ object PastelStorageBlocks:
 
   val bottomlessShelf: DeferredBlock[Block] =
     register("bottomless_shelf", PastelItemGroups.INSTRUMENTS_ID, BottomlessShelfBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
-    /*
-    InfoCollector.instance.block(SpectrumStorage.locate("bottomless_shelf"),
-      BottomlessShelfBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
-                 .lang("Bottomless Shelf")
-                 .item()
-                 .model(gen => item => gen.withExistingParent(item, bottomlessShelf.modelLoc.withSuffix("_inventory"))).build()
-                 .tag(BlockTags.MINEABLE_WITH_AXE)
-                 .dropSelf()
-                 .blockstate(ComplexBlockstateDatagen.BottomlessShelf.genBottomlessShelf)
-                 .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
 
-     */
 
   val bottomlessBarrel =
     register("bottomless_barrel", PastelItemGroups.INSTRUMENTS_ID, BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
 
-    /*
-    InfoCollector.instance.block(SpectrumStorage.locate("bottomless_barrel"),
-      BottomlessBarrelBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(1.5f)))
-                 .lang("Bottomless Barrel")
-                 .tag(BlockTags.MINEABLE_WITH_AXE)
-                 .simpleItem()
-                 .dropSelf()
-                 .blockstate(gen => block => gen.barrelBlock(block))
-                 .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
-    */
+  val bottomlessWorm =
+    register("bottomless_worm", PastelItemGroups.INSTRUMENTS_ID, BottomlessWormBlock(BlockBehaviour.Properties.of()
+                                                                                                   .sound(SoundType
+                                                                                                     .WOOD)
+                                                                                                   .strength(1.5f)))
+
   val bottomlessAmphora =
     register("bottomless_amphora", PastelItemGroups.INSTRUMENTS_ID, BottomlessAmphoraBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f)))
-  /*
-    InfoCollector.instance.block(SpectrumStorage.locate("bottomless_amphora"),
-      BottomlessAmphoraBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f)))
-                 .lang("Bottomless Amphora")
-                 .tag(BlockTags.MINEABLE_WITH_AXE)
-                 .simpleItem()
-                 .dropSelf()
-                 .blockstate(gen => block => gen.barrelBlock(block))
-                 .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
-    */
+
+
+
   val filterChest =
     register("filter_chest", PastelItemGroups.INSTRUMENTS_ID, FilterChestBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f).noOcclusion()))
-    /*
-    InfoCollector.instance.block(SpectrumStorage.locate("filter_chest"),
-      FilterChestBlock(BlockBehaviour.Properties.of().sound(SoundType.WOOD).strength(4.0f).noOcclusion()))
-                 .lang("Filter Barrel")
-                 .tag(BlockTags.MINEABLE_WITH_AXE)
-                 .simpleItem()
-                 .dropSelf()
-                 .blockstate(gen => block => gen.barrelBlockExistingModel(block))
-                 .registerItemInGroup(ItemGroupIDs.SUBTAB_FUNCTIONAL)
 
-   */
 
   val bottomlessShelfBlockEntity =
     makeEntity("bottomless_shelf", (a, b) => BottomlessShelfBlockEntity(a, b), bottomlessShelf.get())
@@ -104,6 +72,9 @@ object PastelStorageBlocks:
     makeEntity("bottomless_barrel", (a, b) => BottomlessStorageBlockEntity.BottomlessBarrelBlockEntity(a, b), bottomlessBarrel.get())
   val bottomlessAmphoraBlockEntity =
     makeEntity("bottomless_amphora", (a, b) => BottomlessStorageBlockEntity.BottomlessAmphoraBlockEntity(a, b), bottomlessAmphora.get())
+  val bottomlessWormBlockEntity =
+    makeEntity("bottomless_worm", (a, b) => BottomlessWormBlockEntity(a, b), bottomlessWorm.get())
+
 
   val filterChestBlockEntity =
     makeEntity("filter_chest", (a, b) => FilterChestBlockEntity(a, b), filterChest.get())

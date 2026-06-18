@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec
 import earth.terrarium.pastel.api.block.FilterConfigurable
 import gay.menkissing.pastelstorage.PastelStorage
 import gay.menkissing.pastelstorage.screen.ToolContainerMenu.ToolContainerData
-import gay.menkissing.pastelstorage.screen.{BottomlessStorageMenu, FilterChestMenu, ToolContainerMenu}
+import gay.menkissing.pastelstorage.screen.{BottomlessStorageMenu, BottomlessWormMenu, FilterChestMenu, ToolContainerMenu}
 import net.minecraft.core.Registry
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
 import net.minecraft.network.{FriendlyByteBuf, RegistryFriendlyByteBuf}
@@ -41,6 +41,12 @@ object PastelStorageScreens:
     registry.register(
       "filter_chest",
       () => extendedWrapper(FilterChestMenu.fromNetwork, FilterConfigurable.ExtendedDataWithPos.STREAM_CODEC)
+    )
+  
+  val bottomlessWorm =
+    registry.register(
+      "bottomless_worm",
+      () => new MenuType[BottomlessWormMenu](BottomlessWormMenu.client, FeatureFlags.VANILLA_SET)
     )
 
   def extendedWrapper[R <: AbstractContainerMenu, T](constructor: (Int, Inventory, T) => R, codec: StreamCodec[? >: RegistryFriendlyByteBuf, T]): MenuType[R] =

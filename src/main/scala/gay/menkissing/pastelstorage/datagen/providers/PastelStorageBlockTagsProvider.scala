@@ -20,4 +20,5 @@ class PastelStorageBlockTagsProvider
       .add(PastelStorageBlocks.bottomlessShelf.get())
       .add(PastelStorageBlocks.bottomlessBarrel.get())
       .add(PastelStorageBlocks.bottomlessAmphora.get())
+      .add(PastelStorageBlocks.bottomlessWorm.get())
       .add(PastelStorageBlocks.filterChest.get())

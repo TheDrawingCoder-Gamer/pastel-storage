@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "pastelstorage:block/bottomless_worm",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "pastelstorage:block/bottomless_worm",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "pastelstorage:block/bottomless_worm",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "pastelstorage:block/bottomless_worm",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "pastelstorage:block/bottomless_worm"
+    },
+    "facing=west": {
+      "model": "pastelstorage:block/bottomless_worm",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

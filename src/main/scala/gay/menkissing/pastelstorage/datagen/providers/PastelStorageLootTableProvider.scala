@@ -26,3 +26,4 @@ object PastelStorageLootTableProvider:
       dropSelf(PastelStorageBlocks.bottomlessBarrel.get())
       dropSelf(PastelStorageBlocks.bottomlessAmphora.get())
       dropSelf(PastelStorageBlocks.filterChest.get())
+      dropSelf(PastelStorageBlocks.bottomlessWorm.get())

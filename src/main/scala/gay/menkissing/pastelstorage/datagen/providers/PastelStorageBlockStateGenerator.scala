@@ -118,6 +118,39 @@ final class PastelStorageBlockStateGenerator(output: PackOutput, existingFileHel
                      .build()
 
 
+  def addWorm(block: Block): Unit =
+    val side = TextureMapping.getBlockTexture(block, "_side")
+    val top = TextureMapping.getBlockTexture(block, "_top")
+    val bottom = TextureMapping.getBlockTexture(block, "_bottom")
+    val model = models().cubeBottomTop(block.location.getPath, side, bottom, top)
+
+    simpleBlockItem(block, model)
+
+    val variantBuilder = getVariantBuilder(block)
+    variantBuilder.forAllStates: state =>
+      val dir = state.getValue(BlockStateProperties.FACING)
+      val xRot =
+        dir match
+          case Direction.DOWN => 180
+          case Direction.UP => 0
+          case _ => 90
+      val yRot =
+        dir match
+          case Direction.DOWN => 0
+          case Direction.UP => 0
+          case Direction.NORTH => 0
+          case Direction.SOUTH => 180
+          case Direction.WEST => 270
+          case Direction.EAST => 90
+
+      ConfiguredModel
+        .builder()
+        .modelFile(model)
+        .rotationX(xRot)
+        .rotationY(yRot)
+        .build()
+
+
   override protected def registerStatesAndModels(): Unit =
     val shelfGenerator = ShelfGenerator(PastelStorageBlocks.bottomlessShelf.get())
     shelfGenerator.generateBottomlessShelfModels()
@@ -131,6 +164,8 @@ final class PastelStorageBlockStateGenerator(output: PackOutput, existingFileHel
       ExistingModelFile(PastelStorageBlocks.filterChest.get().modelLoc, existingFileHelper),
       ExistingModelFile(PastelStorageBlocks.filterChest.get().modelLoc.withSuffix("_open"), existingFileHelper)
     )
+
+    addWorm(PastelStorageBlocks.bottomlessWorm.get())
 
 
 }

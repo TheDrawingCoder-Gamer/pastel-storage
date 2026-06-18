@@ -65,7 +65,7 @@ abstract class BottomlessStorageBlock(val capacity: Int, props: BlockBehaviour.P
 object BottomlessStorageBlock:
   val FACING = BlockStateProperties.FACING
   val OPEN = BlockStateProperties.OPEN
-  
+
   final class BottomlessBarrelBlock(props: BlockBehaviour.Properties) extends BottomlessStorageBlock(BottomlessStorageMenu.barrelContainerSize, props):
     override def newBlockEntity(blockPos: BlockPos, blockState: BlockState): BlockEntity =
       new BottomlessStorageBlockEntity.BottomlessBarrelBlockEntity(blockPos, blockState)

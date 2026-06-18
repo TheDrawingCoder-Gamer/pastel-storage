@@ -13,7 +13,7 @@ import gay.menkissing.pastelstorage.content.{PastelStorageBlocks, PastelStorageI
 import gay.menkissing.pastelstorage.registries.{PastelStorageComponents, PastelStorageCriteria, PastelStorageTags, PastelStorageTranslationKeys}
 import gay.menkissing.pastelstorage.screen.BottomlessStorageMenu
 import gay.menkissing.pastelstorage.api.fluid.FluidResource
-import gay.menkissing.pastelstorage.content.block.entity.BottomlessStorageBlockEntity.{HasFluidFilterable, HasItemFilterable}
+import gay.menkissing.pastelstorage.content.block.entity.BottomlessStorageBlockEntity.{HasFluidFilterable, HasItemFilterable, TItemStorages}
 import gay.menkissing.pastelstorage.util.PastelStorageEnchantmentHelper
 import net.minecraft.core.component.DataComponents
 import net.minecraft.core.registries.{BuiltInRegistries, Registries}
@@ -51,7 +51,9 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
   protected var lastInteractedSlot: Int = -1
 
 
-  val itemStorage: ItemStorages = new ItemStorages
+  val itemStorage: BottomlessStorageBlockEntity.TItemStorages = new TItemStorages {
+    override def parent: BottomlessStorageBlockEntity = BottomlessStorageBlockEntity.this
+  }
   val fluidStorage: FluidStorages = new FluidStorages
   val energyStorage: EnergyStorages = new EnergyStorages
 
@@ -93,170 +95,9 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
       energyStorage.removeSlot(slot)
 
 
-  // TODO: Optimize these storages so they don't need to constantly recheck the stack
-
-  final class ItemStorages extends IItemHandler {
-    val storages: Array[IItemHandler & HasItemFilterable] = Array.fill(capacity)(BottomlessStorageBlockEntity.EmptyItemSlot)
-
-    def unsetSlot(slot: Int): Unit =
-      storages(slot).unset()
-
-    def removeSlot(slot: Int): Unit =
-      storages(slot) = BottomlessStorageBlockEntity.EmptyItemSlot
-
-    def loadBundleSlot(slot: Int): Unit =
-      val stack = items.get(slot)
-      val storage = new BundleItemStorageHandler(stack)
-      val filter = stack.getOrDefault(PastelDataComponentTypes.ITEM_STORAGE, ItemStorage.Component.DEFAULT)
-      storage.setFilter(filter.reference())
-      storages(slot) = storage
-
-    def setVoidingSlot(slot: Int): Unit =
-      storages(slot) = VoidingItemSlot(items.get(slot))
-
-    def setSlotFilter(slot: Int, stack: ItemReference): Unit =
-      storages(slot).setFilter(stack)
-
-    override def getSlots: Int = capacity
-
-    override def getStackInSlot(slot: Int): ItemStack =
-      storages(slot).getStackInSlot(0)
-
-    override def getSlotLimit(slot: Int): Int =
-      storages(slot).getSlotLimit(0)
-
-    override def insertItem(slot: Int, stack: ItemStack, simulated: Boolean): ItemStack =
-      storages(slot).insertItem(0, stack, simulated)
-
-    override def extractItem(slot: Int, amount: Int, simulated: Boolean): ItemStack =
-      storages(slot).extractItem(0, amount, simulated)
-
-    override def isItemValid(slot: Int, stack: ItemStack): Boolean = true
-  }
-
-  final class VoidingItemSlot(val voider: ItemStack) extends IItemHandler, HasItemFilterable {
-
-    override def getSlots: Int = 1
-
-    override def getStackInSlot(i: Int): ItemStack = ItemStack.EMPTY
-
-    override def insertItem(i: Int, itemStack: ItemStack, simulate: Boolean): ItemStack =
-      if !itemStack.isEmpty && !simulate then
-        tryTriggerVoidObjective(voider)
-      ItemStack.EMPTY
-
-    override def extractItem(i: Int, i1: Int, b: Boolean): ItemStack =
-      ItemStack.EMPTY
-
-    override def getSlotLimit(i: Int): Int = 0
-
-    override def isItemValid(i: Int, itemStack: ItemStack): Boolean = true
-
-    override def setFilter(filter: ItemReference): Unit = ()
-
-    override def getFilter: ItemReference = ItemReference.empty()
-
-    override def unset(): Unit = ()
-  }
-
-  final class BundleItemStorageHandler(val stack: ItemStack) extends IItemHandler, HasItemFilterable {
-    import BottomlessStorageBlockEntity.StorageTests
-    // def stack: ItemStack = items.get(slot)
-
-    def isVoidingStack(stack: ItemStack): Boolean =
-      EnchantmentHelper.hasTag(stack, PastelEnchantmentTags.DELETES_OVERFLOW)
-
-    def isValidStack(stack: ItemStack): Boolean =
-      StorageTests.isBundle(stack)
-
-    def stackMax(stack: ItemStack): Int =
-      if isValidStack(stack) then
-        BottomlessBundleItem.getMaxStoredAmount(
-          PastelStorageEnchantmentHelper.getLevel(level.registryAccess(), Enchantments.POWER, stack)
-        ).toInt
-      else
-        0
 
 
-    var filter: ItemReference = ItemReference.empty()
 
-
-    def unset(): Unit =
-      this.filter = ItemReference.empty()
-
-    def setFilter(filter: ItemReference): Unit =
-      this.filter = filter
-
-    def getFilter: ItemReference = filter
-
-
-    def permits(stored: ItemReference, resource: ItemReference): Boolean =
-      // assume(!this.isGarbageStack(this.stack))
-      if !stored.isEmpty && !filter.isEmpty && filter != stored then
-        PastelStorage.Logger.info("player must have modified the bundle manually, updating filter")
-
-      if !stored.isEmpty then
-        filter = stored
-        setChanged()
-
-      filter.isEmpty || filter == resource
-
-    override def getSlots: Int = 1
-
-    override def getStackInSlot(i: Int): ItemStack =
-      val bundle = this.stack
-      if isValidStack(bundle) then
-        val storage = ItemStorage.load(bundle)
-        storage.stack(math.min(storage.getCount, storage.stackSize()).toInt).copy()
-      else
-        ItemStack.EMPTY
-
-    override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack =
-      val bundle = this.stack
-      if isValidStack(bundle) && slot == 0 then
-        val storage = ItemStorage.load(bundle)
-        if !permits(storage.getReference, ItemReference.of(stack)) then
-          return stack
-        val change = storage.insert(stack)
-        val remainder = stack.copyWithCount(stack.getCount - change)
-
-        if simulate then
-          remainder
-        else
-          storage.copy().save(bundle)
-          setChanged()
-          if isVoidingStack(bundle) then
-            ItemStack.EMPTY
-          else
-            remainder
-      else
-        stack
-
-    override def extractItem(slot: Int, amount: Int, simulate: Boolean): ItemStack =
-      val bundle = this.stack
-      // no special casing for garbage here
-      if isValidStack(stack) && slot == 0 then
-        val storage = ItemStorage.load(bundle)
-        val result = storage.extract(amount)
-
-        if !simulate then
-          setChanged()
-          storage.copy().save(bundle)
-        result
-      else
-        ItemStack.EMPTY
-
-    override def getSlotLimit(slot: Int): Int =
-      val bundle = this.stack
-      if isValidStack(bundle) then
-        stackMax(bundle)
-      else
-        0
-
-    override def isItemValid(slot: Int, itemStack: ItemStack): Boolean =
-      true
-
-  }
 
   class FluidStorages extends IFluidHandler {
     val storages: Array[IFluidHandler & HasFluidFilterable] = Array.fill(capacity)(BottomlessStorageBlockEntity.EmptyFluidSlot)
@@ -655,14 +496,75 @@ abstract class BottomlessStorageBlockEntity(val capacity: Int, baseEntity: Block
 
 
 
-
-
-abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends BottomlessStorageBlockEntity(capacity, baseEntity, pos, state), MenuProvider, NameableBlockEntity:
+abstract class WithoutOpenContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState)
+  extends BottomlessStorageBlockEntity(capacity, baseEntity, pos, state), MenuProvider, NameableBlockEntity:
   protected val openSound: SoundEvent = SoundEvents.BARREL_OPEN
   protected val closeSound: SoundEvent = SoundEvents.BARREL_CLOSE
 
+  def defaultName: Component
 
-  val containerView = new ContainerForBottomlessStorage()
+  def playSound(blockState: BlockState, soundEvent: SoundEvent): Unit =
+    val vec3i = blockState.getValue(BarrelBlock.FACING).getNormal
+    val d = this.worldPosition.getX.toDouble + 0.5F.toDouble + (vec3i.getX.toDouble / 2.0F.toDouble)
+    val e = this.worldPosition.getY.toDouble + 0.5F.toDouble + (vec3i.getY.toDouble / 2.0F.toDouble)
+    val f = this.worldPosition.getZ.toDouble + 0.5F.toDouble + (vec3i.getZ.toDouble / 2.0F.toDouble)
+    this.level.playSound(
+      null,
+      d, e, f,
+      soundEvent,
+      SoundSource.BLOCKS,
+      0.5F,
+      this.level.random.nextFloat * 0.1F + 0.9F
+    )
+  
+  val containerView: ContainerForBottomlessStorage = new ContainerForBottomlessStorage
+
+  class ContainerForBottomlessStorage extends Container:
+    def parent: WithoutOpenContainerBottomlessStorageBlockEntity = WithoutOpenContainerBottomlessStorageBlockEntity.this
+    
+    def getContainerSize: Int = capacity
+
+
+    override def clearContent(): Unit =
+      items.clear()
+      (0 until capacity).foreach(StorageManager.removeSlot)
+
+    override def getItem(i: Int): ItemStack =
+      items.get(i)
+
+    override def isEmpty: Boolean = WithoutOpenContainerBottomlessStorageBlockEntity.this.isEmpty
+
+    override def removeItem(slot: Int, amount: Int): ItemStack =
+      WithoutOpenContainerBottomlessStorageBlockEntity.this.removeItem(slot, amount)
+
+    override def removeItemNoUpdate(slot: Int): ItemStack =
+      WithoutOpenContainerBottomlessStorageBlockEntity.this.removeItemNoUpdate(slot)
+
+    override def setChanged(): Unit =
+      // Better safe than soggy.......
+      WithoutOpenContainerBottomlessStorageBlockEntity.this.setChanged()
+
+    override def setItem(slot: Int, stack: ItemStack): Unit =
+      WithoutOpenContainerBottomlessStorageBlockEntity.this.setItem(slot, stack)
+
+    override def stillValid(player: Player): Boolean =
+      WithoutOpenContainerBottomlessStorageBlockEntity.this.stillValid(player)
+
+abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: BlockEntityType[? <: BottomlessStorageBlockEntity], pos: BlockPos, state: BlockState) extends
+  WithoutOpenContainerBottomlessStorageBlockEntity(capacity, baseEntity, pos, state):
+
+
+  final class OpenableContainerForBottomlessStorage extends ContainerForBottomlessStorage {
+    override def startOpen(player: Player): Unit =
+      if !ContainerBottomlessStorageBlockEntity.this.remove && !player.isSpectator then
+        incrementOpeners(player)
+
+    override def stopOpen(player: Player): Unit =
+      if !ContainerBottomlessStorageBlockEntity.this.remove && !player.isSpectator then
+        decrementOpeners(player)
+  }
+
+  override val containerView = new OpenableContainerForBottomlessStorage()
 
 
   private val openersCounter: ContainerOpenersCounter =
@@ -701,47 +603,8 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
       this.getBlockPos,
       this.getBlockState
     )
-
-  def defaultName: Component
-
-  final class ContainerForBottomlessStorage extends Container:
-    def parent: ContainerBottomlessStorageBlockEntity = ContainerBottomlessStorageBlockEntity.this
-
-    def getContainerSize: Int = capacity
-
-
-    override def startOpen(player: Player): Unit =
-      if !ContainerBottomlessStorageBlockEntity.this.remove && !player.isSpectator then
-        incrementOpeners(player)
-
-    override def stopOpen(player: Player): Unit =
-      if !ContainerBottomlessStorageBlockEntity.this.remove && !player.isSpectator then
-        decrementOpeners(player)
-
-    override def clearContent(): Unit =
-      items.clear()
-      (0 until capacity).foreach(StorageManager.removeSlot)
-
-    override def getItem(i: Int): ItemStack =
-      items.get(i)
-
-    override def isEmpty: Boolean = ContainerBottomlessStorageBlockEntity.this.isEmpty
-
-    override def removeItem(slot: Int, amount: Int): ItemStack =
-      ContainerBottomlessStorageBlockEntity.this.removeItem(slot, amount)
-
-    override def removeItemNoUpdate(slot: Int): ItemStack =
-      ContainerBottomlessStorageBlockEntity.this.removeItemNoUpdate(slot)
-
-    override def setChanged(): Unit =
-      // Better safe than soggy.......
-      ContainerBottomlessStorageBlockEntity.this.setChanged()
-
-    override def setItem(slot: Int, stack: ItemStack): Unit =
-      ContainerBottomlessStorageBlockEntity.this.setItem(slot, stack)
-
-    override def stillValid(player: Player): Boolean =
-      ContainerBottomlessStorageBlockEntity.this.stillValid(player)
+  
+  
 
   def recheckOpen(): Unit =
     if !this.remove then
@@ -750,19 +613,7 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
 
 
 
-  def playSound(blockState: BlockState, soundEvent: SoundEvent): Unit =
-    val vec3i = blockState.getValue(BarrelBlock.FACING).getNormal
-    val d = this.worldPosition.getX.toDouble + 0.5F.toDouble + (vec3i.getX.toDouble / 2.0F.toDouble)
-    val e = this.worldPosition.getY.toDouble + 0.5F.toDouble + (vec3i.getY.toDouble / 2.0F.toDouble)
-    val f = this.worldPosition.getZ.toDouble + 0.5F.toDouble + (vec3i.getZ.toDouble / 2.0F.toDouble)
-    this.level.playSound(
-      null,
-      d, e, f,
-      soundEvent,
-      SoundSource.BLOCKS,
-      0.5F,
-      this.level.random.nextFloat * 0.1F + 0.9F
-    )
+
 
   def updateBlockState(state: BlockState, open: Boolean): Unit =
     this.level.setBlockAndUpdate(this.getBlockPos, state.setValue(BarrelBlock.OPEN, open))
@@ -775,6 +626,171 @@ abstract class ContainerBottomlessStorageBlockEntity(capacity: Int, baseEntity: 
 object BottomlessStorageBlockEntity:
   val tagFluidFilters = "fluid_filters"
   val tagItemFilters = "item_filters"
+  abstract class TItemStorages extends IItemHandler:
+    def parent: BottomlessStorageBlockEntity
+
+    val storages: Array[IItemHandler & HasItemFilterable] = Array.fill(parent.capacity)(EmptyItemSlot)
+
+    def unsetSlot(slot: Int): Unit =
+      storages(slot).unset()
+
+    def removeSlot(slot: Int): Unit =
+      storages(slot) = BottomlessStorageBlockEntity.EmptyItemSlot
+
+    def loadBundleSlot(slot: Int): Unit =
+      val stack = parent.items.get(slot)
+      val storage = new BundleItemStorageHandler(parent, stack)
+      val filter = stack.getOrDefault(PastelDataComponentTypes.ITEM_STORAGE, ItemStorage.Component.DEFAULT)
+      storage.setFilter(filter.reference())
+      storages(slot) = storage
+
+    def setVoidingSlot(slot: Int): Unit =
+      storages(slot) = VoidingItemSlot(parent, parent.items.get(slot))
+
+    def setSlotFilter(slot: Int, stack: ItemReference): Unit =
+      storages(slot).setFilter(stack)
+
+    override def getSlots: Int = parent.capacity
+
+    override def getStackInSlot(slot: Int): ItemStack =
+      storages(slot).getStackInSlot(0)
+
+    override def getSlotLimit(slot: Int): Int =
+      storages(slot).getSlotLimit(0)
+
+    override def insertItem(slot: Int, stack: ItemStack, simulated: Boolean): ItemStack =
+      storages(slot).insertItem(0, stack, simulated)
+
+    override def extractItem(slot: Int, amount: Int, simulated: Boolean): ItemStack =
+      storages(slot).extractItem(0, amount, simulated)
+
+    override def isItemValid(slot: Int, stack: ItemStack): Boolean = true
+
+  final class BundleItemStorageHandler(val parent: BottomlessStorageBlockEntity, val stack: ItemStack) extends IItemHandler, HasItemFilterable {
+
+    import BottomlessStorageBlockEntity.StorageTests
+    // def stack: ItemStack = items.get(slot)
+
+    def isVoidingStack(stack: ItemStack): Boolean =
+      EnchantmentHelper.hasTag(stack, PastelEnchantmentTags.DELETES_OVERFLOW)
+
+    def isValidStack(stack: ItemStack): Boolean =
+      StorageTests.isBundle(stack)
+
+    def stackMax(stack: ItemStack): Int =
+      if isValidStack(stack) then
+        BottomlessBundleItem.getMaxStoredAmount(
+          PastelStorageEnchantmentHelper.getLevel(parent.getLevel.registryAccess(), Enchantments.POWER, stack)
+        ).toInt
+      else
+        0
+
+
+    var filter: ItemReference = ItemReference.empty()
+
+
+    def unset(): Unit =
+      this.filter = ItemReference.empty()
+
+    def setFilter(filter: ItemReference): Unit =
+      this.filter = filter
+
+    def getFilter: ItemReference = filter
+
+
+    def permits(stored: ItemReference, resource: ItemReference): Boolean =
+      // assume(!this.isGarbageStack(this.stack))
+      if !stored.isEmpty && !filter.isEmpty && filter != stored then
+        PastelStorage.Logger.info("player must have modified the bundle manually, updating filter")
+
+      if !stored.isEmpty then
+        filter = stored
+        parent.setChanged()
+
+      filter.isEmpty || filter == resource
+
+    override def getSlots: Int = 1
+
+    override def getStackInSlot(i: Int): ItemStack =
+      val bundle = this.stack
+      if isValidStack(bundle) then
+        val storage = ItemStorage.load(bundle)
+        storage.stack(math.min(storage.getCount, storage.stackSize()).toInt).copy()
+      else
+        ItemStack.EMPTY
+
+    override def insertItem(slot: Int, stack: ItemStack, simulate: Boolean): ItemStack =
+      val bundle = this.stack
+      if isValidStack(bundle) && slot == 0 then
+        val storage = ItemStorage.load(bundle)
+        if !permits(storage.getReference, ItemReference.of(stack)) then
+          return stack
+        val change = storage.insert(stack)
+        val remainder = stack.copyWithCount(stack.getCount - change)
+
+        if simulate then
+          remainder
+        else
+          storage.copy().save(bundle)
+          parent.setChanged()
+          if isVoidingStack(bundle) then
+            ItemStack.EMPTY
+          else
+            remainder
+      else
+        stack
+
+    override def extractItem(slot: Int, amount: Int, simulate: Boolean): ItemStack =
+      val bundle = this.stack
+      // no special casing for garbage here
+      if isValidStack(bundle) && slot == 0 then
+        val storage = ItemStorage.load(bundle)
+        val result = storage.extract(amount)
+
+        if !simulate then
+          parent.setChanged()
+          storage.copy().save(bundle)
+        result
+      else
+        ItemStack.EMPTY
+
+    override def getSlotLimit(slot: Int): Int =
+      val bundle = this.stack
+      if isValidStack(bundle) then
+        stackMax(bundle)
+      else
+        0
+
+    override def isItemValid(slot: Int, itemStack: ItemStack): Boolean =
+      true
+
+  }
+
+  final class VoidingItemSlot(val parent: BottomlessStorageBlockEntity, val voider: ItemStack) extends IItemHandler, HasItemFilterable {
+
+    override def getSlots: Int = 1
+
+    override def getStackInSlot(i: Int): ItemStack = ItemStack.EMPTY
+
+    override def insertItem(i: Int, itemStack: ItemStack, simulate: Boolean): ItemStack =
+      if !itemStack.isEmpty && !simulate then
+        parent.tryTriggerVoidObjective(voider)
+      ItemStack.EMPTY
+
+    override def extractItem(i: Int, i1: Int, b: Boolean): ItemStack =
+      ItemStack.EMPTY
+
+    override def getSlotLimit(i: Int): Int = 0
+
+    override def isItemValid(i: Int, itemStack: ItemStack): Boolean = true
+
+    override def setFilter(filter: ItemReference): Unit = ()
+
+    override def getFilter: ItemReference = ItemReference.empty()
+
+    override def unset(): Unit = ()
+  }
+
   final class BottomlessBarrelBlockEntity(pos: BlockPos, state: BlockState) extends ContainerBottomlessStorageBlockEntity(BottomlessStorageMenu.barrelContainerSize, PastelStorageBlocks.bottomlessBarrelBlockEntity.get(), pos, state):
     override def defaultName: Component = PastelStorageTranslationKeys.container.bottomlessBarrel
 
@@ -893,11 +909,12 @@ object BottomlessStorageBlockEntity:
     import PastelStorageBlocks.{
       bottomlessAmphoraBlockEntity => bottomlessAmphoraBE,
       bottomlessShelfBlockEntity => bottomlessShelfBE,
-      bottomlessBarrelBlockEntity => bottomlessBarrelBE
+      bottomlessBarrelBlockEntity => bottomlessBarrelBE,
+      bottomlessWormBlockEntity => bottomlessWormBE
     }
     // fingers crossed this works?
     bus.addListener: (ev: RegisterCapabilitiesEvent) =>
-      List[BlockEntityType[? <: BottomlessStorageBlockEntity]](bottomlessShelfBE.get(), bottomlessAmphoraBE.get(), bottomlessBarrelBE.get()).foreach: entity =>
+      List[BlockEntityType[? <: BottomlessStorageBlockEntity]](bottomlessShelfBE.get(), bottomlessAmphoraBE.get(), bottomlessBarrelBE.get(), bottomlessWormBE.get()).foreach: entity =>
         ev.registerBlockEntity(
           Capabilities.ItemHandler.BLOCK,
           entity,
