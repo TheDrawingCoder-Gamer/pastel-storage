@@ -1,4 +1,4 @@
-# Version NEXT
+# Version 0.2.0
 
 * Add Lava Bucket as an item for Barrels and Amphoras that voids Fluids and Items
 * Add Bottomless Battery, which stores FE in an item and can go in shelves, barrels, and amphoras
