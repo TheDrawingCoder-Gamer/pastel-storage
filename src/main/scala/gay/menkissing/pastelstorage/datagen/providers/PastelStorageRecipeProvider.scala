@@ -67,11 +67,11 @@ class PastelStorageRecipeProvider(output: PackOutput, lookup: CompletableFuture[
       .save(output, pedestalRecipeLocation(PastelStorageBlocks.bottomlessShelf, PedestalTier.SIMPLE))
 
     // ADVANCED
-    ShapedPedestalRecipeBuilder(ItemStack(PastelStorageBlocks.bottomlessWorm.get()))
+    ShapedPedestalRecipeBuilder(ItemStack(PastelStorageBlocks.bottomlessWorm.get(), 2))
       .tier(PedestalTier.ADVANCED)
       .craftingTime(240)
-      .withPowderInput(PastelGemstoneColor.CYAN, 6)
-      .withPowderInput(PastelGemstoneColor.BLACK, 2)
+      .withPowderInput(PastelGemstoneColor.CYAN, 12)
+      .withPowderInput(PastelGemstoneColor.BLACK, 4)
       .experience(2.0)
       .pattern("QTQ")
       .pattern("S S")

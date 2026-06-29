@@ -1,0 +1,2 @@
+src/generated/resources/** -diff -merge
+src/generated/resources/** linguist-generated=true

@@ -1,8 +1,8 @@
 {
   "type": "pastel:pedestal",
   "colors": {
-    "pastel:black": 2,
-    "pastel:cyan": 6
+    "pastel:black": 4,
+    "pastel:cyan": 12
   },
   "experience": 2.0,
   "key": {
@@ -26,7 +26,7 @@
   ],
   "required_advancement": "pastelstorage:unlocks/blocks/bottomless_worm",
   "result": {
-    "count": 1,
+    "count": 2,
     "id": "pastelstorage:bottomless_worm"
   },
   "tier": "advanced",
